@@ -26,11 +26,9 @@ kotlin {
 
             // 🎨 Additional Material Design 3 - Enhanced design system
             implementation(compose.material3)                  // Material3 design system
-            implementation(compose.material3AdaptiveNavigationSuite) // adaptive design
+            implementation(compose.material3AdaptiveNavigationSuite) // Material3 adaptive design suite
             implementation(compose.materialIconsExtended) // Extended Material icons
-            implementation(libs.material3.adaptive)     // adaptive design
-            implementation(libs.material3.adaptive.layout) // adaptive layout
-            implementation(libs.material3.adaptive.navigation) // adaptive navigation
+            implementation(libs.material3.adaptive)     // Material3 adaptive
 
             // 🧭 Navigation - Type-safe screen navigation
             implementation(libs.androidx.navigation.compose)   // Compose navigation
