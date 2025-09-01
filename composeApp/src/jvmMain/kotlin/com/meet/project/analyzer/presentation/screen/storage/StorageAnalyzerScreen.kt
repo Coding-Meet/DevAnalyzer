@@ -33,4 +33,13 @@ fun StorageAnalyzerScreen() {
         onLoadGradleCaches = { viewModel.handleIntent(StorageAnalyzerIntent.LoadGradleCaches) },
         onLoadGradleModules = { viewModel.handleIntent(StorageAnalyzerIntent.LoadGradleModules) }
     )
+//    StorageAnalyzerContent1(
+//        uiState = uiState,
+//        onRefresh = { viewModel.handleIntent(StorageAnalyzerIntent.RefreshData) },
+//        onLoadAvds = { viewModel.handleIntent(StorageAnalyzerIntent.LoadAvds) },
+//        onLoadSdk = { viewModel.handleIntent(StorageAnalyzerIntent.LoadSdkInfo) },
+//        onLoadDevEnv = { viewModel.handleIntent(StorageAnalyzerIntent.LoadDevEnvironment) },
+//        onLoadGradleCaches = { viewModel.handleIntent(StorageAnalyzerIntent.LoadGradleCaches) },
+//        onLoadGradleModules = { viewModel.handleIntent(StorageAnalyzerIntent.LoadGradleModules) }
+//    )
 }

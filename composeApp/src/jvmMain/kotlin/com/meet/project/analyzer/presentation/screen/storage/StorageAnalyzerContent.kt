@@ -1,7 +1,9 @@
 package com.meet.project.analyzer.presentation.screen.storage
 
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
+import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -20,11 +22,17 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyGridState
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.LibraryBooks
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Brush
@@ -36,7 +44,6 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Image
-import androidx.compose.material.icons.filled.LibraryBooks
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PieChart
@@ -45,7 +52,6 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Timeline
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -177,7 +183,144 @@ fun StorageAnalyzerContent(
                 )
             }
         }
+        BoxWithConstraints(
+            modifier = Modifier.fillMaxSize()
+        ) {
+            val scrollState = rememberLazyGridState()
 
+            when (selectedTab) {
+                0 -> OverviewTabContent(uiState, scrollState)
+                1 -> AvdsTabContent(uiState, onLoadAvds, scrollState)
+                2 -> SdkTabContent(uiState, onLoadSdk, scrollState)
+                3 -> DevEnvironmentTabContent(uiState, onLoadDevEnv, scrollState)
+                4 -> GradleCachesTabContent(uiState, onLoadGradleCaches, scrollState)
+                5 -> LibrariesTabContent(uiState, onLoadGradleModules, scrollState)
+                6 -> ChartsTabContent(uiState, scrollState)
+            }
+
+            // Vertical Scrollbar
+            VerticalScrollbar(
+                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
+                adapter = rememberScrollbarAdapter(scrollState),
+                style = defaultScrollbarStyle().copy(
+                    hoverColor = MaterialTheme.colorScheme.outline,
+                    unhoverColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                )
+            )
+
+            // Error display overlay
+            uiState.error?.let { error ->
+                Card(
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(16.dp)
+                        .fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.errorContainer
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Error,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.onErrorContainer,
+                            modifier = Modifier.padding(end = 12.dp)
+                        )
+                        Text(
+                            text = error,
+                            color = MaterialTheme.colorScheme.onErrorContainer,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun StorageAnalyzerContent1(
+    uiState: StorageAnalyzerUiState,
+    onRefresh: () -> Unit,
+    onLoadAvds: () -> Unit,
+    onLoadSdk: () -> Unit,
+    onLoadDevEnv: () -> Unit,
+    onLoadGradleCaches: () -> Unit,
+    onLoadGradleModules: () -> Unit
+) {
+    var selectedTab by remember { mutableStateOf(0) }
+    val tabs =
+        listOf("Overview", "AVDs", "SDK", "Dev Environment", "Gradle Caches", "Libraries", "Charts")
+
+    Column(
+        modifier = Modifier.fillMaxSize()
+    ) {
+        // Top App Bar
+        CenterAlignedTopAppBar(
+            title = {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Storage,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        "Storage Analyzer",
+                        color = MaterialTheme.colorScheme.onPrimary,
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            },
+            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                containerColor = MaterialTheme.colorScheme.primary
+            ),
+            actions = {
+                IconButton(onClick = onRefresh) {
+                    Icon(
+                        Icons.Default.Refresh,
+                        contentDescription = "Refresh",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
+                }
+            }
+        )
+
+        // Loading indicator
+        if (uiState.isLoading) {
+            LinearProgressIndicator(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        // Tab Row
+        PrimaryTabRow(
+            selectedTabIndex = selectedTab,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant
+        ) {
+            tabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedTab == index,
+                    onClick = { selectedTab = index },
+                    text = {
+                        Text(
+                            title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Medium
+                        )
+                    }
+                )
+            }
+        }
         // Content based on selected tab
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -429,7 +572,7 @@ fun StorageAnalyzerContent(
                         EmptyStateCard(
                             title = "No Libraries Found",
                             description = "No Gradle modules information available",
-                            icon = Icons.Default.LibraryBooks,
+                            icon = Icons.AutoMirrored.Default.LibraryBooks,
                             actionText = "Load Libraries",
                             onAction = onLoadGradleModules
                         )
@@ -439,7 +582,7 @@ fun StorageAnalyzerContent(
                 6 -> {
                     // Charts Tab
                     // Storage Distribution Pie Chart
-                    item() {
+                    item {
                         StorageDistributionChart(uiState)
                     }
 
@@ -468,13 +611,13 @@ fun StorageAnalyzerContent(
 
                     // Gradle Cache Versions Timeline
                     if (uiState.gradleCaches.isNotEmpty()) {
-                        item() {
+                        item {
                             GradleCacheTimelineChart(uiState.gradleCaches)
                         }
                     }
 
                     // Development Tools Overview
-                    item() {
+                    item {
                         DevelopmentToolsOverviewChart(uiState)
                     }
 
@@ -486,7 +629,7 @@ fun StorageAnalyzerContent(
                     // Cache Efficiency Chart
                     if (uiState.gradleModulesInfo != null) {
                         item {
-                            CacheEfficiencyChart(uiState.gradleModulesInfo!!)
+                            CacheEfficiencyChart(uiState.gradleModulesInfo)
                         }
                     }
                 }
@@ -565,7 +708,7 @@ fun OverviewContent(uiState: StorageAnalyzerUiState) {
             QuickStatCard(
                 title = "Libraries",
                 value = (uiState.gradleModulesInfo?.libraries?.size ?: 0).toString(),
-                icon = Icons.Default.LibraryBooks,
+                icon = Icons.AutoMirrored.Filled.LibraryBooks,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -617,12 +760,13 @@ fun QuickStatCard(
     title: String,
     value: String,
     icon: ImageVector,
+    color: Color = MaterialTheme.colorScheme.surfaceVariant,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
+            containerColor = color
         )
     ) {
         Column(
@@ -1207,7 +1351,7 @@ fun LibrariesSummaryCard(modules: GradleModulesInfo) {
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    Icons.Default.LibraryBooks,
+                    Icons.AutoMirrored.Filled.LibraryBooks,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.tertiary,
                     modifier = Modifier
@@ -1249,7 +1393,7 @@ fun LibraryInfoCard(library: GradleLibraryInfo) {
                 verticalAlignment = Alignment.Top
             ) {
                 Icon(
-                    Icons.Default.LibraryBooks,
+                    Icons.AutoMirrored.Filled.LibraryBooks,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
                     modifier = Modifier.padding(end = 12.dp, top = 2.dp).size(20.dp)
@@ -1397,9 +1541,270 @@ data class ChartData(val label: String, val value: Long, val color: Color)
 // ===========================================
 
 @Composable
-fun ChartsTabContent(uiState: StorageAnalyzerUiState) {
+fun OverviewTabContent(uiState: StorageAnalyzerUiState, scrollState: LazyGridState) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 300.dp),
+        state = scrollState,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Total Storage Card - Full width
+        item(span = { GridItemSpan(maxLineSpan) }) {
+            OverviewContent(uiState)
+        }
+    }
+}
+
+@Composable
+fun AvdsTabContent(
+    uiState: StorageAnalyzerUiState,
+    onLoadAvds: () -> Unit,
+    scrollState: LazyGridState
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 280.dp),
+        state = scrollState,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp),
+        horizontalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        if (uiState.avds.isNotEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                AvdSummaryCard(uiState.avds)
+            }
+            items(uiState.avds) { avd ->
+                AvdDetailCard(avd)
+            }
+        } else {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                EmptyStateCard(
+                    title = "No AVDs Found",
+                    description = "No Android Virtual Devices found on this system",
+                    icon = Icons.Default.PhoneAndroid,
+                    actionText = "Scan for AVDs",
+                    onAction = onLoadAvds
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun SdkTabContent(
+    uiState: StorageAnalyzerUiState,
+    onLoadSdk: () -> Unit,
+    scrollState: LazyGridState
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 320.dp),
+        state = scrollState,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        uiState.sdkInfo?.let { sdk ->
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                SdkSummaryCard(sdk)
+            }
+
+            // Platforms section
+            if (sdk.platforms.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SummaryStatItem("Platforms", sdk.platforms.size.toString())
+                }
+                items(sdk.platforms) { platform ->
+                    SdkItemCard(platform, Icons.Default.Android)
+                }
+            }
+
+            // Build Tools section
+            if (sdk.buildTools.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SummaryStatItem("Build Tools", sdk.buildTools.size.toString())
+                }
+                items(sdk.buildTools) { buildTool ->
+                    SdkItemCard(buildTool, Icons.Default.Build)
+                }
+            }
+
+            // System Images section
+            if (sdk.systemImages.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SummaryStatItem("System Images", sdk.systemImages.size.toString())
+                }
+                items(sdk.systemImages) { image ->
+                    SdkItemCard(image, Icons.Default.Image)
+                }
+            }
+
+            // Extras section
+            if (sdk.extras.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SummaryStatItem("Extras", sdk.extras.size.toString())
+                }
+                items(sdk.extras) { extra ->
+                    SdkItemCard(extra, Icons.Default.Extension)
+                }
+            }
+        } ?: run {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                EmptyStateCard(
+                    title = "No SDK Found",
+                    description = "Android SDK not found on this system",
+                    icon = Icons.Default.Android,
+                    actionText = "Scan for SDK",
+                    onAction = onLoadSdk
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun DevEnvironmentTabContent(
+    uiState: StorageAnalyzerUiState,
+    onLoadDevEnv: () -> Unit,
+    scrollState: LazyGridState
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 300.dp),
+        state = scrollState,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        uiState.devEnvironmentInfo?.let { devEnv ->
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                DevEnvironmentSummaryCard(devEnv)
+            }
+
+            // Storage Info Cards
+            item {
+                StorageInfoCard(devEnv.gradleCache, Icons.Default.Folder)
+            }
+            item {
+                StorageInfoCard(devEnv.ideaCache, Icons.Default.Code)
+            }
+
+            // JDKs
+            if (devEnv.jdks.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SummaryStatItem("JDKs", devEnv.jdks.size.toString())
+                }
+                items(devEnv.jdks) { jdk ->
+                    JdkInfoCard(jdk)
+                }
+            }
+
+            // Konan versions
+            if (devEnv.konanInfos.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SummaryStatItem("Kotlin/Native", devEnv.konanInfos.size.toString())
+                }
+                items(devEnv.konanInfos) { konan ->
+                    KonanInfoCard(konan)
+                }
+            }
+
+            // Gradle Wrappers
+            if (devEnv.gradleWrapperInfos.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SummaryStatItem("Gradle Wrappers", devEnv.gradleWrapperInfos.size.toString())
+                }
+                items(devEnv.gradleWrapperInfos) { wrapper ->
+                    GradleWrapperInfoCard(wrapper)
+                }
+            }
+        } ?: run {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                EmptyStateCard(
+                    title = "No Dev Environment Data",
+                    description = "Development environment information not loaded",
+                    icon = Icons.Default.DeveloperMode,
+                    actionText = "Load Dev Environment",
+                    onAction = onLoadDevEnv
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun GradleCachesTabContent(
+    uiState: StorageAnalyzerUiState,
+    onLoadGradleCaches: () -> Unit,
+    scrollState: LazyGridState
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 350.dp),
+        state = scrollState,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        if (uiState.gradleCaches.isNotEmpty()) {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                GradleCacheSummaryCard(uiState.gradleCaches)
+            }
+            items(uiState.gradleCaches) { cache ->
+                GradleCacheInfoCard(cache)
+            }
+        } else {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                EmptyStateCard(
+                    title = "No Gradle Caches Found",
+                    description = "No Gradle version caches found",
+                    icon = Icons.Default.Build,
+                    actionText = "Scan for Caches",
+                    onAction = onLoadGradleCaches
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun LibrariesTabContent(
+    uiState: StorageAnalyzerUiState,
+    onLoadGradleModules: () -> Unit,
+    scrollState: LazyGridState
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Adaptive(minSize = 350.dp),
+        state = scrollState,
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        uiState.gradleModulesInfo?.let { modules ->
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                LibrariesSummaryCard(modules)
+            }
+            if (modules.libraries.isNotEmpty()) {
+                items(modules.libraries) { library ->
+                    LibraryInfoCard(library)
+                }
+            }
+        } ?: run {
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                EmptyStateCard(
+                    title = "No Libraries Found",
+                    description = "No Gradle modules information available",
+                    icon = Icons.AutoMirrored.Filled.LibraryBooks,
+                    actionText = "Load Libraries",
+                    onAction = onLoadGradleModules
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ChartsTabContent(uiState: StorageAnalyzerUiState, scrollState: LazyGridState) {
     LazyVerticalGrid(
         columns = GridCells.Adaptive(minSize = 400.dp),
+        state = scrollState,
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp)
@@ -1438,25 +1843,9 @@ fun ChartsTabContent(uiState: StorageAnalyzerUiState) {
                 GradleCacheTimelineChart(uiState.gradleCaches)
             }
         }
-
-        // Development Tools Overview
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            DevelopmentToolsOverviewChart(uiState)
-        }
-
-        // Storage Growth Trend
-        item {
-            StorageGrowthTrendChart()
-        }
-
-        // Cache Efficiency Chart
-        if (uiState.gradleModulesInfo != null) {
-            item {
-                CacheEfficiencyChart(uiState.gradleModulesInfo!!)
-            }
-        }
     }
 }
+
 
 // ===========================================
 // STORAGE DISTRIBUTION PIE CHART
@@ -1476,7 +1865,7 @@ fun StorageDistributionChart(uiState: StorageAnalyzerUiState) {
         ) {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier
             ) {
                 Icon(
                     Icons.Default.PieChart,
@@ -1492,69 +1881,66 @@ fun StorageDistributionChart(uiState: StorageAnalyzerUiState) {
                 )
             }
 
-            BoxWithConstraints(
-                modifier = Modifier.fillMaxSize()
-            ) {
-                val data = buildList {
-                    uiState.devEnvironmentInfo?.let { devEnv ->
-                        add(
-                            ChartData(
-                                "Gradle Cache",
-                                devEnv.gradleCache.sizeBytes,
-                                Color(0xFF2196F3)
-                            )
+            val data = buildList {
+                uiState.devEnvironmentInfo?.let { devEnv ->
+                    add(
+                        ChartData(
+                            "Gradle Cache",
+                            devEnv.gradleCache.sizeBytes,
+                            Color(0xFF2196F3)
                         )
-                        add(ChartData("IDE Cache", devEnv.ideaCache.sizeBytes, Color(0xFF4CAF50)))
-                        add(ChartData("Konan", devEnv.konanInfo.sizeBytes, Color(0xFF9C27B0)))
-                        add(ChartData("Skiko", devEnv.skikoInfo.sizeBytes, Color(0xFFFF9800)))
-                        add(
-                            ChartData(
-                                "JDKs",
-                                devEnv.jdks.sumOf { it.sizeBytes },
-                                Color(0xFFED8B00)
-                            )
+                    )
+                    add(ChartData("IDE Cache", devEnv.ideaCache.sizeBytes, Color(0xFF4CAF50)))
+                    add(ChartData("Konan", devEnv.konanInfo.sizeBytes, Color(0xFF9C27B0)))
+                    add(ChartData("Skiko", devEnv.skikoInfo.sizeBytes, Color(0xFFFF9800)))
+                    add(
+                        ChartData(
+                            "JDKs",
+                            devEnv.jdks.sumOf { it.sizeBytes },
+                            Color(0xFFED8B00)
                         )
-                    }
-                    uiState.sdkInfo?.let { sdk ->
-                        add(ChartData("Android SDK", sdk.totalSizeBytes, Color(0xFF3DDC84)))
-                    }
-                    add(ChartData("AVDs", uiState.avds.sumOf { it.sizeBytes }, Color(0xFFE91E63)))
-                }.filter { it.value > 0 }
-
-                if (data.isNotEmpty()) {
-                    Row(modifier = Modifier.fillMaxSize()) {
-                        // Pie Chart
-                        Box(
-                            modifier = Modifier
-                                .weight(1f)
-                                .fillMaxHeight()
-                        ) {
-                            PieChart(
-                                data = data,
-                                modifier = Modifier.fillMaxSize()
-                            )
-                        }
-
-                        // Legend
-                        LazyColumn(
-                            modifier = Modifier.width(140.dp),
-                            verticalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(data) { item ->
-                                LegendItem(
-                                    color = item.color,
-                                    label = item.label,
-                                    value = StorageUtils.formatSize(item.value),
-                                    percentage = (item.value.toFloat() / data.sumOf { it.value } * 100).toInt()
-                                )
-                            }
-                        }
-                    }
-                } else {
-                    EmptyChartPlaceholder("No storage data available")
+                    )
                 }
+                uiState.sdkInfo?.let { sdk ->
+                    add(ChartData("Android SDK", sdk.totalSizeBytes, Color(0xFF3DDC84)))
+                }
+                add(ChartData("AVDs", uiState.avds.sumOf { it.sizeBytes }, Color(0xFFE91E63)))
+            }.filter { it.value > 0 }
+
+            if (data.isNotEmpty()) {
+                Row(modifier = Modifier.fillMaxSize()) {
+                    // Pie Chart
+                    Box(
+                        modifier = Modifier
+                            .weight(1f)
+                            .fillMaxHeight()
+                    ) {
+                        PieChart(
+                            data = data,
+                            modifier = Modifier.fillMaxSize()
+                        )
+                    }
+
+                    // Legend
+                    LazyColumn(
+                        modifier = Modifier.width(140.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(data) { item ->
+                            LegendItem(
+                                color = item.color,
+                                label = item.label,
+                                value = StorageUtils.formatSize(item.value),
+                                percentage = (item.value.toFloat() / data.sumOf { it.value } * 100).toInt()
+                            )
+                        }
+                    }
+                }
+            } else {
+                EmptyChartPlaceholder("No storage data available")
             }
         }
+
     }
 }
 
@@ -1893,7 +2279,6 @@ fun DonutChart(
         val center = Offset(size.width / 2f, size.height / 2f)
         val outerRadius = minOf(size.width, size.height) / 2.5f
         val strokeWidth = outerRadius * 0.3f
-        val innerRadius = outerRadius - strokeWidth
 
         var startAngle = -90f
 
@@ -1916,7 +2301,7 @@ fun DonutChart(
         // Center text
         val textLayoutResult = textMeasurer.measure(
             text = "SDK",
-            style = androidx.compose.ui.text.TextStyle(
+            style = TextStyle(
                 color = Color.Gray,
                 fontSize = 32.sp,
                 textAlign = TextAlign.Center
@@ -2409,7 +2794,7 @@ fun StorageGrowthTrendChart() {
                 modifier = Modifier.padding(bottom = 16.dp)
             ) {
                 Icon(
-                    Icons.Default.TrendingUp,
+                    Icons.AutoMirrored.Filled.TrendingUp,
                     contentDescription = null,
                     tint = Color(0xFF4CAF50),
                     modifier = Modifier.size(24.dp)
