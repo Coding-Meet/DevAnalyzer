@@ -37,6 +37,11 @@ kotlin {
             implementation(libs.datastore.preferences)         // DataStore for user preferences
             implementation(libs.datastore.core)               // DataStore core functionality
 
+            // 🖼️ Image Loading - Coil3 for loading images
+            implementation(libs.coil.compose)                  // Coil3 Compose integration
+            implementation(libs.coil.compose.core)            // Coil3 core functionality
+            implementation(libs.coil.network.ktor3)           // Coil3 network loading with Ktor
+            implementation(libs.coil.mp)                      // Coil3 multiplatform support
 
             // 💉 Dependency Injection - Koin for DI
             api(libs.koin.core)                     // Koin dependency injection core

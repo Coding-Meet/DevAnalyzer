@@ -22,6 +22,7 @@ import androidx.navigation.compose.rememberNavController
 import com.meet.project.analyzer.presentation.navigation.navigation_bar.NavigationItem
 import com.meet.project.analyzer.presentation.navigation.navigation_bar.NavigationRailLayout
 import com.meet.project.analyzer.presentation.screen.dependencies.MainApp
+import com.meet.project.analyzer.presentation.screen.scanner.ProjectScannerScreen
 import com.meet.project.analyzer.presentation.screen.storage.StorageAnalyzerScreen
 
 @Composable
@@ -85,10 +86,10 @@ fun AppNavigation() {
     ) {
         NavHost(
             navController = navController,
-            startDestination = AppRoute.Storage
+            startDestination = AppRoute.ProjectScanner
         ) {
             composable<AppRoute.ProjectScanner> {
-
+                ProjectScannerScreen()
             }
             composable<AppRoute.Dependencies> {
                 MainApp()
