@@ -27,6 +27,7 @@ fun main() = application {
                 color = MaterialTheme.colorScheme.background
             ) {
                 AppNavigation()
+//                App()
             }
         }
     }

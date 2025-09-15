@@ -134,3 +134,29 @@ enum class DependencyType {
     KSP,
     PLUGIN
 }
+
+data class Dependency(
+    val group: String,
+    val name: String,
+    val currentVersion: String,
+    val latestVersion: String?,
+    val availableVersions: List<String>, // All available versions
+    val configuration: String,
+    val module: String,
+    val fileType: String
+)
+
+data class Plugin(
+    val id: String,
+    val currentVersion: String?,
+    val latestVersion: String?,
+    val availableVersions: List<String>, // All available versions
+    val module: String,
+    val fileType: String
+)
+
+data class ProjectAnalysis(
+    val dependencies: List<Dependency>,
+    val plugins: List<Plugin>,
+    val modules: List<String>
+)

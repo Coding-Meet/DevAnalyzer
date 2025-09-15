@@ -424,6 +424,9 @@ fun OverviewTabContent(project: ProjectInfo) {
             item {
                 ProjectOverviewCard(project)
             }
+            item {
+                ProjectFilesSummaryCard(project.projectFiles)
+            }
         }
 
         VerticalScrollbar(
