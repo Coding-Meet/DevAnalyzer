@@ -3,6 +3,7 @@ package com.meet.project.analyzer.data.models.scanner
 import java.io.File
 
 data class ProjectFileInfo(
+    val uniqueId: String,
     val name: String,
     val path: String,
     val relativePath: String,

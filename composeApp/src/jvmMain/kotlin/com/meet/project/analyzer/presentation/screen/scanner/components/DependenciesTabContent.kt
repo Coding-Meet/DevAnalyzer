@@ -2,9 +2,6 @@ package com.meet.project.analyzer.presentation.screen.scanner.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -14,12 +11,12 @@ import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
@@ -44,6 +41,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,7 +56,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.ColumnWeight
 import com.meet.project.analyzer.data.models.scanner.Dependency
-import com.meet.project.analyzer.presentation.components.EmptyStateCard
+import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
+import kotlinx.coroutines.launch
 import java.awt.Cursor
 
 
@@ -276,41 +276,35 @@ fun DependenciesTabContent(
                         key = { _, dependency -> dependency.uniqueId }
                     ) { index, dependency ->
                         DependencyTableRow(
+                            index = index,
                             dependency = dependency,
                             isEven = index % 2 == 0,
+                            listState = scrollState
                         )
                     }
                 } else {
                     item {
-                        EmptyStateCard(
-                            message = if (searchQuery.isBlank()) {
-                                "No dependencies found"
-                            } else {
-                                "No dependencies match your search"
-                            },
+                        EmptyStateCardLayout(
+                            message = if (searchQuery.isBlank()) "No dependencies found"
+                            else "No results for \"$searchQuery\"",
                             modifier = Modifier.fillMaxWidth().padding(10.dp)
                         )
                     }
                 }
             }
-
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState),
-                style = defaultScrollbarStyle().copy(
-                    hoverColor = MaterialTheme.colorScheme.outline,
-                    unhoverColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                )
-            )
+            VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
         }
     }
 }
 
 @Composable
 fun DependencyTableRow(
+    index: Int,
     dependency: Dependency,
-    isEven: Boolean
+    isEven: Boolean,
+    listState: LazyListState,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     var isExpanded by rememberSaveable { mutableStateOf(false) }
 
     val backgroundColor = if (isEven) {
@@ -415,8 +409,13 @@ fun DependencyTableRow(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                                .clickable { isExpanded = !isExpanded }
+                                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                            onClick = {
+                                coroutineScope.launch {
+                                    isExpanded = !isExpanded
+                                    listState.animateScrollToItem(index)
+                                }
+                            }
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),

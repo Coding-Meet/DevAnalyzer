@@ -20,7 +20,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun EmptyStateCard(
+fun EmptyStateCardLayout(
     message: String,
     icon: ImageVector = Icons.Default.Info,
     modifier: Modifier = Modifier

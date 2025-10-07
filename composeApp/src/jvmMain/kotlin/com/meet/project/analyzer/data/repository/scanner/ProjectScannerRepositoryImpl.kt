@@ -31,6 +31,8 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import java.io.File
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 
 class ProjectScannerRepositoryImpl : ProjectScannerRepository {
@@ -425,7 +427,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                             val id = match.groupValues[1] // ex: libs.plugins.kotlinSerialization
 
                             val catalogPlugin = versionCatalog?.plugins?.find {
-                                it.name == id.substringAfterLast(".")  // kotlinSerialization
+                                it.name == id.substringAfter("libs.plugins.").replace(".", "-")
                             }
                             if (catalogPlugin != null) {
                                 val mainId = catalogPlugin.id + ".gradle.plugin"
@@ -1014,6 +1016,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
         versionCatalog
     }
 
+    @OptIn(ExperimentalUuidApi::class)
     private suspend fun findProjectFiles(projectDir: File): List<ProjectFileInfo> =
         withContext(Dispatchers.IO) {
             AppLogger.d(TAG) { "Finding project files in: ${projectDir.absolutePath}" }
@@ -1041,6 +1044,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
 
                             projectFiles.add(
                                 ProjectFileInfo(
+                                    uniqueId = Uuid.random().toString(),
                                     name = file.name,
                                     path = file.absolutePath,
                                     relativePath = relativePath,

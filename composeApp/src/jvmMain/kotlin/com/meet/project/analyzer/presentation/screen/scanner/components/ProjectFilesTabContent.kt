@@ -1,8 +1,6 @@
 package com.meet.project.analyzer.presentation.screen.scanner.components
 
-import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -22,18 +20,25 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,20 +50,44 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.meet.project.analyzer.core.utility.Utils.openFile
 import com.meet.project.analyzer.data.models.scanner.FileType
 import com.meet.project.analyzer.data.models.scanner.ProjectFileInfo
-import com.meet.project.analyzer.presentation.components.EmptyStateCard
+import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import java.awt.Cursor
 import java.io.File
 
 @Composable
 fun ProjectFilesTabContent(projectFiles: List<ProjectFileInfo>) {
     var selectedFile by remember { mutableStateOf<ProjectFileInfo?>(null) }
+    var searchQuery by remember { mutableStateOf("") }
 
+    val filteredFiles by remember(searchQuery, projectFiles) {
+        derivedStateOf {
+            if (searchQuery.isBlank()) projectFiles
+            else projectFiles.filter {
+                it.name.contains(searchQuery, ignoreCase = true) ||
+                        it.relativePath.contains(searchQuery, ignoreCase = true)
+            }
+        }
+    }
+    val fileTree by remember(filteredFiles) {
+        derivedStateOf {
+            filteredFiles.groupBy { file ->
+                val pathParts = file.relativePath.split("/", "\\")
+                if (pathParts.size > 1) {
+                    pathParts.dropLast(1).joinToString("/")
+                } else {
+                    "Root"
+                }
+            }.toSortedMap()
+        }
+    }
     Row(modifier = Modifier.fillMaxSize()) {
         // Left panel - File tree
         Box(
@@ -69,53 +98,92 @@ fun ProjectFilesTabContent(projectFiles: List<ProjectFileInfo>) {
             val scrollState = rememberLazyListState()
 
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-                LazyColumn(
-                    state = scrollState,
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(8.dp)
-                ) {
-                    if (projectFiles.isNotEmpty()) {
-                        item {
-                            Text(
-                                "Project Files (${projectFiles.size})",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(8.dp)
+                Column {
+                    // Search Field
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(10.dp),
+                        label = {
+                            Text("Search files...")
+                        },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
                             )
-                        }
-
-                        // Build file tree structure
-                        val fileTree = buildFileTree(projectFiles)
-                        fileTree.forEach { (folder, files) ->
-                            item {
-                                FolderHeader(folder, files.size)
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(
+                                    modifier = Modifier.pointerHoverIcon(
+                                        PointerIcon(
+                                            Cursor.getPredefinedCursor(
+                                                Cursor.HAND_CURSOR
+                                            )
+                                        )
+                                    ),
+                                    onClick = { searchQuery = "" }) {
+                                    Icon(
+                                        Icons.Default.Clear,
+                                        contentDescription = "Clear search",
+                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
+                                    )
+                                }
                             }
-                            items(files) { file ->
-                                FileTreeItem(
-                                    file = file,
-                                    isSelected = selectedFile == file,
-                                    onClick = { selectedFile = file }
+                        },
+                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+                    LazyColumn(
+                        state = scrollState,
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(8.dp)
+                    ) {
+                        if (filteredFiles.isNotEmpty()) {
+
+                            item {
+                                Text(
+                                    "Project Files (${filteredFiles.size})",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(8.dp)
+                                )
+                            }
+
+                            // Build file tree structure
+                            fileTree.forEach { (folder, projectFileInfoList) ->
+                                item {
+                                    FolderHeader(folder, projectFileInfoList.size)
+                                }
+                                items(
+                                    items = projectFileInfoList,
+                                    key = {
+                                        it.uniqueId
+                                    }) { projectFileInfo ->
+                                    FileTreeItem(
+                                        projectFileInfo = projectFileInfo,
+                                        isSelected = selectedFile == projectFileInfo,
+                                        onClick = { selectedFile = projectFileInfo }
+                                    )
+                                }
+                            }
+                        } else {
+                            item {
+                                EmptyStateCardLayout(
+                                    message = if (searchQuery.isBlank()) "No files found"
+                                    else "No results for \"$searchQuery\"",
+                                    modifier = Modifier.fillMaxWidth()
                                 )
                             }
                         }
-                    } else {
-                        item {
-                            EmptyStateCard(
-                                message = "No files found",
-                                modifier = Modifier.fillMaxWidth()
-                            )
-                        }
                     }
                 }
-
-                VerticalScrollbar(
-                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    adapter = rememberScrollbarAdapter(scrollState),
-                    style = defaultScrollbarStyle().copy(
-                        hoverColor = MaterialTheme.colorScheme.outline,
-                        unhoverColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                    )
-                )
+                VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
             }
         }
 
@@ -216,7 +284,7 @@ fun FileContentViewer(projectFileInfo: ProjectFileInfo) {
         }
 
         // File content
-        Box(
+        BoxWithConstraints(
             modifier = Modifier.fillMaxSize()
         ) {
             if (projectFileInfo.type == FileType.IMAGE) {
@@ -252,14 +320,7 @@ fun FileContentViewer(projectFileInfo: ProjectFileInfo) {
                     }
                 }
 
-                VerticalScrollbar(
-                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    adapter = rememberScrollbarAdapter(scrollState),
-                    style = defaultScrollbarStyle().copy(
-                        hoverColor = MaterialTheme.colorScheme.outline,
-                        unhoverColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                    )
-                )
+                VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
             } else {
                 // Non-readable file
                 Column(
@@ -293,18 +354,6 @@ fun FileContentViewer(projectFileInfo: ProjectFileInfo) {
             }
         }
     }
-}
-
-
-fun buildFileTree(projectFiles: List<ProjectFileInfo>): Map<String, List<ProjectFileInfo>> {
-    return projectFiles.groupBy { file ->
-        val pathParts = file.relativePath.split("/", "\\")
-        if (pathParts.size > 1) {
-            pathParts.dropLast(1).joinToString("/")
-        } else {
-            "Root"
-        }
-    }.toSortedMap()
 }
 
 
@@ -346,7 +395,7 @@ fun FolderHeader(folderPath: String, fileCount: Int) {
 
 @Composable
 fun FileTreeItem(
-    file: ProjectFileInfo,
+    projectFileInfo: ProjectFileInfo,
     isSelected: Boolean,
     onClick: () -> Unit
 ) {
@@ -368,14 +417,14 @@ fun FileTreeItem(
         ) {
             Spacer(modifier = Modifier.width(12.dp))
             Icon(
-                getFileTypeIcon(file.type),
+                getFileTypeIcon(projectFileInfo.type),
                 contentDescription = null,
-                tint = getFileTypeColor(file.type),
+                tint = getFileTypeColor(projectFileInfo.type),
                 modifier = Modifier.size(14.dp)
             )
             Spacer(modifier = Modifier.width(6.dp))
             Text(
-                file.name,
+                projectFileInfo.name,
                 style = MaterialTheme.typography.bodySmall,
                 color = if (isSelected)
                     MaterialTheme.colorScheme.onPrimaryContainer
@@ -385,7 +434,7 @@ fun FileTreeItem(
                 maxLines = 1
             )
             Text(
-                file.size,
+                projectFileInfo.size,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

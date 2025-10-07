@@ -14,10 +14,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridItemSpan
-import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
@@ -50,7 +52,8 @@ import com.meet.project.analyzer.data.models.scanner.Dependency
 import com.meet.project.analyzer.data.models.scanner.Plugin
 import com.meet.project.analyzer.data.models.scanner.RootModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.SubModuleBuildFileInfo
-import com.meet.project.analyzer.presentation.components.EmptyStateCard
+import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import java.awt.Cursor
 
 
@@ -60,12 +63,13 @@ fun ModulesTabContent(
     subModuleList: List<SubModuleBuildFileInfo>,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-
-        LazyVerticalStaggeredGrid(
-            columns = StaggeredGridCells.Adaptive(minSize = 400.dp),
+        val scrollState = rememberLazyGridState()
+        LazyVerticalGrid(
+            state = scrollState,
+            columns = GridCells.Adaptive(minSize = 400.dp),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalItemSpacing = 16.dp,
+            verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             if (rootModuleInfo != null) {
@@ -96,13 +100,12 @@ fun ModulesTabContent(
             }
 
             if (subModuleList.isEmpty() && rootModuleInfo == null) {
-                item(span = StaggeredGridItemSpan.FullLine) {
-                    EmptyStateCard("No modules found")
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    EmptyStateCardLayout("No modules found")
                 }
             }
         }
-
-
+        VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
     }
 }
 
@@ -193,10 +196,10 @@ fun DetailedModuleCard(
             )
 
             // Plugins section
-            PluginsSection(plugins = plugins)
+//            PluginsSection(plugins = plugins)
 
             // Dependencies section
-            DependenciesSection(dependencies = dependencies)
+//            DependenciesSection(dependencies = dependencies)
         }
     }
 }

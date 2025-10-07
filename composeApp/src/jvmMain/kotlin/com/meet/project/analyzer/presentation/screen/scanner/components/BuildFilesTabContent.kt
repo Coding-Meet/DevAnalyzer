@@ -1,8 +1,6 @@
 package com.meet.project.analyzer.presentation.screen.scanner.components
 
-import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -54,7 +52,8 @@ import com.meet.project.analyzer.data.models.scanner.RootModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.SettingsGradleFileInfo
 import com.meet.project.analyzer.data.models.scanner.SubModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.VersionCatalogFileInfo
-import com.meet.project.analyzer.presentation.components.EmptyStateCard
+import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import java.awt.Cursor
 import java.io.File
 
@@ -208,7 +207,7 @@ fun BuildFilesTabContent(
                         versionCatalogFileInfo == null
                     ) {
                         item {
-                            EmptyStateCard(
+                            EmptyStateCardLayout(
                                 "No build files found",
                                 modifier = Modifier
                                     .fillMaxSize()
@@ -217,14 +216,7 @@ fun BuildFilesTabContent(
                         }
                     }
                 }
-                VerticalScrollbar(
-                    modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                    adapter = rememberScrollbarAdapter(scrollState),
-                    style = defaultScrollbarStyle().copy(
-                        hoverColor = MaterialTheme.colorScheme.outline,
-                        unhoverColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                    )
-                )
+                VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
             }
         }
 
@@ -292,7 +284,7 @@ fun BuildFileContentViewer(
             ) {
                 Icon(
                     imageVector = getBuildFileIcon(buildFile.type),
-                    contentDescription = null,
+                    contentDescription = buildFile.fileName,
                     tint = getBuildFileColor(buildFile.type),
                     modifier = Modifier.size(20.dp)
                 )
@@ -328,7 +320,7 @@ fun BuildFileContentViewer(
                 }
             }
         }
-        Box(
+        BoxWithConstraints(
             modifier = Modifier.fillMaxSize()
         ) {
 
@@ -345,7 +337,7 @@ fun BuildFileContentViewer(
                 ) {
                     SelectionContainer {
                         Text(
-                            buildFile.content ?: "",
+                            buildFile.content,
                             style = MaterialTheme.typography.bodySmall,
                             fontFamily = FontFamily.Monospace,
                             modifier = Modifier.fillMaxWidth().padding(16.dp)
@@ -353,15 +345,7 @@ fun BuildFileContentViewer(
                     }
                 }
             }
-
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState),
-                style = defaultScrollbarStyle().copy(
-                    hoverColor = MaterialTheme.colorScheme.outline,
-                    unhoverColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                )
-            )
+            VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
         }
     }
 
@@ -374,7 +358,7 @@ data class BuildFile(
     val fileName: String,
     val path: String,
     val file: File,
-    val content: String?,
+    val content: String,
 )
 
 @Composable
@@ -386,7 +370,7 @@ fun DetailedBuildFileCard(
     fileName: String,
     path: String,
     file: File,
-    content: String?,
+    content: String,
     openBuildFile: (BuildFile) -> Unit = {},
 ) {
     val isSelected = selectedPath == path

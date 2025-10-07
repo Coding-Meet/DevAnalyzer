@@ -11,6 +11,5 @@ import org.koin.dsl.module
 val repositoryModule = module {
 
     singleOf(::ProjectScannerRepositoryImpl).bind(ProjectScannerRepository::class)
-//    singleOf(::ProjectScannerRepositoryImpl1).bind(ProjectScannerRepository::class)
     singleOf(::StorageAnalyzerRepositoryImpl).bind(StorageAnalyzerRepository::class)
 }

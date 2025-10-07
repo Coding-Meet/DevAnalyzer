@@ -1,10 +1,8 @@
 package com.meet.project.analyzer.presentation.screen.storage
 
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
@@ -108,6 +106,7 @@ import com.meet.project.analyzer.data.models.KonanInfo
 import com.meet.project.analyzer.data.models.SdkInfo
 import com.meet.project.analyzer.data.models.SdkItem
 import com.meet.project.analyzer.data.models.StorageInfo
+import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import java.awt.Cursor
 import kotlin.math.cos
 import kotlin.math.sin
@@ -214,14 +213,7 @@ fun StorageAnalyzerContent(
             }
 
             // Vertical Scrollbar
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState),
-                style = defaultScrollbarStyle().copy(
-                    hoverColor = MaterialTheme.colorScheme.outline,
-                    unhoverColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                )
-            )
+            VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
 
             // Error display overlay
             uiState.error?.let { error ->

@@ -1,14 +1,11 @@
 package com.meet.project.analyzer.presentation.screen.scanner.components
 
-import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -47,6 +44,7 @@ import com.meet.project.analyzer.data.models.scanner.Plugin
 import com.meet.project.analyzer.data.models.scanner.ProjectInfo
 import com.meet.project.analyzer.data.models.scanner.ProjectOverviewInfo
 import com.meet.project.analyzer.data.models.scanner.SubModuleBuildFileInfo
+import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 
 @Composable
 fun ProjectOverviewTabContent(
@@ -71,14 +69,8 @@ fun ProjectOverviewTabContent(
             }
         }
 
-        VerticalScrollbar(
-            modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-            adapter = rememberScrollbarAdapter(scrollState),
-            style = defaultScrollbarStyle().copy(
-                hoverColor = MaterialTheme.colorScheme.outline,
-                unhoverColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-            )
-        )
+        VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
+
     }
 }
 

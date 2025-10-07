@@ -22,7 +22,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.ProjectScreenTabs
-import com.meet.project.analyzer.presentation.components.EmptyStateCard
+import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.project.analyzer.presentation.components.TopAppBar
 import com.meet.project.analyzer.presentation.screen.scanner.components.BuildFilesTabContent
 import com.meet.project.analyzer.presentation.screen.scanner.components.DependenciesTabContent
@@ -180,7 +180,7 @@ fun ProjectScannerContent(
                     }
 
                 }
-            } ?: EmptyStateCard(
+            } ?: EmptyStateCardLayout(
                 message = "No project selected",
                 icon = Icons.Default.Folder,
                 modifier = Modifier

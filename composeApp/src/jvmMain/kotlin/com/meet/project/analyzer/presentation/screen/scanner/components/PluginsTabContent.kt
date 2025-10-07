@@ -2,20 +2,17 @@ package com.meet.project.analyzer.presentation.screen.scanner.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.VerticalScrollbar
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
@@ -35,9 +32,11 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -51,7 +50,9 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.ColumnWeight
 import com.meet.project.analyzer.data.models.scanner.Plugin
-import com.meet.project.analyzer.presentation.components.EmptyStateCard
+import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
+import kotlinx.coroutines.launch
 import java.awt.Cursor
 
 @Composable
@@ -63,31 +64,33 @@ fun PluginsTabContent(
     var sortColumn by rememberSaveable { mutableStateOf("name") }
     var sortAscending by rememberSaveable { mutableStateOf(true) }
 
-    val filteredPlugins = remember(plugins, searchQuery, sortColumn, sortAscending) {
-        val filtered = if (searchQuery.isBlank()) {
-            plugins
-        } else {
-            plugins.filter {
-                it.name.contains(searchQuery, ignoreCase = true) ||
-                        it.group.contains(searchQuery, ignoreCase = true) ||
-                        it.id.contains(searchQuery, ignoreCase = true) ||
-                        it.module.contains(searchQuery, ignoreCase = true) ||
-                        it.configuration.contains(searchQuery, ignoreCase = true) ||
-                        it.version?.contains(searchQuery, ignoreCase = true) == true
+    val filteredPlugins by remember(plugins, searchQuery, sortColumn, sortAscending) {
+        derivedStateOf {
+            val filtered = if (searchQuery.isBlank()) {
+                plugins
+            } else {
+                plugins.filter {
+                    it.name.contains(searchQuery, ignoreCase = true) ||
+                            it.group.contains(searchQuery, ignoreCase = true) ||
+                            it.id.contains(searchQuery, ignoreCase = true) ||
+                            it.module.contains(searchQuery, ignoreCase = true) ||
+                            it.configuration.contains(searchQuery, ignoreCase = true) ||
+                            it.version?.contains(searchQuery, ignoreCase = true) == true
+                }
             }
-        }
 
-        val sorted = when (sortColumn) {
-            "name" -> filtered.sortedBy { it.name }
-            "id" -> filtered.sortedBy { it.id }
-            "group" -> filtered.sortedBy { it.group }
-            "version" -> filtered.sortedBy { it.version }
-            "configuration" -> filtered.sortedBy { it.configuration }
-            "availableVersions" -> filtered.sortedBy { it.availableVersions?.versions?.size }
-            "module" -> filtered.sortedBy { it.module }
-            else -> filtered
+            val sorted = when (sortColumn) {
+                "name" -> filtered.sortedBy { it.name }
+                "id" -> filtered.sortedBy { it.id }
+                "group" -> filtered.sortedBy { it.group }
+                "version" -> filtered.sortedBy { it.version }
+                "configuration" -> filtered.sortedBy { it.configuration }
+                "availableVersions" -> filtered.sortedBy { it.availableVersions?.versions?.size }
+                "module" -> filtered.sortedBy { it.module }
+                else -> filtered
+            }
+            if (sortAscending) sorted else sorted.reversed()
         }
-        if (sortAscending) sorted else sorted.reversed()
     }
     // Search and Filter Section
     Card(
@@ -266,42 +269,36 @@ fun PluginsTabContent(
                         key = { _, plugin -> plugin.uniqueId }
                     ) { index, plugin ->
                         PluginTableRow(
+                            index = index,
                             plugin = plugin,
                             isEven = index % 2 == 0,
+                            listState = scrollState
                         )
                     }
                 } else {
                     item {
-                        EmptyStateCard(
-                            message = if (searchQuery.isBlank()) {
-                                "No plugins found"
-                            } else {
-                                "No plugins match your search"
-                            },
+                        EmptyStateCardLayout(
+                            message = if (searchQuery.isBlank()) "No plugins found"
+                            else "No results for \"$searchQuery\"",
                             modifier = Modifier.fillMaxWidth().padding(10.dp)
                         )
                     }
                 }
             }
-            VerticalScrollbar(
-                modifier = Modifier.align(Alignment.CenterEnd).fillMaxHeight(),
-                adapter = rememberScrollbarAdapter(scrollState),
-                style = defaultScrollbarStyle().copy(
-                    hoverColor = MaterialTheme.colorScheme.outline,
-                    unhoverColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
-                )
-            )
+            VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
         }
     }
 }
 
 @Composable
 fun PluginTableRow(
+    index: Int,
     plugin: Plugin,
     isEven: Boolean,
+    listState: LazyListState,
 ) {
+    val coroutineScope = rememberCoroutineScope()
     var isExpanded by rememberSaveable { mutableStateOf(false) }
-
     val backgroundColor = if (isEven) {
         MaterialTheme.colorScheme.surface
     } else {
@@ -404,8 +401,13 @@ fun PluginTableRow(
                             shape = RoundedCornerShape(8.dp),
                             modifier = Modifier
                                 .clip(RoundedCornerShape(8.dp))
-                                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                                .clickable { isExpanded = !isExpanded }
+                                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                            onClick = {
+                                coroutineScope.launch {
+                                    isExpanded = !isExpanded
+                                    listState.animateScrollToItem(index)
+                                }
+                            }
                         ) {
                             Row(
                                 modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
@@ -488,4 +490,5 @@ fun PluginTableRow(
         }
     }
 }
+
 
