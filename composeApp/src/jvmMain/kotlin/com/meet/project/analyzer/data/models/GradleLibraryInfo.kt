@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class GradleLibraryInfo(
     val groupId: String,
     val artifactId: String,
-    val versions: List<String>,
-    val totalSize: String = "Unknown",
-    val totalSizeBytes: Long = 0L
+    val versions: List<GradleVersionInfo>,
+    val totalSize: String,
+    val totalSizeBytes: Long
 )

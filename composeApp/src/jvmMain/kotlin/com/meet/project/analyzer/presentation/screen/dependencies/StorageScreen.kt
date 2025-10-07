@@ -45,14 +45,17 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import java.awt.Cursor
 import kotlin.math.abs
 import kotlin.math.ln
 import kotlin.math.pow
@@ -285,7 +288,7 @@ val dummyGradleCaches = listOf(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainApp() {
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
     val tabs = listOf("SDKs", "Libraries", "AVDs", "Storage", "Cache Details")
 
     Column(
@@ -315,14 +318,30 @@ fun MainApp() {
 //                    containerColor = MaterialTheme.colorScheme.primary
             ),
             actions = {
-                IconButton(onClick = { /* Refresh action */ }) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    ),
+                    onClick = { /* Refresh action */ }) {
                     Icon(
                         Icons.Default.Refresh,
                         contentDescription = "Refresh",
                         tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
-                IconButton(onClick = { /* Settings action */ }) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    ),
+                    onClick = { /* Settings action */ }) {
                     Icon(
                         Icons.Outlined.Settings,
                         contentDescription = "Settings",
@@ -722,7 +741,7 @@ fun CacheDetailScreen() {
 
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp),
-        modifier = Modifier.padding(16.dp)
+        modifier = Modifier
     ) {
         // Summary Card
         item {

@@ -3,7 +3,7 @@ package com.meet.project.analyzer.presentation.screen.storage
 import androidx.lifecycle.ViewModel
 import com.meet.project.analyzer.core.utility.AppLogger
 import com.meet.project.analyzer.core.utility.Constant
-import com.meet.project.analyzer.core.utility.StorageUtils
+import com.meet.project.analyzer.core.utility.Utils
 import com.meet.project.analyzer.data.models.AvdInfo
 import com.meet.project.analyzer.data.models.DevEnvironmentInfo
 import com.meet.project.analyzer.data.models.GradleModulesInfo
@@ -20,6 +20,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import kotlin.time.measureTime
 
 class StorageAnalyzerViewModel(
     private val repository: StorageAnalyzerRepository
@@ -72,7 +73,7 @@ class StorageAnalyzerViewModel(
                 Json.decodeFromString(StorageAnalyzerUiState.serializer(), Constant.devStorageStr)
             AppLogger.i(TAG) {
                 "All data loaded successfully. Total storage: ${
-                    StorageUtils.formatSize(
+                    Utils.formatSize(
                         storageAnalyzerUiState.totalStorageBytes
                     )
                 }"
@@ -108,49 +109,60 @@ class StorageAnalyzerViewModel(
         val job = viewModelScope.launch {
             try {
                 // Load all data in parallel
-                val avdsDeferred = async(Dispatchers.IO) { repository.getAvdInfoList() }
-                val sdkInfoDeferred = async(Dispatchers.IO) { repository.getSdkInfo() }
-                val devEnvDeferred = async(Dispatchers.IO) { repository.getDevEnvironmentInfo() }
-                val gradleCachesDeferred =
-                    async(Dispatchers.IO) { repository.getGradleCacheInfos() }
-                val gradleModulesDeferred =
-                    async(Dispatchers.IO) { repository.getGradleModulesInfo() }
+                val measureTime = measureTime {
 
-                val avds = avdsDeferred.await()
-                val sdkInfo = sdkInfoDeferred.await()
-                val devEnvironmentInfo = devEnvDeferred.await()
-                val gradleCaches = gradleCachesDeferred.await()
-                val gradleModulesInfo = gradleModulesDeferred.await()
+                    val avdsDeferred = async(Dispatchers.IO) { repository.getAvdInfoList() }
+                    val sdkInfoDeferred = async(Dispatchers.IO) { repository.getSdkInfo() }
+                    val devEnvDeferred =
+                        async(Dispatchers.IO) { repository.getDevEnvironmentInfo() }
+                    val gradleCachesDeferred =
+                        async(Dispatchers.IO) { repository.getGradleCacheInfos() }
+                    val gradleModulesDeferred =
+                        async(Dispatchers.IO) { repository.getGradleModulesInfo() }
 
-                // Calculate total storage
-                val totalBytes = calculateTotalStorage(
-                    avds,
-                    sdkInfo,
-                    devEnvironmentInfo,
-                    gradleModulesInfo
-                )
+                    val avds = avdsDeferred.await()
+                    val sdkInfo = sdkInfoDeferred.await()
+                    val devEnvironmentInfo = devEnvDeferred.await()
+                    val gradleCaches = gradleCachesDeferred.await()
+                    val gradleModulesInfo = gradleModulesDeferred.await()
 
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        avds = avds,
-                        sdkInfo = sdkInfo,
-                        devEnvironmentInfo = devEnvironmentInfo,
-                        gradleCaches = gradleCaches,
-                        gradleModulesInfo = gradleModulesInfo,
-                        totalStorageUsed = StorageUtils.formatSize(totalBytes),
-                        totalStorageBytes = totalBytes,
-                        error = null
+                    // Calculate total storage
+                    val totalBytes = calculateTotalStorage(
+                        avds,
+                        sdkInfo,
+                        devEnvironmentInfo,
+                        gradleModulesInfo
                     )
+
+
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            avds = avds,
+                            sdkInfo = sdkInfo,
+                            devEnvironmentInfo = devEnvironmentInfo,
+                            gradleCaches = gradleCaches,
+                            gradleModulesInfo = gradleModulesInfo,
+                            totalStorageUsed = Utils.formatSize(totalBytes),
+                            totalStorageBytes = totalBytes,
+                            error = null
+                        )
+                    }
+
+                    AppLogger.i(TAG) {
+                        "All data loaded successfully. Total storage: ${
+                            Utils.formatSize(
+                                totalBytes
+                            )
+                        }"
+                    }
                 }
 
-                AppLogger.i(TAG) {
-                    "All data loaded successfully. Total storage: ${
-                        StorageUtils.formatSize(
-                            totalBytes
-                        )
-                    }"
-                }
+                val totalSeconds = measureTime.inWholeSeconds
+                val minutes = totalSeconds / 60
+                val seconds = totalSeconds % 60
+                AppLogger.i(TAG) { "All data loaded in ${minutes}m ${seconds}s" }
+
             } catch (e: Exception) {
                 AppLogger.e(TAG, e) { "Error loading all data" }
                 _uiState.update {

@@ -3,6 +3,7 @@ package com.meet.project.analyzer.presentation.screen.storage
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.VerticalScrollbar
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.defaultScrollbarStyle
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -72,7 +73,7 @@ import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -84,6 +85,8 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.font.FontWeight
@@ -91,7 +94,9 @@ import androidx.compose.ui.text.rememberTextMeasurer
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.meet.project.analyzer.core.utility.StorageUtils
+import com.meet.project.analyzer.core.utility.StorageAnalyzerTabs
+import com.meet.project.analyzer.core.utility.Utils
+import com.meet.project.analyzer.core.utility.Utils.openFile
 import com.meet.project.analyzer.data.models.AvdInfo
 import com.meet.project.analyzer.data.models.DevEnvironmentInfo
 import com.meet.project.analyzer.data.models.GradleCacheInfo
@@ -103,6 +108,7 @@ import com.meet.project.analyzer.data.models.KonanInfo
 import com.meet.project.analyzer.data.models.SdkInfo
 import com.meet.project.analyzer.data.models.SdkItem
 import com.meet.project.analyzer.data.models.StorageInfo
+import java.awt.Cursor
 import kotlin.math.cos
 import kotlin.math.sin
 
@@ -115,11 +121,9 @@ fun StorageAnalyzerContent(
     onLoadSdk: () -> Unit,
     onLoadDevEnv: () -> Unit,
     onLoadGradleCaches: () -> Unit,
-    onLoadGradleModules: () -> Unit
+    onLoadGradleModules: () -> Unit,
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
-    val tabs =
-        listOf("Overview", "AVDs", "SDK", "Dev Environment", "Gradle Caches", "Libraries", "Charts")
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -146,7 +150,16 @@ fun StorageAnalyzerContent(
                 containerColor = MaterialTheme.colorScheme.primary
             ),
             actions = {
-                IconButton(onClick = onRefresh) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    ),
+                    onClick = onRefresh
+                ) {
                     Icon(
                         Icons.Default.Refresh,
                         contentDescription = "Refresh",
@@ -169,13 +182,15 @@ fun StorageAnalyzerContent(
             selectedTabIndex = selectedTab,
             containerColor = MaterialTheme.colorScheme.surfaceVariant
         ) {
-            tabs.forEachIndexed { index, title ->
+            StorageAnalyzerTabs.entries.forEachIndexed { index, tabs ->
                 Tab(
                     selected = selectedTab == index,
                     onClick = { selectedTab = index },
+                    modifier = Modifier
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
                     text = {
                         Text(
-                            title,
+                            tabs.title,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Medium
                         )
@@ -255,7 +270,7 @@ fun StorageAnalyzerContent1(
     onLoadGradleCaches: () -> Unit,
     onLoadGradleModules: () -> Unit
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
+    var selectedTab by rememberSaveable { mutableStateOf(0) }
     val tabs =
         listOf("Overview", "AVDs", "SDK", "Dev Environment", "Gradle Caches", "Libraries", "Charts")
 
@@ -284,7 +299,16 @@ fun StorageAnalyzerContent1(
                 containerColor = MaterialTheme.colorScheme.primary
             ),
             actions = {
-                IconButton(onClick = onRefresh) {
+                IconButton(
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    ),
+                    onClick = onRefresh
+                ) {
                     Icon(
                         Icons.Default.Refresh,
                         contentDescription = "Refresh",
@@ -746,7 +770,7 @@ fun OverviewContent(uiState: StorageAnalyzerUiState) {
                     ),
                     BreakdownItem(
                         "AVDs",
-                        StorageUtils.formatSize(uiState.avds.sumOf { it.sizeBytes }),
+                        Utils.formatSize(uiState.avds.sumOf { it.sizeBytes }),
                         Icons.Default.PhoneAndroid
                     )
                 )
@@ -871,7 +895,7 @@ fun AvdSummaryCard(avds: List<AvdInfo>) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 SummaryStatItem("Total AVDs", avds.size.toString())
-                SummaryStatItem("Total Size", StorageUtils.formatSize(totalSize))
+                SummaryStatItem("Total Size", Utils.formatSize(totalSize))
             }
         }
     }
@@ -952,7 +976,12 @@ fun AvdDetailCard(avd: AvdInfo) {
                 avd.path,
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1
+                maxLines = 1,
+                modifier = Modifier
+                    .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                    .clickable {
+                        avd.path.openFile()
+                    }
             )
         }
     }
@@ -1028,7 +1057,12 @@ fun SdkItemCard(item: SdkItem, icon: ImageVector) {
                     item.path,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    maxLines = 1,
+                    modifier = Modifier
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                        .clickable {
+                            item.path.openFile()
+                        }
                 )
             }
             Surface(
@@ -1103,7 +1137,12 @@ fun StorageInfoCard(storage: StorageInfo, icon: ImageVector) {
                 Text(
                     storage.path,
                     style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.Medium
+                    fontWeight = FontWeight.Medium,
+                    modifier = Modifier
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                        .clickable {
+                            storage.path.openFile()
+                        }
                 )
                 Text(
                     if (storage.exists) "Exists" else "Not Found",
@@ -1153,7 +1192,12 @@ fun KonanInfoCard(konan: KonanInfo) {
                     konan.path,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    maxLines = 1,
+                    modifier = Modifier
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                        .clickable {
+                            konan.path.openFile()
+                        }
                 )
             }
             Surface(
@@ -1196,7 +1240,12 @@ fun JdkInfoCard(jdk: JdkInfo) {
                     jdk.path,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    maxLines = 1,
+                    modifier = Modifier
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                        .clickable {
+                            jdk.path.openFile()
+                        }
                 )
             }
             Surface(
@@ -1240,7 +1289,12 @@ fun GradleWrapperInfoCard(wrapper: GradleWrapperInfo) {
                     wrapper.path,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    maxLines = 1,
+                    modifier = Modifier
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                        .clickable {
+                            wrapper.path.openFile()
+                        }
                 )
             }
             Surface(
@@ -1290,7 +1344,7 @@ fun GradleCacheSummaryCard(caches: List<GradleCacheInfo>) {
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
                 SummaryStatItem("Cache Versions", caches.size.toString())
-                SummaryStatItem("Total Size", StorageUtils.formatSize(totalSize))
+                SummaryStatItem("Total Size", Utils.formatSize(totalSize))
             }
         }
     }
@@ -1321,7 +1375,12 @@ fun GradleCacheInfoCard(cache: GradleCacheInfo) {
                     cache.path,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
+                    maxLines = 1,
+                    modifier = Modifier
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                        .clickable {
+                            cache.path.openFile()
+                        }
                 )
             }
             Surface(
@@ -1422,7 +1481,7 @@ fun LibraryInfoCard(library: GradleLibraryInfo) {
                                     shape = MaterialTheme.shapes.extraSmall
                                 ) {
                                     Text(
-                                        version,
+                                        version.version,
                                         style = MaterialTheme.typography.labelSmall,
                                         modifier = Modifier.padding(
                                             horizontal = 6.dp,
@@ -1512,6 +1571,7 @@ fun EmptyStateCard(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Button(
+                modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
                 onClick = onAction,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.primary
@@ -1930,7 +1990,7 @@ fun StorageDistributionChart(uiState: StorageAnalyzerUiState) {
                             LegendItem(
                                 color = item.color,
                                 label = item.label,
-                                value = StorageUtils.formatSize(item.value),
+                                value = Utils.formatSize(item.value),
                                 percentage = (item.value.toFloat() / data.sumOf { it.value } * 100).toInt()
                             )
                         }
@@ -2126,7 +2186,7 @@ fun VerticalBarChart(
                     topLeft = Offset(x, y),
                     size = Size(barWidth, barHeight)
                 )
-                val formatted = StorageUtils.formatSize(item.value)
+                val formatted = Utils.formatSize(item.value)
 
                 val textLayoutResult = textMeasurer.measure(
                     text = formatted,
@@ -2254,7 +2314,7 @@ fun SdkComponentsChart(sdk: SdkInfo) {
                             LegendItem(
                                 color = item.color,
                                 label = item.label,
-                                value = StorageUtils.formatSize(item.value),
+                                value = Utils.formatSize(item.value),
                                 percentage = (item.value.toFloat() / data.sumOf { it.value } * 100).toInt()
                             )
                         }
@@ -2443,7 +2503,7 @@ fun HorizontalBarChart(
 
                 // Value
                 Text(
-                    StorageUtils.formatSize(item.value),
+                    Utils.formatSize(item.value),
                     style = MaterialTheme.typography.labelSmall,
                     modifier = Modifier.width(60.dp),
                     textAlign = TextAlign.End,
@@ -2564,7 +2624,7 @@ fun LineChart(
 
             // Draw values on points
             points.forEachIndexed { index, point ->
-                val formatted = StorageUtils.formatSize(data[index].value)
+                val formatted = Utils.formatSize(data[index].value)
 
                 val textLayoutResult = textMeasurer.measure(
                     text = formatted,

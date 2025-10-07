@@ -1,14 +1,13 @@
 package com.meet.project.analyzer.data.repository
 
 import com.meet.project.analyzer.core.utility.AppLogger
-import com.meet.project.analyzer.core.utility.StorageUtils
-import com.meet.project.analyzer.core.utility.StorageUtils.formatSize
+import com.meet.project.analyzer.core.utility.Utils
+import com.meet.project.analyzer.core.utility.Utils.formatSize
 import com.meet.project.analyzer.data.models.AvdInfo
 import com.meet.project.analyzer.data.models.CacheInfo
 import com.meet.project.analyzer.data.models.DevEnvironmentInfo
 import com.meet.project.analyzer.data.models.GradleCacheInfo
 import com.meet.project.analyzer.data.models.GradleInfo
-import com.meet.project.analyzer.data.models.GradleLibraryInfo
 import com.meet.project.analyzer.data.models.GradleModulesInfo
 import com.meet.project.analyzer.data.models.GradleWrapperInfo
 import com.meet.project.analyzer.data.models.JdkInfo
@@ -102,7 +101,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                             val device = configProps.getProperty("hw.device.name")
                             val configuredRaw = configProps.getProperty("disk.dataPartition.size")
                             val configuredStorage = parseConfiguredSize(configuredRaw)
-                            val actualSizeBytes = StorageUtils.calculateFolderSize(File(path))
+                            val actualSizeBytes = Utils.calculateFolderSize(File(path))
                             val actualSize = formatSize(actualSizeBytes)
                             AvdInfo(
                                 name = name,
@@ -183,7 +182,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                 loadSdkExtras(sdkDir)
             }
             val totalSizeDeferred = async {
-                StorageUtils.calculateFolderSize(sdkDir)
+                Utils.calculateFolderSize(sdkDir)
             }
 
             val platforms = platformsDeferred.await()
@@ -222,7 +221,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                 ?.filter { !it.name.startsWith(".") }
                 ?.map { dir ->
                     async {
-                        val sizeBytes = StorageUtils.calculateFolderSize(dir)
+                        val sizeBytes = Utils.calculateFolderSize(dir)
                         SdkItem(
                             name = dir.name,
                             path = dir.absolutePath,
@@ -243,7 +242,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             async {
                 val dir = File(sdkDir, folder)
                 if (dir.exists()) {
-                    val sizeBytes = StorageUtils.calculateFolderSize(dir)
+                    val sizeBytes = Utils.calculateFolderSize(dir)
                     SdkItem(
                         name = folder,
                         path = dir.absolutePath,
@@ -260,7 +259,6 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
         try {
             val userHome = System.getProperty("user.home")
 
-            // Load all components in parallel
             val gradleCacheDeferred = async { loadGradleCache(userHome) }
             val ideaCacheDeferred = async { loadIdeaCache(userHome) }
             val konanInfoDeferred = async { loadKonanInfo() }
@@ -289,7 +287,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
     private suspend fun loadGradleCache(userHome: String): StorageInfo =
         withContext(Dispatchers.IO) {
             val gradleCachePath = Paths.get(userHome, ".gradle")
-            val sizeBytes = StorageUtils.calculateFolderSize(gradleCachePath.toFile())
+            val sizeBytes = Utils.calculateFolderSize(gradleCachePath.toFile())
             StorageInfo(
                 path = gradleCachePath.toString(),
                 exists = Files.exists(gradleCachePath),
@@ -308,7 +306,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
 
             else -> Paths.get(userHome, ".cache")
         }
-        val sizeBytes = StorageUtils.calculateFolderSize(ideaCachePath.toFile())
+        val sizeBytes = Utils.calculateFolderSize(ideaCachePath.toFile())
         StorageInfo(
             path = ideaCachePath.toString(),
             exists = Files.exists(ideaCachePath),
@@ -319,7 +317,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
 
     private suspend fun loadKonanInfo(): CacheInfo = withContext(Dispatchers.IO) {
         val konanDir = File(System.getProperty("user.home"), ".konan")
-        val sizeBytes = if (konanDir.exists()) StorageUtils.calculateFolderSize(konanDir) else 0L
+        val sizeBytes = if (konanDir.exists()) Utils.calculateFolderSize(konanDir) else 0L
         CacheInfo(
             name = "Kotlin/Native (.konan)",
             path = konanDir.absolutePath,
@@ -330,7 +328,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
 
     private suspend fun loadSkikoInfo(): CacheInfo = withContext(Dispatchers.IO) {
         val skikoDir = File(System.getProperty("user.home"), ".skiko")
-        val sizeBytes = if (skikoDir.exists()) StorageUtils.calculateFolderSize(skikoDir) else 0L
+        val sizeBytes = if (skikoDir.exists()) Utils.calculateFolderSize(skikoDir) else 0L
         CacheInfo(
             name = "Skiko (.skiko)",
             path = skikoDir.absolutePath,
@@ -349,7 +347,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             ?.map { dir ->
                 async {
                     val version = versionRegex.find(dir.name)?.value
-                    val sizeBytes = StorageUtils.calculateFolderSize(dir)
+                    val sizeBytes = Utils.calculateFolderSize(dir)
                     KonanInfo(
                         version = version,
                         path = dir.absolutePath,
@@ -369,7 +367,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             async {
                 val folder = File(gradleDir, sub)
                 if (folder.exists()) {
-                    val sizeBytes = StorageUtils.calculateFolderSize(folder)
+                    val sizeBytes = Utils.calculateFolderSize(folder)
                     GradleInfo(
                         type = sub,
                         path = folder.absolutePath,
@@ -392,7 +390,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                 ?.map { distDir ->
                     async {
                         val version = versionRegex.find(distDir.name)?.value
-                        val sizeBytes = StorageUtils.calculateFolderSize(distDir)
+                        val sizeBytes = Utils.calculateFolderSize(distDir)
                         GradleWrapperInfo(
                             version = version ?: "Unknown",
                             path = distDir.absolutePath,
@@ -479,7 +477,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             null
         }
 
-        val sizeBytes = StorageUtils.calculateFolderSize(jdkDir)
+        val sizeBytes = Utils.calculateFolderSize(jdkDir)
         JdkInfo(
             path = jdkDir.absolutePath,
             version = version,
@@ -500,7 +498,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                     ?.filter { it.isDirectory && versionRegex.matches(it.name) }
                     ?.map { versionDir ->
                         async {
-                            val sizeBytes = StorageUtils.calculateFolderSize(versionDir)
+                            val sizeBytes = Utils.calculateFolderSize(versionDir)
                             GradleCacheInfo(
                                 version = versionDir.name,
                                 path = versionDir.absolutePath,
@@ -518,46 +516,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
     override suspend fun getGradleModulesInfo(): GradleModulesInfo? = withContext(Dispatchers.IO) {
         AppLogger.i(TAG) { "Loading Gradle modules information" }
         try {
-            val modulesDir =
-                File(System.getProperty("user.home"), ".gradle/caches/modules-2/files-2.1")
-            if (!modulesDir.exists()) return@withContext null
-
-            val sizeBytes = StorageUtils.calculateFolderSize(modulesDir)
-            val libraryMap = mutableMapOf<String, MutableMap<String, MutableSet<String>>>()
-
-            // Process modules in parallel chunks to avoid too many concurrent operations
-            val allDirs = modulesDir.walkTopDown()
-                .maxDepth(3)
-                .filter { it.isDirectory }
-                .toList()
-
-            allDirs.forEach { dir ->
-                val parts = dir.relativeTo(modulesDir).path.split(File.separator)
-                if (parts.size == 3) {
-                    val (groupId, artifactId, version) = parts
-                    libraryMap
-                        .getOrPut(groupId) { mutableMapOf() }
-                        .getOrPut(artifactId) { mutableSetOf() }
-                        .add(version)
-                }
-            }
-
-            val libraries = libraryMap.map { (groupId, artifactMap) ->
-                artifactMap.map { (artifactId, versions) ->
-                    GradleLibraryInfo(
-                        groupId = groupId,
-                        artifactId = artifactId,
-                        versions = versions.sorted()
-                    )
-                }
-            }.flatten()
-
-            GradleModulesInfo(
-                path = modulesDir.absolutePath,
-                sizeReadable = formatSize(sizeBytes),
-                libraries = libraries.sortedBy { "${it.groupId}:${it.artifactId}" },
-                sizeBytes = sizeBytes
-            )
+            Utils.getGradleModulesInfo()
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error loading Gradle modules information" }
             null

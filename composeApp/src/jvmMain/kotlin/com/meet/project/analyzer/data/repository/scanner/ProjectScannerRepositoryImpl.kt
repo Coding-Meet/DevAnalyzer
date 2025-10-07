@@ -1,20 +1,35 @@
 package com.meet.project.analyzer.data.repository.scanner
 
+import com.akuleshov7.ktoml.Toml
+import com.akuleshov7.ktoml.TomlInputConfig
 import com.meet.project.analyzer.core.utility.AppLogger
-import com.meet.project.analyzer.core.utility.StorageUtils
-import com.meet.project.analyzer.data.models.scanner.BuildFileInfo
+import com.meet.project.analyzer.core.utility.Utils
+import com.meet.project.analyzer.data.models.GradleLibraryInfo
+import com.meet.project.analyzer.data.models.GradleModulesInfo
 import com.meet.project.analyzer.data.models.scanner.BuildFileType
-import com.meet.project.analyzer.data.models.scanner.DependencyInfo
-import com.meet.project.analyzer.data.models.scanner.DependencyType
+import com.meet.project.analyzer.data.models.scanner.Bundle
+import com.meet.project.analyzer.data.models.scanner.Dependency
 import com.meet.project.analyzer.data.models.scanner.FileType
-import com.meet.project.analyzer.data.models.scanner.LibraryInfo
-import com.meet.project.analyzer.data.models.scanner.ModuleInfo
-import com.meet.project.analyzer.data.models.scanner.ModuleType
+import com.meet.project.analyzer.data.models.scanner.GradleWrapperPropertiesFileInfo
+import com.meet.project.analyzer.data.models.scanner.Library
+import com.meet.project.analyzer.data.models.scanner.Plugin
 import com.meet.project.analyzer.data.models.scanner.ProjectFileInfo
 import com.meet.project.analyzer.data.models.scanner.ProjectInfo
-import com.meet.project.analyzer.data.models.scanner.ProjectType
+import com.meet.project.analyzer.data.models.scanner.ProjectOverviewInfo
+import com.meet.project.analyzer.data.models.scanner.PropertiesFileInfo
+import com.meet.project.analyzer.data.models.scanner.PropertiesFileType
+import com.meet.project.analyzer.data.models.scanner.RootModuleBuildFileInfo
+import com.meet.project.analyzer.data.models.scanner.SettingsGradleFileInfo
+import com.meet.project.analyzer.data.models.scanner.SettingsGradleFileType
+import com.meet.project.analyzer.data.models.scanner.SubModuleBuildFileInfo
+import com.meet.project.analyzer.data.models.scanner.Version
+import com.meet.project.analyzer.data.models.scanner.VersionCatalog
+import com.meet.project.analyzer.data.models.scanner.VersionCatalogFileInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.decodeFromString
 import java.io.File
 
 
@@ -27,310 +42,976 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             } else {
                 val name = javaClass.name
                 if (name.length <= 23) name else name.substring(
-                    name.length - 23,
-                    name.length
+                    name.length - 23, name.length
                 )// last 23 chars
             }
         }
 
     override suspend fun analyzeProject(
-        projectPath: String,
-        progressCallback: ProgressCallback
+        projectPath: String, updateProgress: (progress: Float, status: String) -> Unit
     ): ProjectInfo = withContext(Dispatchers.IO) {
         AppLogger.i(TAG) { "Starting project analysis for: $projectPath" }
 
         val projectDir = File(projectPath)
-        if (!projectDir.exists() || !projectDir.isDirectory) {
-            throw IllegalArgumentException("Invalid project directory: $projectPath")
-        }
 
-        val projectName = projectDir.name
+        updateProgress(0.1f, "Finding build files...")
+        val rootModuleBuildFileInfo =
+            findRootModuleBuildFiles(projectDir = projectDir)
 
-        progressCallback.updateProgress(0.1f, "Finding build files...")
-        val buildFiles = findBuildFiles(projectDir)
+        val subModuleBuildFileInfos =
+            findSubModuleBuildFiles(projectDir = projectDir)
 
-        progressCallback.updateProgress(0.3f, "Analyzing modules...")
-        val modules = findModules(projectDir, progressCallback)
+        val settingsGradleFileInfo =
+            findSettingsGradleFiles(projectDir = projectDir)
 
-        progressCallback.updateProgress(0.5f, "Extracting version catalog...")
-        val versionCatalog = extractVersionCatalog(projectDir)
+        val propertiesFileInfo =
+            findPropertiesFiles(projectDir = projectDir)
 
-        progressCallback.updateProgress(0.7f, "Resolving dependency versions...")
-        val resolvedModules = resolveVersions(modules, versionCatalog)
+        val gradleWrapperPropertiesFileInfo =
+            findGradleWrapperProFile(projectDir = projectDir)
 
-        progressCallback.updateProgress(0.8f, "Scanning project files...")
+        val versionCatalogFileInfo =
+            findVersionCatalogFile(projectDir = projectDir)
+
+        updateProgress(0.3f, "Analyzing modules...")
+        val versionCatalog =
+            findVersionCatalog(versionCatalogFileInfo = versionCatalogFileInfo)
+
+        val projectOverviewInfo =
+            findProjectOverviewInfo(
+                projectDir = projectDir,
+                settingsGradleFileInfo = settingsGradleFileInfo,
+                gradleWrapperPropertiesFileInfo = gradleWrapperPropertiesFileInfo,
+                versionCatalog = versionCatalog,
+                subModuleBuildFileInfos = subModuleBuildFileInfos,
+                rootModuleBuildFileInfo = rootModuleBuildFileInfo,
+                isMultiModule = subModuleBuildFileInfos.size > 1
+            )
+
+        updateProgress(0.5f, "Analyzing plugins...")
+        val gradleModulesInfo = Utils.getGradleModulesInfo()
+        val plugins =
+            findPlugin(
+                rootModuleBuildFileInfo = rootModuleBuildFileInfo,
+                subModuleBuildFileInfos = subModuleBuildFileInfos,
+                versionCatalog = versionCatalog,
+                gradleModulesInfo = gradleModulesInfo,
+            )
+
+        updateProgress(0.7f, "Analyzing dependencies...")
+        val dependencies =
+            findDependencies(
+                subModuleBuildFileInfos = subModuleBuildFileInfos,
+                versionCatalog = versionCatalog,
+                gradleModulesInfo = gradleModulesInfo
+            )
+        val subModuleWithDependency =
+            addDependencyEachModule(
+                subModuleBuildFileInfos = subModuleBuildFileInfos,
+                plugins = plugins,
+                dependencies = dependencies
+            )
+        updateProgress(0.8f, "Building project info...")
+
         val projectFiles = findProjectFiles(projectDir)
 
-        progressCallback.updateProgress(0.9f, "Creating library info...")
-        val allDependencies = resolvedModules.flatMap { it.dependencies }
-        val libraryInfo = createLibraryInfo(allDependencies, versionCatalog)
-
-        progressCallback.updateProgress(0.95f, "Calculating total size...")
-        val totalSizeBytes = StorageUtils.calculateFolderSize(projectDir)
-
-        progressCallback.updateProgress(0.98f, "Extracting metadata...")
-        val metadata = extractProjectMetadata(projectDir)
-
-        val projectType = determineProjectType(buildFiles, resolvedModules)
-        val isMultiModule = resolvedModules.size > 1
-
-        progressCallback.updateProgress(1.0f, "Analysis complete")
-
-        AppLogger.i(TAG) { "Project analysis completed. Type: $projectType, Modules: ${resolvedModules.size}, Dependencies: ${allDependencies.size}, Libraries: ${libraryInfo.size}" }
-
-        ProjectInfo(
-            projectPath = projectPath,
-            projectName = projectName,
-            projectType = projectType,
-            modules = resolvedModules,
-            buildFiles = buildFiles,
-            dependencies = allDependencies,
-            allLibraries = libraryInfo,
+        val projectInfo = ProjectInfo(
+            projectOverviewInfo = projectOverviewInfo,
+            plugins = plugins,
+            dependencies = dependencies,
+            rootModuleBuildFileInfo = rootModuleBuildFileInfo?.copy(
+                plugins = plugins.filter { plugin ->
+                    plugin.module == rootModuleBuildFileInfo.moduleName
+                }
+            ),
+            subModuleBuildFileInfos = subModuleWithDependency,
+            settingsGradleFileInfo = settingsGradleFileInfo,
+            propertiesFileInfo = propertiesFileInfo,
+            gradleWrapperPropertiesFileInfo = gradleWrapperPropertiesFileInfo,
+            versionCatalogFileInfo = versionCatalogFileInfo,
+            versionCatalog = versionCatalog,
             projectFiles = projectFiles,
-            totalSize = StorageUtils.formatSize(totalSizeBytes),
-            totalSizeBytes = totalSizeBytes,
-            gradleVersion = metadata["gradleVersion"],
-            kotlinVersion = metadata["kotlinVersion"],
-            androidGradlePluginVersion = metadata["agpVersion"],
-            targetSdkVersion = metadata["targetSdk"],
-            minSdkVersion = metadata["minSdk"],
-            isMultiModule = isMultiModule
+        )
+        updateProgress(1f, "Analysis complete")
+        projectInfo
+    }
+
+    private fun addDependencyEachModule(
+        subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
+        plugins: List<Plugin>,
+        dependencies: List<Dependency>
+    ) = subModuleBuildFileInfos.map { subModuleBuildFileInfo ->
+        subModuleBuildFileInfo.copy(
+            plugins = plugins.filter { plugin ->
+                plugin.module == subModuleBuildFileInfo.moduleName
+            },
+            dependencies = dependencies.filter { dependency ->
+                dependency.module == subModuleBuildFileInfo.moduleName
+            }
         )
     }
 
-    private suspend fun extractVersionCatalog(projectDir: File): Map<String, String> =
-        withContext(Dispatchers.IO) {
-            val versionCatalog = mutableMapOf<String, String>()
+    private fun findAvailableVersionsInGradleCache(
+        groupId: String?,
+        artifactId: String?,
+        gradleModulesInfo: GradleModulesInfo?
+    ): GradleLibraryInfo? {
+        AppLogger.d(TAG) { "Finding available versions for: $groupId:$artifactId" }
+        if (gradleModulesInfo == null) return null
+        val lib = gradleModulesInfo.libraries.find {
+            it.groupId == groupId && it.artifactId == artifactId
+        }
+        AppLogger.d(TAG) { "Found $groupId:$artifactId ${lib?.versions?.size} available versions" }
+        lib?.versions?.forEach {
+            AppLogger.d(TAG) { "Available version: ${it.version} Size: ${it.sizeReadable}" }
+        }
+        return lib
+    }
 
-            val catalogFile = File(projectDir, "gradle/libs.versions.toml")
-            if (catalogFile.exists()) {
-                try {
-                    val content = catalogFile.readText()
+    private fun findDependencies(
+        subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
+        versionCatalog: VersionCatalog?,
+        gradleModulesInfo: GradleModulesInfo?,
+    ): List<Dependency> {
 
-                    // Parse [versions] section
-                    val versionsSection =
-                        Regex("\\[versions\\]([\\s\\S]*?)(?=\\[|$)").find(content)?.groupValues?.get(
-                            1
-                        )
-                    versionsSection?.let { section ->
-                        // Handle both quoted and unquoted versions
-                        val versionRegex = Regex(
-                            "^\\s*([a-zA-Z0-9_-]+)\\s*=\\s*[\"']?([^\"'\\n]+?)[\"']?\\s*$",
-                            RegexOption.MULTILINE
-                        )
-                        versionRegex.findAll(section).forEach { match ->
-                            val key = match.groupValues[1].trim()
-                            val version = match.groupValues[2].trim()
-                            versionCatalog[key] = version
-                            AppLogger.d(TAG, "Version: $key = $version")
+
+        AppLogger.d(TAG) { "Finding dependencies" }
+
+        // normal dependencies → implementation("group:artifact:version") , implementation "group:artifact:version" , implementation 'group:artifact:version'
+        val normalDepRegex = Regex(
+            """(implementation|api|ksp|kapt|compileOnly|runtimeOnly|testImplementation|androidTestImplementation)\s*\(?["']([^"':]+):([^"':]+):([^"']+)["']\)?"""
+        )
+        // alias style → implementation(libs.xyz.abc)
+        val aliasDepRegex =
+            Regex("""(implementation|api|ksp|kapt|compileOnly|runtimeOnly|testImplementation|androidTestImplementation)\((libs\.[^)]+)\)""")
+
+        // bundle dependencies → implementation(libs.bundles.xxx)
+        val bundleDepRegex =
+            Regex("""(implementation|api|ksp|kapt|compileOnly|runtimeOnly|testImplementation|androidTestImplementation)\((libs\.bundles\.[^)]+)\)""")
+
+        val dependencies = arrayListOf<Dependency>()
+
+
+        // Submodules
+        subModuleBuildFileInfos.forEach { subModule ->
+            val module = subModule.moduleName
+
+            subModule.content.lineSequence().forEach inner@{ rawLine ->
+                val content = rawLine.trim()
+
+                // Skip comments
+                if (content.startsWith("//") || content.startsWith("/*") || content.startsWith("*")) {
+                    return@inner
+                }
+
+                // Normal style dependencies
+                // ex implementation("com.google.android.material:material:1.11.0")
+                normalDepRegex.findAll(content).forEach { match ->
+
+                    val type = match.groupValues[1] // implementation
+                    val group = match.groupValues[2] // com.google.android.material
+                    val artifact = match.groupValues[3] // material
+                    val version = match.groupValues[4] // 1.11.0
+
+                    val availableVersions = findAvailableVersionsInGradleCache(
+                        groupId = group,
+                        artifactId = artifact,
+                        gradleModulesInfo = gradleModulesInfo
+                    )
+                    val normalDependency = Dependency(
+                        versionName = artifact,
+                        name = artifact,
+                        id = "$group:$artifact",
+                        group = group,
+                        version = version,
+                        configuration = type,
+                        module = module,
+                        availableVersions = availableVersions,
+                        isAvailable = availableVersions?.versions?.any {
+                            it.version == version
+                        } == true
+                    )
+                    AppLogger.d(TAG) { "Found normalDependency: $normalDependency" }
+                    dependencies.add(
+                        normalDependency
+                    )
+                }
+
+                // Version catalog alias style
+                // ex implementation(libs.lifecycle.runtime.ktx)
+                aliasDepRegex.findAll(content).forEach { match ->
+
+                    val aliasPath =
+                        match.groupValues[2].removePrefix("libs.") // ex lifecycle.runtime.ktx
+                    if (!aliasPath.contains("bundles")) {
+                        val alias = aliasPath.replace('.', '-') // ex lifecycle-runtime-ktx
+
+                        val lib = versionCatalog?.libraries?.find {
+                            it.name == alias
+                        }
+
+                        if (lib != null) {
+                            val availableVersions = findAvailableVersionsInGradleCache(
+                                groupId = lib.group,
+                                artifactId = lib.libName,
+                                gradleModulesInfo = gradleModulesInfo
+                            )
+                            val versionCatalogDependency = Dependency(
+                                versionName = lib.name,
+                                name = lib.libName ?: lib.name,
+                                id = lib.id,
+                                group = lib.group ?: "",
+                                version = lib.version,
+                                configuration = match.groupValues[1],
+                                module = module,
+                                availableVersions = availableVersions,
+                                isAvailable = availableVersions?.versions?.any {
+                                    it.version == lib.version
+                                } == true
+                            )
+                            AppLogger.d(TAG) { "Found versionCatalogDependency: $versionCatalogDependency" }
+                            dependencies.add(
+                                versionCatalogDependency
+                            )
                         }
                     }
+                }
 
-                    // Parse [libraries] section
-                    val librariesSection =
-                        Regex("\\[libraries\\]([\\s\\S]*?)(?=\\[|$)").find(content)?.groupValues?.get(
-                            1
-                        )
-                    librariesSection?.let { section ->
-                        // Parse multiline library definitions
-                        val libraryBlocks =
-                            Regex("([a-zA-Z0-9_-]+)\\s*=\\s*\\{([^}]+)\\}", RegexOption.MULTILINE)
-                                .findAll(section)
-
-                        libraryBlocks.forEach { match ->
-                            val libKey = match.groupValues[1].trim()
-                            val block = match.groupValues[2]
-
-                            // Extract version from block
-                            val versionMatch =
-                                Regex("version\\s*=\\s*[\"']([^\"']+)[\"']").find(block)
-                            val versionRefMatch =
-                                Regex("version\\.ref\\s*=\\s*[\"']([^\"']+)[\"']").find(block)
-
-                            when {
-                                versionMatch != null -> {
-                                    val version = versionMatch.groupValues[1]
-                                    versionCatalog["libs.$libKey"] = version
-                                }
-
-                                versionRefMatch != null -> {
-                                    val versionRef = versionRefMatch.groupValues[1]
-                                    val resolvedVersion = versionCatalog[versionRef] ?: versionRef
-                                    versionCatalog["libs.$libKey"] = resolvedVersion
-                                }
-                            }
+                // --- Bundle style (multiple libs) ---
+                // ex implementation(libs.bundles.koin.common)
+                bundleDepRegex.findAll(content).forEach { match ->
+                    val bundlePath =
+                        match.groupValues[2].removePrefix("libs.bundles.") // ex koin.common
+                    val bundleKey = bundlePath.replace('.', '-') // ex koin-common
+                    val bundle = versionCatalog?.bundles?.find {
+                        it.name == bundleKey
+                    }
+                    bundle?.artifacts?.forEach { artifact ->
+                        val library = versionCatalog.libraries.find { lib ->
+                            lib.name == artifact
                         }
-
-                        // Parse single-line library definitions
-                        val singleLineRegex =
-                            Regex("([a-zA-Z0-9_-]+)\\s*=\\s*[\"']([^\"']+:[^\"']+:[^\"']+)[\"']")
-                        singleLineRegex.findAll(section).forEach { match ->
-                            val libKey = match.groupValues[1].trim()
-                            val dependency = match.groupValues[2]
-                            val parts = dependency.split(":")
-                            if (parts.size >= 3) {
-                                versionCatalog["libs.$libKey"] = parts[2]
-                            }
+                        if (library != null) {
+                            val id = library.id.split(":")
+                            val groupId = id[0]
+                            val artifactId = id[1]
+                            val availableVersions = findAvailableVersionsInGradleCache(
+                                groupId = groupId,
+                                artifactId = artifactId,
+                                gradleModulesInfo = gradleModulesInfo
+                            )
+                            val bundleDependency = Dependency(
+                                versionName = library.name,
+                                name = library.libName ?: library.name,
+                                id = library.id,
+                                group = library.group ?: "",
+                                version = library.version,
+                                configuration = match.groupValues[1],
+                                module = module,
+                                availableVersions = availableVersions,
+                                isAvailable = availableVersions?.versions?.any {
+                                    it.version == library.version
+                                } == true
+                            )
+                            AppLogger.d(TAG) { "Found bundleDependency: $bundleDependency" }
+                            dependencies.add(bundleDependency)
                         }
                     }
-
-                    AppLogger.d(TAG) { "Extracted ${versionCatalog.size} entries from version catalog" }
-                } catch (e: Exception) {
-                    AppLogger.e(TAG, e) { "Error parsing version catalog" }
                 }
             }
-
-            return@withContext versionCatalog
         }
 
-    private suspend fun findModules(
+        AppLogger.d(TAG) { "Found ${dependencies.size} dependencies" }
+        dependencies.forEach {
+            AppLogger.i(TAG) { "Dependency name: ${it.name} id: ${it.id} version: ${it.version} module: ${it.module} type: ${it.configuration} isAvailable: ${it.isAvailable} availableVersions: ${it.availableVersions}" }
+        }
+
+        return dependencies
+    }
+
+    private fun findPlugin(
+        rootModuleBuildFileInfo: RootModuleBuildFileInfo?,
+        subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
+        versionCatalog: VersionCatalog? = null,
+        gradleModulesInfo: GradleModulesInfo?,
+    ): List<Plugin> {
+        AppLogger.d(TAG) { "Finding plugins" }
+
+        val plugins = arrayListOf<Plugin>()
+
+        // Regex list
+        val regexList = listOf(
+            // Kotlin DSL (id("x") version "y")
+            Regex("""id\("([^"]+)"\)\s+version\s+"([^"]+)"""),
+            // Groovy DSL (id 'x' version 'y')
+            Regex("""id\s+['"]([^'"]+)['"]\s+version\s+['"]([^'"]+)['"]"""),
+            // Classpath (classpath "group:artifact:version")
+            Regex("""classpath\s+['"]([^:'"]+:[^:'"]+):([^'"]+)['"]"""),
+            // Alias (alias(libs.plugins.xxx))
+            Regex("""alias\(libs\.plugins\.([^)]+)\)""")
+        )
+
+        fun extractPlugins(content: String, module: String) {
+            regexList.forEach { regex ->
+                regex.findAll(content).forEach { match ->
+                    when (regex.pattern) {
+                        // Case: id(...) version "..."
+                        regexList[0].pattern, regexList[1].pattern -> {
+
+                            // [id("com.google.gms.google-services") version "4.4.2, com.google.gms.google-services, 4.4.2]
+                            val id =
+                                match.groupValues[1]       // ex: com.google.gms.google-services
+                            val groupId = id.substringBeforeLast(".")  // ex com.google.gms
+                            val artifactId = id.substringAfterLast('.') // ex google-services
+                            val version = match.groupValues[2]  // ex: 8.3.2
+
+                            val availableVersions = findAvailableVersionsInGradleCache(
+                                groupId = groupId,
+                                artifactId = artifactId,
+                                gradleModulesInfo = gradleModulesInfo
+                            )
+                            val normalPlugin = Plugin(
+                                id = id,
+                                name = artifactId,
+                                group = groupId,
+                                version = version,
+                                module = module,
+                                configuration = "normal",
+                                availableVersions = availableVersions,
+                                isAvailable = availableVersions?.versions?.any {
+                                    it.version == version
+                                } == true
+                            )
+                            AppLogger.d(TAG) { "Found normalPlugin: $normalPlugin" }
+                            plugins.add(
+                                normalPlugin
+                            )
+                        }
+
+                        // Library: com.android.tools.build:gradle groupId: com.android.tools.build artifactId: gradle versions: [7.2.2, 8.0.0, 8.1.4, 8.10.0, 8.10.1, 8.11.1, 8.12.0, 8.12.2, 8.12.3, 8.13.0, 8.5.2, 8.7.3, 8.8.0] totalSize: 142.89 MB totalSizeBytes: 149827947
+                        // Case: classpath 'com.android.tools.build:gradle:8.0.2'
+                        regexList[2].pattern -> {
+                            val id = match.groupValues[1] // ex: com.android.tools.build:gradle
+                            val version = match.groupValues[2] // ex: 8.3.2
+                            val groupId = id.substringBeforeLast(":")  // ex com.android.tools.build
+                            val artifactId = id.substringAfterLast(':') // ex gradle
+
+                            val availableVersions = findAvailableVersionsInGradleCache(
+                                groupId = groupId,
+                                artifactId = artifactId,
+                                gradleModulesInfo = gradleModulesInfo
+                            )
+                            val classPathPlugin = Plugin(
+                                group = groupId,
+                                name = artifactId,
+                                id = id,
+                                version = version,
+                                module = module,
+                                configuration = "classpath",
+                                availableVersions = availableVersions,
+                                isAvailable = availableVersions?.versions?.any {
+                                    it.version == version
+                                } == true
+                            )
+                            AppLogger.d(TAG) { "Found classPathPlugin: $classPathPlugin" }
+                            plugins.add(
+                                classPathPlugin
+                            )
+                        }
+
+                        // Case: alias(libs.plugins.xxx)
+                        // Library: org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin groupId: org.jetbrains.kotlin.plugin.serialization artifactId: org.jetbrains.kotlin.plugin.serialization.gradle.plugin versions: [2.1.21, 2.2.10, 2.2.20] totalSize: 4.40 KB totalSizeBytes: 4506
+                        // alias(libs.plugins.kotlinSerialization) apply false
+                        regexList[3].pattern -> {
+                            val id = match.groupValues[1] // ex: libs.plugins.kotlinSerialization
+
+                            val catalogPlugin = versionCatalog?.plugins?.find {
+                                it.name == id.substringAfterLast(".")  // kotlinSerialization
+                            }
+                            if (catalogPlugin != null) {
+                                val mainId = catalogPlugin.id + ".gradle.plugin"
+                                val groupId = catalogPlugin.id
+                                AppLogger.d(TAG) { "Found catalogPlugin: $catalogPlugin" }
+                                val availableVersions = findAvailableVersionsInGradleCache(
+                                    groupId = groupId,
+                                    artifactId = mainId,
+                                    gradleModulesInfo = gradleModulesInfo
+                                )
+                                val versionCatalogPlugin = Plugin(
+                                    name = catalogPlugin.name,
+                                    id = mainId,
+                                    version = catalogPlugin.version,
+                                    module = module,
+                                    configuration = "versionCatalog",
+                                    availableVersions = availableVersions,
+                                    isAvailable = availableVersions?.versions?.any {
+                                        it.version == catalogPlugin.version
+                                    } == true,
+                                    group = groupId,
+                                )
+                                AppLogger.d(TAG) { "Found versionCatalogPlugin: $versionCatalogPlugin" }
+                                plugins.add(
+                                    versionCatalogPlugin
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        // Root module
+        rootModuleBuildFileInfo?.let { extractPlugins(it.content, module = "root") }
+
+        // Sub-modules
+        subModuleBuildFileInfos.forEach { extractPlugins(it.content, module = it.moduleName) }
+
+        AppLogger.d(TAG) { "Found ${plugins.size} plugins" }
+        plugins.forEach {
+            AppLogger.i(TAG) { "Plugin name: ${it.name} id: ${it.id} version: ${it.version} module: ${it.module}" }
+        }
+
+        return plugins
+    }
+
+
+    private fun findProjectOverviewInfo(
         projectDir: File,
-        progressCallback: ProgressCallback?
-    ): List<ModuleInfo> = withContext(Dispatchers.IO) {
-        AppLogger.d(TAG) { "Finding modules in: ${projectDir.absolutePath}" }
+        settingsGradleFileInfo: SettingsGradleFileInfo?,
+        gradleWrapperPropertiesFileInfo: GradleWrapperPropertiesFileInfo?,
+        versionCatalog: VersionCatalog?,
+        rootModuleBuildFileInfo: RootModuleBuildFileInfo?,
+        subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
+        isMultiModule: Boolean
+    ): ProjectOverviewInfo {
+        AppLogger.d(TAG) { "Finding project info" }
 
-        val modules = mutableListOf<ModuleInfo>()
+        fun findProjectName(): String {
+            if (settingsGradleFileInfo == null) return projectDir.name
+            val readLines = settingsGradleFileInfo.readLines
+            val projectNameLine = readLines.find { it.startsWith("rootProject.name") }
+            if (projectNameLine == null) return projectDir.name
+            val projectName = projectNameLine.substringAfter("=").replace("\"", "").trim()
+            return projectName
+        }
 
-        // Find submodules
-        val subDirs = projectDir.listFiles()?.filter { dir ->
-            dir.isDirectory &&
-                    !dir.name.startsWith(".") &&
-                    !dir.name.equals("build", true) &&
-                    !dir.name.equals("gradle", true) &&
-                    (File(dir, "build.gradle.kts").exists() || File(dir, "build.gradle").exists())
-        } ?: emptyList()
+        fun findGradleVersion(): String? {
+            if (gradleWrapperPropertiesFileInfo == null) return null
+            val readLines = gradleWrapperPropertiesFileInfo.readLines
+            // distributionUrl=https\://services.gradle.org/distributions/gradle-8.9-bin.zip
+            val gradleVersionLine = readLines.find { it.startsWith("distributionUrl") }
+            if (gradleVersionLine == null) return null
 
-        subDirs.forEachIndexed { index, moduleDir ->
-            progressCallback?.updateProgress(
-                0.3f + (index.toFloat() / subDirs.size) * 0.1f,
-                "Analyzing module: ${moduleDir.name}"
+            val gradleVersion = gradleVersionLine.substringAfter("gradle-").substringBefore(".")
+            return gradleVersion
+        }
+
+        fun extractAgpVersion(): String? {
+
+            val agpVersion = versionCatalog?.versions?.find { it.name == "agp" }?.version
+            if (agpVersion != null) return agpVersion
+
+            if (rootModuleBuildFileInfo == null) return null
+            val content = rootModuleBuildFileInfo.content
+
+            // Case 1: plugins DSL
+            val pluginsRegex = Regex("""id\("com\.android\.application"\)\s+version\s+"([\d.]+)"""")
+            pluginsRegex.find(content)?.let { return it.groupValues[1] }
+
+            // Case 2: classpath dependency (KTS style)
+            val ktsClasspathRegex =
+                Regex("""classpath\("com\.android\.tools\.build:gradle:([\d.]+)"\)""")
+            ktsClasspathRegex.find(content)?.let { return it.groupValues[1] }
+
+            // Case 3: classpath dependency (Groovy style)
+            val groovyClasspathRegex =
+                Regex("""classpath\s+['"]com\.android\.tools\.build:gradle:([\d.]+)['"]""")
+            groovyClasspathRegex.find(content)?.let { return it.groupValues[1] }
+
+            return null
+        }
+
+
+        fun extractKotlinVersion(): String? {
+            val kotlinVersion = versionCatalog?.versions?.find { it.name == "kotlin" }?.version
+            if (kotlinVersion != null) return kotlinVersion
+            if (rootModuleBuildFileInfo == null) return null
+            val content = rootModuleBuildFileInfo.content
+
+            // Case 1: plugins DSL
+            val pluginsRegex =
+                Regex("""id\("org\.jetbrains\.kotlin\.android"\)\s+version\s+"([\d.]+)"""")
+            pluginsRegex.find(content)?.let { return it.groupValues[1] }
+
+            // Case 2: classpath dependency (KTS style)
+            val ktsClasspathRegex =
+                Regex("""classpath\("org\.jetbrains\.kotlin:kotlin-gradle-plugin:([\d.]+)"\)""")
+            ktsClasspathRegex.find(content)?.let { return it.groupValues[1] }
+
+            // Case 3: classpath dependency (Groovy style)
+            val groovyClasspathRegex =
+                Regex("""classpath\s+['"]org\.jetbrains\.kotlin:kotlin-gradle-plugin:([\d.]+)['"]""")
+            groovyClasspathRegex.find(content)?.let { return it.groupValues[1] }
+
+            return null
+        }
+
+        fun extractCompileSdk(): String? {
+            val fromCatalog =
+                versionCatalog?.versions?.find { it.name == "android-compileSdk" }?.version
+            if (fromCatalog != null) return fromCatalog
+
+            val regex = Regex("""compileSdk(?:Version)?\s*=?\s*(\d+)""")
+            val subModuleBuildFileInfo =
+                subModuleBuildFileInfos.find { regex.containsMatchIn(it.content) }
+            return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
+        }
+
+        fun extractMinSdk(): String? {
+            val fromCatalog =
+                versionCatalog?.versions?.find { it.name == "android-minSdk" }?.version
+            if (fromCatalog != null) return fromCatalog
+
+            val regex = Regex("""minSdk(?:Version)?\s*=?\s*(\d+)""")
+            val subModuleBuildFileInfo =
+                subModuleBuildFileInfos.find { regex.containsMatchIn(it.content) }
+            return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
+        }
+
+        fun extractTargetSdk(): String? {
+            val fromCatalog =
+                versionCatalog?.versions?.find { it.name == "android-targetSdk" }?.version
+            if (fromCatalog != null) return fromCatalog
+
+            val regex = Regex("""targetSdk(?:Version)?\s*=?\s*(\d+)""")
+            val subModuleBuildFileInfo =
+                subModuleBuildFileInfos.find { regex.containsMatchIn(it.content) }
+            return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
+        }
+
+        val sizeBytes = Utils.calculateFolderSize(projectDir)
+
+        val projectOverviewInfo = ProjectOverviewInfo(
+            projectPath = projectDir.absolutePath,
+            projectName = findProjectName(),
+            totalSize = Utils.formatSize(sizeBytes),
+            totalSizeBytes = sizeBytes,
+            isMultiModule = isMultiModule,
+            gradleVersion = findGradleVersion(),
+            kotlinVersion = extractKotlinVersion(),
+            androidGradlePluginVersion = extractAgpVersion(),
+            targetSdkVersion = extractTargetSdk(),
+            minSdkVersion = extractMinSdk(),
+            compileSdkVersion = extractCompileSdk()
+        )
+        AppLogger.d(TAG) { "Found project info." }
+        AppLogger.i(TAG) {
+            """ 
+                Project Info:
+                Name: ${projectOverviewInfo.projectName} Path: ${projectOverviewInfo.projectPath}
+                Total Size: ${projectOverviewInfo.totalSize} Total Size (bytes): ${projectOverviewInfo.totalSizeBytes} 
+                Gradle Version: ${projectOverviewInfo.gradleVersion} Kotlin Version: ${projectOverviewInfo.kotlinVersion}
+                isMultiModule: ${projectOverviewInfo.isMultiModule} Android Gradle Plugin Version: ${projectOverviewInfo.androidGradlePluginVersion}
+                Compile SDK Version: ${projectOverviewInfo.compileSdkVersion} Target SDK Version: ${projectOverviewInfo.targetSdkVersion} Min SDK Version: ${projectOverviewInfo.minSdkVersion}
+            """.trimIndent()
+        }
+        return projectOverviewInfo
+    }
+
+
+    private suspend fun findVersionCatalogFile(projectDir: File): VersionCatalogFileInfo? =
+        withContext(Dispatchers.IO) {
+            AppLogger.d(TAG) { "Finding version catalog" }
+
+            // Find version catalogs
+            val versionCatalogFile = File(projectDir, "gradle/libs.versions.toml")
+            if (!versionCatalogFile.exists()) return@withContext null
+            val sizeBytes = versionCatalogFile.length()
+
+            val versionCatalogFileInfo = VersionCatalogFileInfo(
+                name = versionCatalogFile.name,
+                path = versionCatalogFile.absolutePath,
+                size = Utils.formatSize(sizeBytes),
+                sizeBytes = sizeBytes,
+                content = versionCatalogFile.readText(),
+                readLines = versionCatalogFile.readLines(),
+                file = versionCatalogFile
+            )
+            AppLogger.d(TAG) { "Found version catalog." }
+            AppLogger.i(TAG) {
+                "Name: ${versionCatalogFileInfo.name} Path: ${versionCatalogFileInfo.path} Size: ${versionCatalogFileInfo.size} Size (bytes): ${versionCatalogFileInfo.sizeBytes} isContent: ${versionCatalogFileInfo.content.isNotEmpty()}"
+            }
+            versionCatalogFileInfo
+        }
+
+    private suspend fun findRootModuleBuildFiles(projectDir: File): RootModuleBuildFileInfo? =
+        withContext(Dispatchers.IO) {
+            AppLogger.d(TAG) { "Finding root build files" }
+
+
+            // Find root build files
+            val buildFileType = BuildFileType.entries.find { buildFileType ->
+                val file = File(projectDir, buildFileType.fileName)
+                file.exists()
+            }
+            if (buildFileType == null) return@withContext null
+            val file = File(projectDir, buildFileType.fileName)
+            if (!file.exists()) return@withContext null
+            val sizeBytes = file.length()
+
+            val rootModuleBuildFileInfo = RootModuleBuildFileInfo(
+                moduleName = "root",
+                path = file.absolutePath,
+                type = buildFileType,
+                size = Utils.formatSize(sizeBytes),
+                sizeBytes = sizeBytes,
+                content = file.readText(),
+                readLines = file.readLines(),
+                file = file,
+            )
+            AppLogger.d(TAG) { "Found root build files" }
+            AppLogger.i(TAG) {
+                "Name: ${rootModuleBuildFileInfo.moduleName} Path: ${rootModuleBuildFileInfo.path} Type: ${rootModuleBuildFileInfo.type} Size: ${rootModuleBuildFileInfo.size} Size (bytes): ${rootModuleBuildFileInfo.sizeBytes} isContent: ${rootModuleBuildFileInfo.content.isNotEmpty()}"
+            }
+            rootModuleBuildFileInfo
+        }
+
+
+    private suspend fun findSubModuleBuildFiles(projectDir: File): List<SubModuleBuildFileInfo> =
+        withContext(Dispatchers.IO) {
+            AppLogger.d(TAG) { "Finding build files" }
+
+            val buildFiles = mutableListOf<SubModuleBuildFileInfo>()
+
+            // Find module build files
+            projectDir.listFiles()?.filter { it.isDirectory && !it.name.startsWith(".") }
+                ?.forEach { moduleDir ->
+                    BuildFileType.entries.forEach { buildFileType ->
+                        val file = File(moduleDir, buildFileType.fileName)
+                        if (file.exists()) {
+                            val sizeBytes = file.length()
+                            buildFiles.add(
+                                SubModuleBuildFileInfo(
+                                    path = file.absolutePath,
+                                    type = buildFileType,
+                                    size = Utils.formatSize(sizeBytes),
+                                    sizeBytes = sizeBytes,
+                                    content = file.readText(),
+                                    readLines = file.readLines(),
+                                    file = file,
+                                    moduleName = moduleDir.name,
+                                    modulePath = moduleDir.absolutePath
+                                )
+                            )
+                        }
+                    }
+                }
+
+            AppLogger.d(TAG) { "Found ${buildFiles.size} build files" }
+            buildFiles.forEach {
+                AppLogger.i(TAG) {
+                    "name: ${it.type.fileName} Path: ${it.path} Type: ${it.type} Size: ${it.size} Size (bytes): ${it.sizeBytes} isContent: ${it.content.isNotEmpty()} moduleName = ${it.moduleName} modulePath = ${it.modulePath}"
+                }
+            }
+            buildFiles
+        }
+
+    private suspend fun findSettingsGradleFiles(projectDir: File): SettingsGradleFileInfo? =
+        withContext(Dispatchers.IO) {
+            AppLogger.d(TAG) { "Finding settings gradle files" }
+
+            // Find settings gradle files
+            val settingsGradleFileType =
+                SettingsGradleFileType.entries.find { settingsGradleFileType ->
+                    val file = File(projectDir, settingsGradleFileType.fileName)
+                    file.exists()
+                }
+            if (settingsGradleFileType == null) return@withContext null
+
+            val file = File(projectDir, settingsGradleFileType.fileName)
+            val sizeBytes = file.length()
+
+            val settingsGradleFileInfo = SettingsGradleFileInfo(
+                name = settingsGradleFileType.fileName,
+                path = file.absolutePath,
+                type = settingsGradleFileType,
+                size = Utils.formatSize(sizeBytes),
+                sizeBytes = sizeBytes,
+                content = file.readText(),
+                readLines = file.readLines(),
+                file = file
             )
 
-            val buildFile = File(moduleDir, "build.gradle.kts").takeIf { it.exists() }
-                ?: File(moduleDir, "build.gradle").takeIf { it.exists() }
-
-            if (buildFile != null) {
-                val sizeBytes = StorageUtils.calculateFolderSize(moduleDir)
-                val (sourceFiles, resourceFiles) = countSourceFiles(moduleDir)
-                val moduleDependencies = extractModuleDependencies(buildFile, moduleDir.name)
-
-                modules.add(
-                    ModuleInfo(
-                        name = moduleDir.name,
-                        path = moduleDir.absolutePath,
-                        type = determineModuleType(moduleDir.name, buildFile),
-                        buildFile = buildFile.name,
-                        sourceFiles = sourceFiles,
-                        resourceFiles = resourceFiles,
-                        size = StorageUtils.formatSize(sizeBytes),
-                        sizeBytes = sizeBytes,
-                        dependencies = moduleDependencies
-                    )
-                )
+            AppLogger.d(TAG) { "Found settings.gradle files" }
+            AppLogger.i(TAG) {
+                """
+                Settings Gradle File:
+                Name: ${settingsGradleFileInfo.name}
+                Path: ${settingsGradleFileInfo.path}
+                Type: ${settingsGradleFileInfo.type}
+                Size: ${settingsGradleFileInfo.size}
+                Size (bytes): ${settingsGradleFileInfo.sizeBytes}
+                isContent: ${settingsGradleFileInfo.content.isNotEmpty()}})}
+            """.trimIndent()
             }
+            settingsGradleFileInfo
         }
 
-        // If no modules found, check if root has build file (single module project)
-        if (modules.isEmpty()) {
-            val rootBuildFile = File(projectDir, "build.gradle.kts").takeIf { it.exists() }
-                ?: File(projectDir, "build.gradle").takeIf { it.exists() }
-
-            if (rootBuildFile != null) {
-                val sizeBytes = StorageUtils.calculateFolderSize(projectDir)
-                val (sourceFiles, resourceFiles) = countSourceFiles(projectDir)
-                val moduleDependencies = extractModuleDependencies(rootBuildFile, "app")
-
-                modules.add(
-                    ModuleInfo(
-                        name = "app",
-                        path = projectDir.absolutePath,
-                        type = ModuleType.APP,
-                        buildFile = rootBuildFile.name,
-                        sourceFiles = sourceFiles,
-                        resourceFiles = resourceFiles,
-                        size = StorageUtils.formatSize(sizeBytes),
-                        sizeBytes = sizeBytes,
-                        dependencies = moduleDependencies
-                    )
-                )
+    private suspend fun findPropertiesFiles(projectDir: File): PropertiesFileInfo? =
+        withContext(Dispatchers.IO) {
+            AppLogger.d(TAG) { "Finding properties files" }
+            // Find properties files
+            val propertiesFileType = PropertiesFileType.entries.find { propertiesFileType ->
+                val file = File(projectDir, propertiesFileType.fileName)
+                file.exists()
             }
+            if (propertiesFileType == null) return@withContext null
+            val file = File(projectDir, propertiesFileType.fileName)
+            val sizeBytes = file.length()
+            val propertiesFileInfo = PropertiesFileInfo(
+                name = propertiesFileType.fileName,
+                path = file.absolutePath,
+                type = propertiesFileType,
+                size = Utils.formatSize(sizeBytes),
+                sizeBytes = sizeBytes,
+                content = file.readText(),
+                readLines = file.readLines(),
+                file = file
+            )
+            AppLogger.d(TAG) { "Found properties files" }
+            AppLogger.i(TAG) {
+                """
+                Properties File:
+                Name: ${propertiesFileInfo.name}
+                Path: ${propertiesFileInfo.path}
+                Type: ${propertiesFileInfo.type}
+                Size: ${propertiesFileInfo.size}
+                Size (bytes): ${propertiesFileInfo.sizeBytes}
+                isContent: ${propertiesFileInfo.content.isNotEmpty()}
+            """.trimIndent()
+            }
+            propertiesFileInfo
         }
 
-        AppLogger.d(TAG) { "Found ${modules.size} modules" }
-        modules
-    }
+    private suspend fun findGradleWrapperProFile(projectDir: File): GradleWrapperPropertiesFileInfo? =
+        withContext(Dispatchers.IO) {
+            AppLogger.d(TAG) { "Finding gradle wrapper properties file" }
 
-    private fun determineModuleType(name: String, buildFile: File): ModuleType {
-        val content = try {
-            buildFile.readText().lowercase()
-        } catch (e: Exception) {
-            ""
+            // Find gradle wrapper properties file
+            val gradleWrapperPropertiesFile =
+                File(projectDir, "gradle/wrapper/gradle-wrapper.properties")
+            if (!gradleWrapperPropertiesFile.exists()) return@withContext null
+
+            val sizeBytes = gradleWrapperPropertiesFile.length()
+
+            val gradleWrapperPropertiesFileInfo = GradleWrapperPropertiesFileInfo(
+                name = gradleWrapperPropertiesFile.name,
+                path = gradleWrapperPropertiesFile.absolutePath,
+                size = Utils.formatSize(sizeBytes),
+                sizeBytes = sizeBytes,
+                content = gradleWrapperPropertiesFile.readText(),
+                readLines = gradleWrapperPropertiesFile.readLines(),
+                file = gradleWrapperPropertiesFile,
+            )
+
+            AppLogger.d(TAG) { "Found version catalog." }
+            AppLogger.i(TAG) {
+                """
+                Gradle Wrapper Properties File:
+                Name: ${gradleWrapperPropertiesFileInfo.name}
+                Path: ${gradleWrapperPropertiesFileInfo.path}
+                Size: ${gradleWrapperPropertiesFileInfo.size}
+                Size (bytes): ${gradleWrapperPropertiesFileInfo.sizeBytes}
+                isContent: ${gradleWrapperPropertiesFileInfo.content.isNotEmpty()}
+            """.trimIndent()
+            }
+
+            gradleWrapperPropertiesFileInfo
         }
-        val lowerName = name.lowercase()
 
-        return when {
-            content.contains("com.android.application") -> ModuleType.APP
-            content.contains("com.android.library") -> ModuleType.LIBRARY
-            lowerName.contains("app") -> ModuleType.APP
-            lowerName.contains("core") -> ModuleType.CORE
-            lowerName.contains("data") -> ModuleType.DATA
-            lowerName.contains("domain") -> ModuleType.DOMAIN
-            lowerName.contains("feature") -> ModuleType.FEATURE
-            lowerName.contains("presentation") || lowerName.contains("ui") -> ModuleType.PRESENTATION
-            else -> ModuleType.UNKNOWN
-        }
-    }
+    private suspend fun findVersionCatalog(
+        versionCatalogFileInfo: VersionCatalogFileInfo?
+    ): VersionCatalog? = withContext(Dispatchers.IO) {
+        if (versionCatalogFileInfo == null) return@withContext null
 
-    private fun countSourceFiles(dir: File): Pair<Int, Int> {
-        var sourceFiles = 0
-        var resourceFiles = 0
-        try {
+        @Serializable
+        data class VersionPartial(
+            val version: String? = null, @SerialName("ref") val ref: String? = null
+        )
 
-            dir.walkTopDown()
-                .filter { !it.absolutePath.contains("/build/") && !it.absolutePath.contains("/.gradle/") }
-                .forEach { file ->
-                    if (file.isFile) {
-                        when (file.extension.lowercase()) {
-                            "kt", "java", "scala", "groovy" -> sourceFiles++
-                            "xml", "json", "properties", "txt", "md", "png", "jpg", "jpeg", "svg" -> resourceFiles++
+        @Serializable
+        data class PluginPartial(
+            val id: String? = null, val version: VersionPartial? = null
+        )
+
+        @Serializable
+        data class LibraryPartial(
+            val group: String? = null,
+            @SerialName("name") val libName: String? = null,
+            val module: String? = null,
+            val version: VersionPartial? = null
+        )
+
+
+        @Serializable
+        data class VersionCatalogPartial(
+            val versions: Map<String, String> = emptyMap(),
+            val libraries: Map<String, LibraryPartial> = emptyMap(),
+            val plugins: Map<String, PluginPartial> = emptyMap()
+        )
+
+        fun parseBundlesFromToml(toml: String): Map<String, List<String>> {
+            val bundles = mutableMapOf<String, MutableList<String>>()
+            var currentKey: String? = null
+            var insideArray = false
+            val buffer = mutableListOf<String>()
+
+            for (line in toml.lines()) {
+                val trimmed = line.trim()
+                if (trimmed.isEmpty() || trimmed.startsWith("#")) continue
+
+                if (!insideArray) {
+                    val match = Regex("""^([\w-]+)\s*=\s*\[""").find(trimmed)
+                    if (match != null) {
+                        currentKey = match.groupValues[1]
+                        bundles[currentKey] = mutableListOf()
+                        insideArray = true
+                        buffer.clear()
+                        buffer += trimmed
+
+                        // handle inline case where [ ... ] on the same line
+                        if (trimmed.contains("]")) {
+                            val values =
+                                trimmed.substringAfter("[").substringBeforeLast("]").split(",")
+                                    .mapNotNull { value ->
+                                        value.trim().removeSurrounding("\"")
+                                            .takeIf { it.isNotEmpty() }
+                                    }
+                            bundles[currentKey]?.addAll(values)
+                            insideArray = false
+                            currentKey = null
+                            buffer.clear()
                         }
+                        continue
+                    }
+                } else {
+                    buffer += trimmed
+                    if (trimmed.contains("]")) {
+                        val joined = buffer.joinToString(" ")
+                        val values =
+                            joined.substringAfter("[").substringBeforeLast("]").split(",")
+                                .mapNotNull { value ->
+                                    value.trim().removeSurrounding("\"").takeIf { it.isNotEmpty() }
+                                }
+                        bundles[currentKey!!]?.addAll(values)
+                        insideArray = false
+                        currentKey = null
+                        buffer.clear()
                     }
                 }
-        } catch (e: Exception) {
-            AppLogger.e(TAG, "Error counting source files in ${dir.absolutePath}", e)
-        }
-        return sourceFiles to resourceFiles
-    }
-
-    private suspend fun resolveVersions(
-        modules: List<ModuleInfo>,
-        versionCatalog: Map<String, String>
-    ): List<ModuleInfo> {
-        return modules.map { module ->
-            val resolvedDependencies = module.dependencies.map { dep ->
-                val resolvedVersion = when {
-                    dep.name.startsWith("libs.") -> {
-                        versionCatalog[dep.name] ?: dep.version
-                    }
-
-                    dep.version == "catalog" -> {
-                        versionCatalog[dep.name] ?: "catalog"
-                    }
-
-                    dep.version.startsWith("\$") -> {
-                        // Handle version variables like $kotlin_version
-                        val varName = dep.version.removePrefix("\$").removeSurrounding("{", "}")
-                        versionCatalog[varName] ?: dep.version
-                    }
-
-                    else -> dep.version
-                }
-
-                dep.copy(version = resolvedVersion)
             }
 
-            module.copy(dependencies = resolvedDependencies)
+            return bundles
         }
+
+        val tomlText = versionCatalogFileInfo.content
+
+        val partial = Toml(
+            inputConfig = TomlInputConfig(ignoreUnknownNames = true)
+        ).decodeFromString<VersionCatalogPartial>(tomlText)
+
+        val bundleMap = parseBundlesFromToml(versionCatalogFileInfo.content)
+        val versionMap = partial.versions
+
+        val versionCatalog = VersionCatalog(
+            versions = versionMap.map { (k, v) ->
+                Version(name = k, version = v)
+            },
+
+            libraries = partial.libraries.map { (k, v) ->
+
+                val resolvedVersion = when {
+                    v.version?.version != null -> v.version.version
+                    v.version?.ref != null -> versionMap[v.version.ref]
+                    else -> null
+                }
+                val notation = when {
+                    v.module != null -> v.module
+                    v.group != null && v.libName != null -> "${v.group}:${v.libName}"
+                    else -> k
+                }
+                val (group, libName) = when {
+                    v.module != null -> {
+                        val parts = v.module.split(":")
+                        parts[0] to parts[1]
+                    }
+
+                    v.group != null && v.libName != null -> v.group to v.libName
+                    else -> null to k // fallback
+                }
+                Library(
+                    name = k,
+                    group = group,
+                    libName = libName,
+                    version = resolvedVersion,
+                    id = notation
+                )
+            },
+
+            plugins = partial.plugins.map { (k, v) ->
+                val resolvedVersion = when {
+                    v.version?.version != null -> v.version.version
+                    v.version?.ref != null -> versionMap[v.version.ref]
+                    else -> null
+                }
+                Plugin(
+                    name = k,
+                    id = v.id!!,
+                    version = resolvedVersion,
+                    module = "",
+                    configuration = "versionCatalog",
+                    group = ""
+                )
+            },
+
+            bundles = bundleMap.map { (k, v) ->
+                Bundle(name = k, artifacts = v)
+            }
+        )
+        AppLogger.d(TAG) { "Found version catalog." }
+        AppLogger.i(TAG) {
+            """
+                Version Catalog:
+                Versions: ${versionCatalog.versions.size}
+                Libraries: ${versionCatalog.libraries.size}
+                Plugins: ${versionCatalog.plugins.size}
+                Bundles: ${versionCatalog.bundles.size}
+            """.trimIndent()
+        }
+        AppLogger.i(TAG) { "Version:" }
+        versionCatalog.versions.forEach {
+            AppLogger.i(TAG) {
+                "Name: ${it.name} Version: ${it.version}"
+            }
+        }
+        AppLogger.i(TAG) { "Library:" }
+        versionCatalog.libraries.forEach {
+            AppLogger.i(TAG) {
+                "Name: ${it.name} Group: ${it.group} LibName: ${it.libName} Version: ${it.version} id: ${it.id}"
+            }
+        }
+        AppLogger.i(TAG) { "Plugin:" }
+        versionCatalog.plugins.forEach {
+            AppLogger.i(TAG) {
+                "Name: ${it.name} Id: ${it.id} Version: ${it.version} Module: ${it.module}"
+            }
+        }
+        AppLogger.i(TAG) { "Bundle:" }
+        versionCatalog.bundles.forEach {
+            AppLogger.i(TAG) {
+                "Name: ${it.name} Artifacts: ${it.artifacts}"
+            }
+        }
+        versionCatalog
     }
 
     private suspend fun findProjectFiles(projectDir: File): List<ProjectFileInfo> =
@@ -351,7 +1032,6 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                 !file.path.contains("/.") && // Exclude hidden folders
                                 file.length() < 10 * 1024 * 1024 // Skip files larger than 10MB
                     }
-                    .take(2000) // Limit to first 2000 files
                     .forEach { file ->
                         try {
                             val relativePath = file.relativeTo(projectDir).path
@@ -365,16 +1045,11 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                     path = file.absolutePath,
                                     relativePath = relativePath,
                                     type = fileType,
-                                    size = StorageUtils.formatSize(sizeBytes),
+                                    size = Utils.formatSize(sizeBytes),
                                     sizeBytes = sizeBytes,
                                     extension = file.extension.lowercase(),
-                                    content = if (isReadable) {
-                                        try {
-                                            file.readText()
-                                        } catch (e: Exception) {
-                                            null
-                                        }
-                                    } else null,
+                                    content = file.readText(),
+                                    file = file,
                                     isReadable = isReadable
                                 )
                             )
@@ -430,430 +1105,5 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
         return file.extension.lowercase() in textExtensions ||
                 file.name.lowercase() in setOf("dockerfile", "makefile", "readme")
     }
-
-    private fun extractModuleDependencies(
-        buildFile: File,
-        moduleName: String
-    ): List<DependencyInfo> {
-        val dependencies = mutableListOf<DependencyInfo>()
-
-        try {
-            val content = buildFile.readText()
-            AppLogger.d(TAG, "Extracting dependencies from: ${buildFile.absolutePath}")
-
-            // Kotlin DSL patterns
-            val kotlinDslRegex = Regex(
-                """(implementation|api|compileOnly|runtimeOnly|testImplementation|androidTestImplementation|kapt|ksp|debugImplementation|releaseImplementation)\s*\(\s*["']([^"']+)["']\s*\)"""
-            )
-
-            // Groovy DSL patterns
-            val groovyDslRegex = Regex(
-                """(implementation|api|compileOnly|runtimeOnly|testImplementation|androidTestImplementation|kapt|ksp|debugImplementation|releaseImplementation)\s+["']([^"']+)["']"""
-            )
-
-            // Version catalog references
-            val versionCatalogRegex = Regex(
-                """(implementation|api|compileOnly|runtimeOnly|testImplementation|androidTestImplementation|kapt|ksp|debugImplementation|releaseImplementation)\s*\(\s*libs\.([a-zA-Z0-9._-]+)\s*\)"""
-            )
-
-            // Platform dependencies
-            val platformRegex = Regex(
-                """(implementation|api)\s*\(\s*platform\s*\(\s*["']([^"']+)["']\s*\)\s*\)"""
-            )
-
-            // BOM (Bill of Materials) dependencies
-            val bomRegex = Regex(
-                """(implementation|api)\s*\(\s*platform\s*\(\s*libs\.([a-zA-Z0-9._-]+)\s*\)\s*\)"""
-            )
-
-            // Dependencies block parsing
-            val dependenciesBlock = Regex(
-                """dependencies\s*\{([^{}]*(?:\{[^{}]*\}[^{}]*)*)\}""",
-                RegexOption.DOT_MATCHES_ALL
-            ).find(content)?.groupValues?.get(1)
-
-            dependenciesBlock?.let { block ->
-                // Process each pattern
-                kotlinDslRegex.findAll(block).forEach { match ->
-                    addDependency(
-                        dependencies,
-                        match.groupValues[1],
-                        match.groupValues[2],
-                        moduleName
-                    )
-                }
-
-                groovyDslRegex.findAll(block).forEach { match ->
-                    addDependency(
-                        dependencies,
-                        match.groupValues[1],
-                        match.groupValues[2],
-                        moduleName
-                    )
-                }
-
-                platformRegex.findAll(block).forEach { match ->
-                    addDependency(
-                        dependencies,
-                        match.groupValues[1],
-                        match.groupValues[2],
-                        moduleName,
-                        isPlatform = true
-                    )
-                }
-
-                bomRegex.findAll(block).forEach { match ->
-                    val scope = match.groupValues[1]
-                    val catalogRef = match.groupValues[2]
-                    dependencies.add(
-                        DependencyInfo(
-                            name = "libs.$catalogRef",
-                            version = "bom",
-                            type = mapScopeToType(scope),
-                            scope = scope,
-                            module = moduleName
-                        )
-                    )
-                }
-
-                versionCatalogRegex.findAll(block).forEach { match ->
-                    val scope = match.groupValues[1]
-                    val catalogRef = match.groupValues[2]
-                    dependencies.add(
-                        DependencyInfo(
-                            name = "libs.$catalogRef",
-                            version = "catalog",
-                            type = mapScopeToType(scope),
-                            scope = scope,
-                            module = moduleName
-                        )
-                    )
-                }
-            }
-
-            AppLogger.d(TAG, "Found ${dependencies.size} dependencies in module: $moduleName")
-
-        } catch (e: Exception) {
-            AppLogger.e(TAG, "Error extracting dependencies from: ${buildFile.absolutePath}", e)
-        }
-
-        return dependencies
-    }
-
-    private fun mapScopeToType(scope: String): DependencyType {
-        return when (scope.lowercase()) {
-            "implementation" -> DependencyType.IMPLEMENTATION
-            "api" -> DependencyType.API
-            "compileonly" -> DependencyType.COMPILE_ONLY
-            "runtimeonly" -> DependencyType.RUNTIME_ONLY
-            "testimplementation" -> DependencyType.TEST_IMPLEMENTATION
-            "androidtestimplementation" -> DependencyType.ANDROID_TEST_IMPLEMENTATION
-            "kapt" -> DependencyType.KAPT
-            "ksp" -> DependencyType.KSP
-            "debugimplementation", "releaseimplementation" -> DependencyType.IMPLEMENTATION
-            else -> DependencyType.IMPLEMENTATION
-        }
-    }
-
-    private fun addDependency(
-        dependencies: MutableList<DependencyInfo>,
-        scope: String,
-        dependencyString: String,
-        moduleName: String,
-        isPlatform: Boolean = false
-    ) {
-        try {
-            val parts = dependencyString.split(":")
-            if (parts.size >= 2) {
-                val name = "${parts[0]}:${parts[1]}"
-                val version = parts.getOrNull(2) ?: if (isPlatform) "platform" else "unspecified"
-
-                dependencies.add(
-                    DependencyInfo(
-                        name = name,
-                        version = version,
-                        type = try {
-                            DependencyType.valueOf(scope.uppercase())
-                        } catch (e: Exception) {
-                            DependencyType.IMPLEMENTATION
-                        },
-                        scope = scope,
-                        module = moduleName
-                    )
-                )
-            }
-        } catch (e: Exception) {
-            AppLogger.e(TAG) { "Error parsing dependency: $dependencyString" }
-        }
-    }
-
-    private fun createLibraryInfo(
-        allDependencies: List<DependencyInfo>,
-        versionCatalog: Map<String, String>
-    ): List<LibraryInfo> {
-        AppLogger.d(TAG) { "Creating library info from ${allDependencies.size} dependencies" }
-
-        val libraryGroups = allDependencies
-            .filter { !it.name.startsWith("libs.") && it.name.contains(":") }
-            .groupBy { it.name }
-
-        val libraries = libraryGroups.map { (libName, deps) ->
-            val parts = libName.split(":")
-            val group = parts.getOrNull(0) ?: ""
-            val artifact = parts.getOrNull(1) ?: libName
-
-            val allVersions = deps.map { it.version }
-                .distinct()
-                .filter { it != "unspecified" && it != "catalog" && it != "platform" && it != "bom" }
-                .sorted()
-            val usedInModules = deps.map { it.module }.distinct()
-            val mostCommonType = deps.groupBy { it.type }.maxByOrNull { it.value.size }?.key
-
-            val hasVersionConflict = allVersions.size > 1
-            val latestVersion = allVersions.lastOrNull() ?: "unknown"
-
-            LibraryInfo(
-                name = libName,
-                group = group,
-                artifact = artifact,
-                allVersions = allVersions,
-                usedInModules = usedInModules,
-                isUsed = true,
-                dependencyType = mostCommonType,
-                latestVersion = latestVersion,
-                hasVersionConflict = hasVersionConflict
-            )
-        }.sortedBy { it.name }
-
-        // Add version catalog libraries
-        val catalogLibraries = allDependencies
-            .filter { it.name.startsWith("libs.") }
-            .map { dep ->
-                val catalogKey = dep.name
-                val resolvedVersion = versionCatalog[catalogKey] ?: "unknown"
-                val displayName = catalogKey.removePrefix("libs.").replace("_", "-")
-
-                LibraryInfo(
-                    name = displayName,
-                    group = "version-catalog",
-                    artifact = displayName,
-                    allVersions = listOf(resolvedVersion),
-                    usedInModules = listOf(dep.module),
-                    isUsed = true,
-                    dependencyType = dep.type,
-                    latestVersion = resolvedVersion,
-                    hasVersionConflict = false
-                )
-            }
-
-        val allLibraries =
-            (libraries + catalogLibraries).distinctBy { it.name }.sortedBy { it.name }
-
-        AppLogger.d(TAG) { "Created ${libraries.size} library entries" }
-        return allLibraries
-    }
-
-
-    private suspend fun extractProjectMetadata(projectDir: File): Map<String, String> =
-        withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Extracting project metadata" }
-
-            val metadata = mutableMapOf<String, String>()
-
-            // Extract from gradle.properties
-            val gradleProperties = File(projectDir, "gradle.properties")
-            if (gradleProperties.exists()) {
-                try {
-                    gradleProperties.readLines().forEach { line ->
-                        if (line.contains("=") && !line.trim().startsWith("#")) {
-                            val parts = line.split("=", limit = 2)
-                            if (parts.size == 2) {
-                                val key = parts[0].trim()
-                                val value = parts[1].trim()
-                                when (key) {
-                                    "kotlin.version" -> metadata["kotlinVersion"] = value
-                                    "android.compileSdk", "compileSdk" -> metadata["targetSdk"] =
-                                        value
-
-                                    "android.minSdk", "minSdk" -> metadata["minSdk"] = value
-                                    "agp.version", "android_gradle_plugin_version" -> metadata["agpVersion"] =
-                                        value
-                                }
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    AppLogger.e(TAG, e) { "Error reading gradle.properties" }
-                }
-            }
-
-            // Extract from build.gradle files
-            projectDir.walkTopDown()
-                .filter { file ->
-                    file.isFile &&
-                            (file.name.endsWith(".gradle") || file.name.endsWith(".gradle.kts")) &&
-                            !file.absolutePath.contains("/.gradle/") &&
-                            !file.absolutePath.contains("\\.gradle\\")
-                }
-                .take(5) // Limit to avoid processing too many files
-                .forEach { buildFile ->
-                    try {
-                        val content = buildFile.readText()
-
-                        // Extract AGP version
-                        Regex("""com\.android\.tools\.build:gradle['"]\s*:\s*['"]([^'"]+)['"]""")
-                            .find(content)?.groupValues?.get(1)?.let {
-                                metadata["agpVersion"] = it
-                            }
-
-                        // Extract Kotlin version
-                        Regex("""kotlin\s*\(\s*['"]jvm['"].*version\s*=\s*['"]([^'"]+)['"]""")
-                            .find(content)?.groupValues?.get(1)?.let {
-                                metadata["kotlinVersion"] = it
-                            }
-
-                        // Extract target SDK
-                        Regex("""targetSdk\s*=?\s*(\d+)""")
-                            .find(content)?.groupValues?.get(1)?.let {
-                                metadata["targetSdk"] = it
-                            }
-
-                        // Extract min SDK
-                        Regex("""minSdk\s*=?\s*(\d+)""")
-                            .find(content)?.groupValues?.get(1)?.let {
-                                metadata["minSdk"] = it
-                            }
-
-                    } catch (e: Exception) {
-                        AppLogger.e(
-                            TAG,
-                            e,
-                        ) { "Error reading build file for metadata: ${buildFile.absolutePath}" }
-                    }
-                }
-
-            // Extract Gradle version from wrapper
-            val gradleWrapperProperties =
-                File(projectDir, "gradle/wrapper/gradle-wrapper.properties")
-            if (gradleWrapperProperties.exists()) {
-                try {
-                    gradleWrapperProperties.readLines().forEach { line ->
-                        if (line.contains("distributionUrl")) {
-                            Regex("""gradle-([0-9.]+)""").find(line)?.groupValues?.get(1)?.let {
-                                metadata["gradleVersion"] = it
-                            }
-                        }
-                    }
-                } catch (e: Exception) {
-                    AppLogger.e(TAG, e) { "Error reading gradle wrapper properties" }
-                }
-            }
-
-            metadata
-        }
-
-    private fun determineProjectType(
-        buildFiles: List<BuildFileInfo>,
-        modules: List<ModuleInfo>
-    ): ProjectType {
-        val allContent = buildFiles.mapNotNull { it.content }.joinToString(" ").lowercase()
-
-        return when {
-            allContent.contains("com.android") -> ProjectType.ANDROID
-            allContent.contains("kotlin(\"multiplatform\")") || allContent.contains("kotlin-multiplatform") -> ProjectType.KOTLIN_MULTIPLATFORM
-            allContent.contains("org.jetbrains.compose") -> ProjectType.COMPOSE_MULTIPLATFORM
-            allContent.contains("spring-boot") -> ProjectType.SPRING_BOOT
-            allContent.contains("kotlin") -> ProjectType.KOTLIN_MULTIPLATFORM
-            else -> ProjectType.UNKNOWN
-        }
-    }
-
-    private suspend fun findBuildFiles(projectDir: File): List<BuildFileInfo> =
-        withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Finding build files in: ${projectDir.absolutePath}" }
-
-            val buildFiles = mutableListOf<BuildFileInfo>()
-            val buildFileNames = mapOf(
-                "build.gradle.kts" to BuildFileType.BUILD_GRADLE_KTS,
-                "build.gradle" to BuildFileType.BUILD_GRADLE,
-                "settings.gradle.kts" to BuildFileType.SETTINGS_GRADLE_KTS,
-                "settings.gradle" to BuildFileType.SETTINGS_GRADLE,
-                "gradle.properties" to BuildFileType.GRADLE_PROPERTIES,
-                "local.properties" to BuildFileType.LOCAL_PROPERTIES
-            )
-
-            // Find root build files
-            buildFileNames.forEach { (fileName, type) ->
-                val file = File(projectDir, fileName)
-                if (file.exists()) {
-                    val sizeBytes = file.length()
-                    buildFiles.add(
-                        BuildFileInfo(
-                            name = fileName,
-                            path = file.absolutePath,
-                            type = type,
-                            size = StorageUtils.formatSize(sizeBytes),
-                            sizeBytes = sizeBytes,
-                            content = try {
-                                file.readText()
-                            } catch (e: Exception) {
-                                null
-                            }
-                        )
-                    )
-                }
-            }
-
-            // Find version catalogs
-            val gradleDir = File(projectDir, "gradle")
-            if (gradleDir.exists()) {
-                val versionCatalog = File(gradleDir, "libs.versions.toml")
-                if (versionCatalog.exists()) {
-                    val sizeBytes = versionCatalog.length()
-                    buildFiles.add(
-                        BuildFileInfo(
-                            name = "libs.versions.toml",
-                            path = versionCatalog.absolutePath,
-                            type = BuildFileType.VERSION_CATALOG,
-                            size = StorageUtils.formatSize(sizeBytes),
-                            sizeBytes = sizeBytes,
-                            content = try {
-                                versionCatalog.readText()
-                            } catch (e: Exception) {
-                                null
-                            }
-                        )
-                    )
-                }
-            }
-
-            // Find module build files
-            projectDir.listFiles()?.filter { it.isDirectory && !it.name.startsWith(".") }
-                ?.forEach { moduleDir ->
-                    buildFileNames.keys.forEach { fileName ->
-                        val file = File(moduleDir, fileName)
-                        if (file.exists()) {
-                            val sizeBytes = file.length()
-                            buildFiles.add(
-                                BuildFileInfo(
-                                    name = "${moduleDir.name}/$fileName",
-                                    path = file.absolutePath,
-                                    type = buildFileNames[fileName]!!,
-                                    size = StorageUtils.formatSize(sizeBytes),
-                                    sizeBytes = sizeBytes,
-                                    content = try {
-                                        file.readText()
-                                    } catch (e: Exception) {
-                                        null
-                                    }
-                                )
-                            )
-                        }
-                    }
-                }
-
-            AppLogger.d(TAG) { "Found ${buildFiles.size} build files" }
-            buildFiles
-        }
 
 }

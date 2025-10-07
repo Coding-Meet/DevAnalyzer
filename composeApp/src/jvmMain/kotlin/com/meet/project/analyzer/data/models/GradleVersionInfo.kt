@@ -3,9 +3,8 @@ package com.meet.project.analyzer.data.models
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class GradleModulesInfo(
-    val path: String,
+data class GradleVersionInfo(
+    val version: String,
     val sizeReadable: String,
-    val libraries: List<GradleLibraryInfo>,
     val sizeBytes: Long
 )

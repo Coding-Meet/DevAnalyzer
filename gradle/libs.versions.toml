@@ -1,6 +1,6 @@
 [versions]
 # Core Kotlin
-kotlin = "2.2.0"
+kotlin = "2.2.20"
 
 # Coroutines & Serialization & Datetime
 kotlinx-coroutines = "1.10.2"
@@ -36,7 +36,13 @@ koin = "4.1.0"
 kermit = "2.0.6"
 
 # File
-filekit = "0.10.0"
+filekit = "0.11.0"
+
+# parse for toml
+akuleshov7 = "0.7.1"
+
+# Semantic version
+github-z4kn4fein = "3.0.0"
 
 [libraries]
 # Testing
@@ -80,10 +86,15 @@ coil-compose-core = { module = "io.coil-kt.coil3:coil-compose-core", version.ref
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3" }
 coil-mp = { module = "io.coil-kt.coil3:coil", version.ref = "coil3" }
 
-
 # File
 filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekit" }
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
+
+# parse for toml
+akuleshov7-ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "akuleshov7" }
+
+# Semantic version
+github-z4kn4fein-semver = { module = "io.github.z4kn4fein:semver", version.ref = "github-z4kn4fein" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

@@ -51,8 +51,8 @@ fun AppNavigation() {
     NavigationSuiteScaffoldLayout(
         navigationSuite = {
             AnimatedVisibility(
-                modifier = Modifier.background(MaterialTheme.colorScheme.surface),
                 visible = currentNavigationItem != null,
+                modifier = Modifier.background(MaterialTheme.colorScheme.surface),
                 enter = slideInHorizontally(
                     // Slide in from the left
                     initialOffsetX = { fullWidth -> -fullWidth }

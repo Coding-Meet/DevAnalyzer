@@ -1,12 +1,14 @@
 package com.meet.project.analyzer.presentation.screen.scanner
 
-sealed class ProjectScannerIntent {
-    object BrowseProject : ProjectScannerIntent()
-    data class SelectProject(val path: String) : ProjectScannerIntent()
-    object AnalyzeProject : ProjectScannerIntent()
-    object ClearResults : ProjectScannerIntent()
-    object ClearError : ProjectScannerIntent()
+import com.meet.project.analyzer.core.utility.ProjectScreenTabs
 
-    data class ToggleDependencyExpansion(val moduleOrType: String) : ProjectScannerIntent()
+sealed interface ProjectScannerIntent {
+    data class SelectProject(val projectPath: String) : ProjectScannerIntent
+    data object AnalyzeProject : ProjectScannerIntent
+    data object ClearResults : ProjectScannerIntent
+    data object ClearError : ProjectScannerIntent
+
+    data class SelectTab(val index: Int, val projectScreenTabs: ProjectScreenTabs) :
+        ProjectScannerIntent
 
 }
