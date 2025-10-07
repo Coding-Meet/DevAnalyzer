@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.ColumnWeight
 import com.meet.project.analyzer.data.models.scanner.Plugin
 import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.project.analyzer.presentation.components.TableHeaderCell
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import kotlinx.coroutines.launch
 import java.awt.Cursor

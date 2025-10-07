@@ -117,7 +117,9 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                             null
                         }
                     }
-                }?.awaitAll()?.filterNotNull() ?: emptyList()
+                }?.awaitAll()?.filterNotNull()?.sortedByDescending {
+                    it.sizeBytes
+                } ?: emptyList()
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error loading AVD information" }
             emptyList()
@@ -229,7 +231,9 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                             sizeBytes = sizeBytes
                         )
                     }
-                }?.awaitAll() ?: emptyList()
+                }?.awaitAll()?.sortedByDescending {
+                    it.sizeBytes
+                } ?: emptyList()
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error loading SDK items from ${directory.absolutePath}" }
             emptyList()
@@ -251,7 +255,9 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                     )
                 } else null
             }
-        }.awaitAll().filterNotNull()
+        }.awaitAll().filterNotNull().sortedByDescending {
+            it.sizeBytes
+        }
     }
 
     override suspend fun getDevEnvironmentInfo(): DevEnvironmentInfo = withContext(Dispatchers.IO) {
@@ -355,7 +361,9 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                         sizeBytes = sizeBytes
                     )
                 }
-            }?.awaitAll() ?: emptyList()
+            }?.awaitAll()?.sortedByDescending {
+                it.sizeBytes
+            } ?: emptyList()
     }
 
     private suspend fun loadGradleInfos(): List<GradleInfo> = withContext(Dispatchers.IO) {
@@ -376,7 +384,9 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                     )
                 } else null
             }
-        }.awaitAll().filterNotNull()
+        }.awaitAll().filterNotNull().sortedByDescending {
+            it.sizeBytes
+        }
     }
 
     private suspend fun loadGradleWrapperInfos(): List<GradleWrapperInfo> =
@@ -398,7 +408,9 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                             sizeBytes = sizeBytes
                         )
                     }
-                }?.awaitAll() ?: emptyList()
+                }?.awaitAll()?.sortedByDescending {
+                    it.sizeBytes
+                } ?: emptyList()
         }
 
     private suspend fun loadJdks(): List<JdkInfo> = withContext(Dispatchers.IO) {
@@ -451,7 +463,9 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             }
         }
 
-        jdks.awaitAll().distinctBy { it.path }
+        jdks.awaitAll().distinctBy { it.path }.sortedByDescending {
+            it.sizeBytes
+        }
     }
 
     private suspend fun readJdkInfo(jdkDir: File): JdkInfo = withContext(Dispatchers.IO) {
@@ -506,7 +520,9 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                                 sizeBytes = sizeBytes
                             )
                         }
-                    }?.awaitAll() ?: emptyList()
+                    }?.awaitAll()?.sortedByDescending {
+                        it.sizeBytes
+                    } ?: emptyList()
             } catch (e: Exception) {
                 AppLogger.e(TAG, e) { "Error loading Gradle cache information" }
                 emptyList()

@@ -2,15 +2,11 @@ package com.meet.project.analyzer.presentation.screen.scanner.components
 
 import androidx.compose.animation.animateContentSize
 import androidx.compose.animation.core.spring
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsHoveredAsState
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -26,8 +22,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -47,7 +41,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
@@ -57,6 +50,7 @@ import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.ColumnWeight
 import com.meet.project.analyzer.data.models.scanner.Dependency
 import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.project.analyzer.presentation.components.TableHeaderCell
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import kotlinx.coroutines.launch
 import java.awt.Cursor
@@ -494,82 +488,6 @@ fun DependencyTableRow(
                 isExpanded = isExpanded,
                 availableVersions = dependency.availableVersions,
                 version = dependency.version
-            )
-        }
-    }
-}
-
-@Composable
-fun RowScope.TableHeaderCell(
-    title: String,
-    weight: Float,
-    sortColumn: String,
-    currentSort: String,
-    sortAscending: Boolean,
-    onSort: () -> Unit
-) {
-    val isSelected = sortColumn == currentSort
-    val interactionSource = remember { MutableInteractionSource() }
-    val isHovered by interactionSource.collectIsHoveredAsState()
-    val isPressed by interactionSource.collectIsPressedAsState()
-
-    val backgroundColor = when {
-        isPressed -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
-        isHovered -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-        isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
-        else -> Color.Transparent
-    }
-
-    val contentColor = when {
-        isSelected -> MaterialTheme.colorScheme.primary
-        isHovered -> MaterialTheme.colorScheme.onSurface
-        else -> MaterialTheme.colorScheme.onSurface
-    }
-
-    Surface(
-        modifier = Modifier
-            .weight(weight)
-            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-        color = backgroundColor,
-        shape = RoundedCornerShape(8.dp),
-        onClick = onSort,
-        interactionSource = interactionSource,
-    ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
-        ) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = when {
-                    isSelected -> FontWeight.Bold
-                    isHovered -> FontWeight.SemiBold
-                    else -> FontWeight.Medium
-                },
-                color = contentColor,
-                modifier = Modifier.weight(1f)
-            )
-
-            // Always show sort icon but with different states
-            Icon(
-                imageVector = when {
-                    isSelected && sortAscending -> Icons.Filled.KeyboardArrowUp
-                    isSelected && !sortAscending -> Icons.Filled.KeyboardArrowDown
-                    else -> Icons.Filled.KeyboardArrowUp
-                },
-                contentDescription = when {
-                    isSelected -> if (sortAscending) "Sorted ascending, click for descending" else "Sorted descending, click for ascending"
-                    else -> "Click to sort by $title"
-                },
-                modifier = Modifier.size(18.dp),
-                tint = when {
-                    isSelected -> MaterialTheme.colorScheme.primary
-                    isHovered -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                }
             )
         }
     }

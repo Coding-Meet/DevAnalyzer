@@ -47,17 +47,15 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.PieChart
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.filled.Timeline
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LinearProgressIndicator
@@ -106,6 +104,7 @@ import com.meet.project.analyzer.data.models.KonanInfo
 import com.meet.project.analyzer.data.models.SdkInfo
 import com.meet.project.analyzer.data.models.SdkItem
 import com.meet.project.analyzer.data.models.StorageInfo
+import com.meet.project.analyzer.presentation.components.EmptyStateCard
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import java.awt.Cursor
 import kotlin.math.cos
@@ -740,32 +739,44 @@ fun OverviewContent(uiState: StorageAnalyzerUiState) {
             StorageBreakdownCard(
                 items = listOf(
                     BreakdownItem(
-                        "Gradle Cache",
-                        devEnv.gradleCache.sizeReadable,
-                        Icons.Default.Folder
-                    ),
-                    BreakdownItem("IDE Cache", devEnv.ideaCache.sizeReadable, Icons.Default.Code),
-                    BreakdownItem(
-                        "Konan Cache",
-                        devEnv.konanInfo.sizeReadable,
-                        Icons.Default.Memory
+                        name = "Gradle Cache",
+                        sizeByte = devEnv.gradleCache.sizeBytes,
+                        sizeReadable = devEnv.gradleCache.sizeReadable,
+                        icon = Icons.Default.Folder
                     ),
                     BreakdownItem(
-                        "Skiko Cache",
-                        devEnv.skikoInfo.sizeReadable,
-                        Icons.Default.Brush
+                        name = "IDE Cache",
+                        sizeByte = devEnv.ideaCache.sizeBytes,
+                        sizeReadable = devEnv.ideaCache.sizeReadable,
+                        icon = Icons.Default.Code
                     ),
                     BreakdownItem(
-                        "SDK",
-                        uiState.sdkInfo?.totalSize ?: "0 B",
-                        Icons.Default.Android
+                        name = "Konan Cache",
+                        sizeByte = devEnv.konanInfo.sizeBytes,
+                        sizeReadable = devEnv.konanInfo.sizeReadable,
+                        icon = Icons.Default.Memory
                     ),
                     BreakdownItem(
-                        "AVDs",
-                        Utils.formatSize(uiState.avds.sumOf { it.sizeBytes }),
-                        Icons.Default.PhoneAndroid
-                    )
-                )
+                        name = "Skiko Cache",
+                        sizeByte = devEnv.skikoInfo.sizeBytes,
+                        sizeReadable = devEnv.skikoInfo.sizeReadable,
+                        icon = Icons.Default.Brush
+                    ),
+                    BreakdownItem(
+                        name = "SDK",
+                        sizeByte = uiState.sdkInfo?.totalSizeBytes ?: 0L,
+                        sizeReadable = uiState.sdkInfo?.totalSize ?: "0 B",
+                        icon = Icons.Default.Android
+                    ),
+                    BreakdownItem(
+                        name = "AVDs",
+                        sizeByte = uiState.avds.sumOf { it.sizeBytes },
+                        sizeReadable = Utils.formatSize(uiState.avds.sumOf { it.sizeBytes }),
+                        icon = Icons.Default.PhoneAndroid
+                    ),
+                ).sortedByDescending {
+                    it.sizeByte
+                }
             )
         }
     }
@@ -811,7 +822,12 @@ fun QuickStatCard(
     }
 }
 
-data class BreakdownItem(val name: String, val size: String, val icon: ImageVector)
+data class BreakdownItem(
+    val name: String,
+    val sizeByte: Long,
+    val sizeReadable: String,
+    val icon: ImageVector
+)
 
 @Composable
 fun StorageBreakdownCard(items: List<BreakdownItem>) {
@@ -843,7 +859,7 @@ fun StorageBreakdownCard(items: List<BreakdownItem>) {
                         shape = MaterialTheme.shapes.small
                     ) {
                         Text(
-                            item.size,
+                            item.sizeReadable,
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.bodySmall,
                             fontWeight = FontWeight.Bold
@@ -1420,12 +1436,12 @@ fun LibrariesSummaryCard(modules: GradleModulesInfo) {
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly
             ) {
-                SummaryStatItem("Total Libraries", modules.libraries.size.toString())
-                SummaryStatItem("Cache Size", modules.sizeReadable)
                 SummaryStatItem(
-                    "Unique Artifacts",
-                    modules.libraries.distinctBy { "${it.groupId}:${it.artifactId}" }.size.toString()
+                    "Total Group",
+                    modules.libraries.distinctBy { it.groupId }.size.toString()
                 )
+                SummaryStatItem("Cache Size", modules.sizeReadable)
+                SummaryStatItem("Total Libraries", modules.libraries.size.toString())
             }
         }
     }
@@ -1433,153 +1449,127 @@ fun LibrariesSummaryCard(modules: GradleModulesInfo) {
 
 @Composable
 fun LibraryInfoCard(library: GradleLibraryInfo) {
-    Card {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 6.dp),
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+
+            // Header Row
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top
             ) {
+                // 📚 Icon
                 Icon(
                     Icons.AutoMirrored.Filled.LibraryBooks,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(end = 12.dp, top = 2.dp).size(20.dp)
+                    modifier = Modifier
+                        .padding(end = 12.dp, top = 2.dp)
+                        .size(22.dp)
                 )
+
+                // Library Info (artifact + group)
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        library.artifactId,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.Medium
+                        text = library.artifactId,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        library.groupId,
+                        text = library.groupId,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                }
 
-                    // Versions
-                    if (library.versions.isNotEmpty()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                // 👉 Total size (moved to right side)
+                Surface(
+                    color = MaterialTheme.colorScheme.secondaryContainer,
+                    shape = MaterialTheme.shapes.small,
+                    tonalElevation = 1.dp
+                ) {
+                    Text(
+                        text = library.totalSize,
+                        style = MaterialTheme.typography.labelSmall,
+                        fontWeight = FontWeight.Medium,
+                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp)
+                    )
+                }
+            }
+
+            // Small spacing
+            if (library.versions.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(10.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f))
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // Versions row
+                Text(
+                    text = "Versions (${library.versions.size}):",
+                    style = MaterialTheme.typography.labelMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    items(library.versions.take(5)) { version ->
+                        Surface(
+                            color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.7f),
+                            shape = MaterialTheme.shapes.extraSmall,
+                            tonalElevation = 1.dp
                         ) {
-                            items(library.versions.take(5)) { version -> // Show max 5 versions
-                                Surface(
-                                    color = MaterialTheme.colorScheme.secondaryContainer,
-                                    shape = MaterialTheme.shapes.extraSmall
-                                ) {
-                                    Text(
-                                        version.version,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        modifier = Modifier.padding(
-                                            horizontal = 6.dp,
-                                            vertical = 2.dp
-                                        )
-                                    )
-                                }
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = version.version,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Text(
+                                    text = version.sizeReadable,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 1.dp)
+                                )
                             }
-                            if (library.versions.size > 5) {
-                                item {
-                                    Surface(
-                                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f),
-                                        shape = MaterialTheme.shapes.extraSmall
-                                    ) {
-                                        Text(
-                                            "+${library.versions.size - 5}",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                            modifier = Modifier.padding(
-                                                horizontal = 6.dp,
-                                                vertical = 2.dp
-                                            )
-                                        )
-                                    }
-                                }
+                        }
+                    }
+
+                    // +more versions indicator
+                    if (library.versions.size > 5) {
+                        item {
+                            Surface(
+                                color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f),
+                                shape = MaterialTheme.shapes.extraSmall
+                            ) {
+                                Text(
+                                    text = "+${library.versions.size - 5} more",
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
                             }
                         }
                     }
                 }
-
-                // Version count badge
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = MaterialTheme.shapes.small
-                ) {
-                    Text(
-                        "${library.versions.size} versions",
-                        style = MaterialTheme.typography.labelSmall,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                    )
-                }
             }
         }
     }
 }
 
-@Composable
-fun EmptyStateCard(
-    title: String,
-    description: String,
-    icon: ImageVector,
-    actionText: String,
-    onAction: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Icon(
-                icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                modifier = Modifier.size(48.dp)
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Text(
-                title,
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Text(
-                description,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-            Spacer(modifier = Modifier.height(16.dp))
-            Button(
-                modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-                onClick = onAction,
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary
-                )
-            ) {
-                Icon(
-                    Icons.Default.Search,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(actionText)
-            }
-        }
-    }
-}
 
 // ===========================================
 // CHART PRIMITIVES
