@@ -64,8 +64,6 @@ kotlin {
             // Semantic Versioning library
             implementation(libs.github.z4kn4fein.semver)
 
-            implementation("com.mikepenz:multiplatform-markdown-renderer:0.35.0")
-
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
