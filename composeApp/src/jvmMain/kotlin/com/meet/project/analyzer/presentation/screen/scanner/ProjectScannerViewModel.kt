@@ -3,6 +3,7 @@ package com.meet.project.analyzer.presentation.screen.scanner
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meet.project.analyzer.core.utility.AppLogger
+import com.meet.project.analyzer.core.utility.Utils.tagName
 import com.meet.project.analyzer.data.repository.scanner.ProjectScannerRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -14,18 +15,7 @@ class ProjectScannerViewModel(
     private val repository: ProjectScannerRepository
 ) : ViewModel() {
 
-    private val TAG: String
-        get() {
-            return if (!javaClass.isAnonymousClass) {
-                val name = javaClass.simpleName
-                if (name.length <= 23) name else name.substring(0, 23)// first 23 chars
-            } else {
-                val name = javaClass.name
-                if (name.length <= 23) name else name.substring(
-                    name.length - 23, name.length
-                )// last 23 chars
-            }
-        }
+    private val TAG = tagName(javaClass = javaClass)
 
     private val _uiState = MutableStateFlow(ProjectScannerUiState())
     val uiState = _uiState.asStateFlow()

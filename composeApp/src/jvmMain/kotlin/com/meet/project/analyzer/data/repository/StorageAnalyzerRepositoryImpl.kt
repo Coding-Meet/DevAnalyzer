@@ -3,6 +3,7 @@ package com.meet.project.analyzer.data.repository
 import com.meet.project.analyzer.core.utility.AppLogger
 import com.meet.project.analyzer.core.utility.Utils
 import com.meet.project.analyzer.core.utility.Utils.formatSize
+import com.meet.project.analyzer.core.utility.Utils.tagName
 import com.meet.project.analyzer.data.models.AvdInfo
 import com.meet.project.analyzer.data.models.CacheInfo
 import com.meet.project.analyzer.data.models.DevEnvironmentInfo
@@ -26,19 +27,8 @@ import java.nio.file.Paths
 import java.util.Properties
 
 class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
-    private val TAG: String
-        get() {
-            return if (!javaClass.isAnonymousClass) {
-                val name = javaClass.simpleName
-                if (name.length <= 23) name else name.substring(0, 23)// first 23 chars
-            } else {
-                val name = javaClass.name
-                if (name.length <= 23) name else name.substring(
-                    name.length - 23,
-                    name.length
-                )// last 23 chars
-            }
-        }
+
+    private val TAG = tagName(javaClass = javaClass)
 
     override suspend fun getAvdInfoList(): List<AvdInfo> = withContext(Dispatchers.IO) {
 

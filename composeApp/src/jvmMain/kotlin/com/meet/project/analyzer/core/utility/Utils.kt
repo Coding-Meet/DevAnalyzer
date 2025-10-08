@@ -11,19 +11,8 @@ import kotlin.math.log10
 import kotlin.math.pow
 
 object Utils {
-    private val Any.TAG: String
-        get() {
-            return if (!javaClass.isAnonymousClass) {
-                val name = javaClass.simpleName
-                if (name.length <= 23) name else name.substring(0, 23)// first 23 chars
-            } else {
-                val name = javaClass.name
-                if (name.length <= 23) name else name.substring(
-                    name.length - 23,
-                    name.length
-                )// last 23 chars
-            }
-        }
+    private val TAG = tagName(javaClass = javaClass)
+
 
     fun calculateFolderSize(file: File): Long {
         AppLogger.d(TAG) { "Calculating size for: ${file.absolutePath}" }
@@ -155,5 +144,19 @@ object Utils {
             AppLogger.d(TAG) { "Library: ${it.groupId}:${it.artifactId} groupId: ${it.groupId} artifactId: ${it.artifactId} versions: ${it.versions} totalSize: ${it.totalSize} totalSizeBytes: ${it.totalSizeBytes}" }
         }
         return gradleModulesInfo
+    }
+
+    fun tagName(
+        javaClass: Class<*>
+    ): String {
+        return if (!javaClass.isAnonymousClass) {
+            val name = javaClass.simpleName
+            if (name.length <= 23) name else name.substring(0, 23)  // first 23 chars
+        } else {
+            val name = javaClass.name
+            if (name.length <= 23) name else name.substring(
+                name.length - 23, name.length
+            )                   // last 23 chars
+        }
     }
 }

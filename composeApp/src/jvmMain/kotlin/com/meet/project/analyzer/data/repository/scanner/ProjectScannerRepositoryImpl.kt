@@ -4,6 +4,7 @@ import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlInputConfig
 import com.meet.project.analyzer.core.utility.AppLogger
 import com.meet.project.analyzer.core.utility.Utils
+import com.meet.project.analyzer.core.utility.Utils.tagName
 import com.meet.project.analyzer.data.models.GradleLibraryInfo
 import com.meet.project.analyzer.data.models.GradleModulesInfo
 import com.meet.project.analyzer.data.models.scanner.BuildFileType
@@ -36,18 +37,8 @@ import kotlin.uuid.Uuid
 
 
 class ProjectScannerRepositoryImpl : ProjectScannerRepository {
-    private val TAG: String
-        get() {
-            return if (!javaClass.isAnonymousClass) {
-                val name = javaClass.simpleName
-                if (name.length <= 23) name else name.substring(0, 23)// first 23 chars
-            } else {
-                val name = javaClass.name
-                if (name.length <= 23) name else name.substring(
-                    name.length - 23, name.length
-                )// last 23 chars
-            }
-        }
+
+    private val TAG = tagName(javaClass = javaClass)
 
     override suspend fun analyzeProject(
         projectPath: String, updateProgress: (progress: Float, status: String) -> Unit

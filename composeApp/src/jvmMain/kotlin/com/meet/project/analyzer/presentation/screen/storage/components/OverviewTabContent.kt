@@ -55,7 +55,7 @@ fun OverviewTabContent(uiState: StorageAnalyzerUiState) {
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Total Storage Card - Full width
+            // Total Storage Card
             item(span = { GridItemSpan(maxLineSpan) }) {
                 OverviewContent(uiState)
             }

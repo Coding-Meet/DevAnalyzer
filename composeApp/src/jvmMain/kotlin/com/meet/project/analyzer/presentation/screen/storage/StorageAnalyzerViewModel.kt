@@ -1,19 +1,17 @@
 package com.meet.project.analyzer.presentation.screen.storage
 
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.meet.project.analyzer.core.utility.AppLogger
 import com.meet.project.analyzer.core.utility.Constant
 import com.meet.project.analyzer.core.utility.Utils
+import com.meet.project.analyzer.core.utility.Utils.tagName
 import com.meet.project.analyzer.data.models.AvdInfo
 import com.meet.project.analyzer.data.models.DevEnvironmentInfo
 import com.meet.project.analyzer.data.models.GradleModulesInfo
 import com.meet.project.analyzer.data.models.SdkInfo
 import com.meet.project.analyzer.data.repository.StorageAnalyzerRepository
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -26,26 +24,17 @@ class StorageAnalyzerViewModel(
     private val repository: StorageAnalyzerRepository
 ) : ViewModel() {
 
-    private val Any.TAG: String
-        get() {
-            return if (!javaClass.isAnonymousClass) {
-                val name = javaClass.simpleName
-                if (name.length <= 23) name else name.substring(0, 23)// first 23 chars
-            } else {
-                val name = javaClass.name
-                if (name.length <= 23) name else name.substring(
-                    name.length - 23,
-                    name.length
-                )// last 23 chars
-            }
-        }
-
-    private val viewModelScope = CoroutineScope(Dispatchers.Main + SupervisorJob())
+    private val TAG = tagName(javaClass = javaClass)
 
     private val _uiState = MutableStateFlow(StorageAnalyzerUiState())
     val uiState: StateFlow<StorageAnalyzerUiState> = _uiState.asStateFlow()
 
-    private val _loadingJobs = mutableMapOf<String, Job>()
+    private var loadAllJob: Job? = null
+    private var loadSdkJob: Job? = null
+    private var loadAvdsJob: Job? = null
+    private var loadDevEnvJob: Job? = null
+    private var loadGradleCachesJob: Job? = null
+    private var loadGradleModulesJob: Job? = null
 
     init {
         handleIntent(StorageAnalyzerIntent.LoadAllData)
@@ -54,7 +43,7 @@ class StorageAnalyzerViewModel(
     fun handleIntent(intent: StorageAnalyzerIntent) {
         AppLogger.d(TAG) { "Handling intent: ${intent::class.simpleName}" }
         when (intent) {
-            is StorageAnalyzerIntent.LoadAllData -> dummyAllData() /*loadAllData()*/
+            is StorageAnalyzerIntent.LoadAllData -> loadAllData() /*loadAllData()*/
             is StorageAnalyzerIntent.LoadAvds -> loadAvds()
             is StorageAnalyzerIntent.LoadSdkInfo -> loadSdkInfo()
             is StorageAnalyzerIntent.LoadDevEnvironment -> loadDevEnvironment()
@@ -114,26 +103,16 @@ class StorageAnalyzerViewModel(
     private fun loadAllData() {
         AppLogger.i(TAG) { "Loading all data" }
         _uiState.update { it.copy(isLoading = true, error = null) }
-
-        val job = viewModelScope.launch {
+        loadAllJob?.cancel()
+        loadAllJob = viewModelScope.launch {
             try {
-                // Load all data in parallel
                 val measureTime = measureTime {
 
-                    val avdsDeferred = async(Dispatchers.IO) { repository.getAvdInfoList() }
-                    val sdkInfoDeferred = async(Dispatchers.IO) { repository.getSdkInfo() }
-                    val devEnvDeferred =
-                        async(Dispatchers.IO) { repository.getDevEnvironmentInfo() }
-                    val gradleCachesDeferred =
-                        async(Dispatchers.IO) { repository.getGradleCacheInfos() }
-                    val gradleModulesDeferred =
-                        async(Dispatchers.IO) { repository.getGradleModulesInfo() }
-
-                    val avds = avdsDeferred.await()
-                    val sdkInfo = sdkInfoDeferred.await()
-                    val devEnvironmentInfo = devEnvDeferred.await()
-                    val gradleCaches = gradleCachesDeferred.await()
-                    val gradleModulesInfo = gradleModulesDeferred.await()
+                    val avds = repository.getAvdInfoList()
+                    val sdkInfo = repository.getSdkInfo()
+                    val devEnvironmentInfo = repository.getDevEnvironmentInfo()
+                    val gradleCaches = repository.getGradleCacheInfos()
+                    val gradleModulesInfo = repository.getGradleModulesInfo()
 
                     // Calculate total storage
                     val totalBytes = calculateTotalStorage(
@@ -182,12 +161,12 @@ class StorageAnalyzerViewModel(
                 }
             }
         }
-        _loadingJobs["loadAll"] = job
     }
 
     private fun loadAvds() {
         AppLogger.i(TAG) { "Loading AVDs" }
-        val job = viewModelScope.launch {
+        loadAvdsJob?.cancel()
+        loadAvdsJob = viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isLoading = true) }
                 val avds = repository.getAvdInfoList()
@@ -208,12 +187,12 @@ class StorageAnalyzerViewModel(
                 }
             }
         }
-        _loadingJobs["loadAvds"] = job
     }
 
     private fun loadSdkInfo() {
         AppLogger.i(TAG) { "Loading SDK info" }
-        val job = viewModelScope.launch {
+        loadSdkJob?.cancel()
+        loadSdkJob = viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isLoading = true) }
                 val sdkInfo = repository.getSdkInfo()
@@ -234,12 +213,12 @@ class StorageAnalyzerViewModel(
                 }
             }
         }
-        _loadingJobs["loadSdk"] = job
     }
 
     private fun loadDevEnvironment() {
         AppLogger.i(TAG) { "Loading dev environment" }
-        val job = viewModelScope.launch {
+        loadDevEnvJob?.cancel()
+        loadDevEnvJob = viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isLoading = true) }
                 val devEnv = repository.getDevEnvironmentInfo()
@@ -260,12 +239,12 @@ class StorageAnalyzerViewModel(
                 }
             }
         }
-        _loadingJobs["loadDevEnv"] = job
     }
 
     private fun loadGradleCaches() {
         AppLogger.i(TAG) { "Loading Gradle caches" }
-        val job = viewModelScope.launch {
+        loadGradleCachesJob?.cancel()
+        loadGradleCachesJob = viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isLoading = true) }
                 val caches = repository.getGradleCacheInfos()
@@ -286,12 +265,12 @@ class StorageAnalyzerViewModel(
                 }
             }
         }
-        _loadingJobs["loadGradleCaches"] = job
     }
 
     private fun loadGradleModules() {
         AppLogger.i(TAG) { "Loading Gradle modules" }
-        val job = viewModelScope.launch {
+        loadGradleModulesJob?.cancel()
+        loadGradleModulesJob = viewModelScope.launch {
             try {
                 _uiState.update { it.copy(isLoading = true) }
                 val modules = repository.getGradleModulesInfo()
@@ -314,7 +293,6 @@ class StorageAnalyzerViewModel(
                 }
             }
         }
-        _loadingJobs["loadGradleModules"] = job
     }
 
     private fun clearError() {
@@ -325,8 +303,7 @@ class StorageAnalyzerViewModel(
     private fun refreshData() {
         AppLogger.i(TAG) { "Refreshing all data" }
         // Cancel existing jobs
-        _loadingJobs.values.forEach { it.cancel() }
-        _loadingJobs.clear()
+        cancelAllJobs()
 
         // Reload all data
         loadAllData()
@@ -353,8 +330,20 @@ class StorageAnalyzerViewModel(
 
     private fun cancelAllJobs() {
         AppLogger.d(TAG) { "Cancelling all jobs" }
-        _loadingJobs.values.forEach { it.cancel() }
-        _loadingJobs.clear()
+        loadAllJob?.cancel()
+        loadSdkJob?.cancel()
+        loadAvdsJob?.cancel()
+        loadDevEnvJob?.cancel()
+        loadGradleCachesJob?.cancel()
+        loadGradleModulesJob?.cancel()
+
+        loadAllJob = null
+        loadSdkJob = null
+        loadAvdsJob = null
+        loadDevEnvJob = null
+        loadGradleCachesJob = null
+        loadGradleModulesJob = null
+
     }
 
     // Clean up when ViewModel is destroyed
