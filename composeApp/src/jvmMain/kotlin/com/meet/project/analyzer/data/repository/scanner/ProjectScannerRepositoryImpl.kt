@@ -5,8 +5,6 @@ import com.akuleshov7.ktoml.TomlInputConfig
 import com.meet.project.analyzer.core.utility.AppLogger
 import com.meet.project.analyzer.core.utility.Utils
 import com.meet.project.analyzer.core.utility.Utils.tagName
-import com.meet.project.analyzer.data.models.GradleLibraryInfo
-import com.meet.project.analyzer.data.models.GradleModulesInfo
 import com.meet.project.analyzer.data.models.scanner.BuildFileType
 import com.meet.project.analyzer.data.models.scanner.Bundle
 import com.meet.project.analyzer.data.models.scanner.Dependency
@@ -25,6 +23,8 @@ import com.meet.project.analyzer.data.models.scanner.SettingsGradleFileType
 import com.meet.project.analyzer.data.models.scanner.Version
 import com.meet.project.analyzer.data.models.scanner.VersionCatalog
 import com.meet.project.analyzer.data.models.scanner.VersionCatalogFileInfo
+import com.meet.project.analyzer.data.models.storage.GradleLibraryInfo
+import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName

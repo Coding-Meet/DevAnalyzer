@@ -1,11 +1,11 @@
 package com.meet.project.analyzer.presentation.screen.storage
 
 import com.meet.project.analyzer.core.utility.StorageAnalyzerTabs
-import com.meet.project.analyzer.data.models.AvdInfo
-import com.meet.project.analyzer.data.models.DevEnvironmentInfo
-import com.meet.project.analyzer.data.models.GradleCacheInfo
-import com.meet.project.analyzer.data.models.GradleModulesInfo
-import com.meet.project.analyzer.data.models.SdkInfo
+import com.meet.project.analyzer.data.models.storage.AvdInfo
+import com.meet.project.analyzer.data.models.storage.DevEnvironmentInfo
+import com.meet.project.analyzer.data.models.storage.GradleCacheInfo
+import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
+import com.meet.project.analyzer.data.models.storage.SdkInfo
 import kotlinx.serialization.Serializable
 
 @Serializable

@@ -6,10 +6,10 @@ import com.meet.project.analyzer.core.utility.AppLogger
 import com.meet.project.analyzer.core.utility.Constant
 import com.meet.project.analyzer.core.utility.Utils
 import com.meet.project.analyzer.core.utility.Utils.tagName
-import com.meet.project.analyzer.data.models.AvdInfo
-import com.meet.project.analyzer.data.models.DevEnvironmentInfo
-import com.meet.project.analyzer.data.models.GradleModulesInfo
-import com.meet.project.analyzer.data.models.SdkInfo
+import com.meet.project.analyzer.data.models.storage.AvdInfo
+import com.meet.project.analyzer.data.models.storage.DevEnvironmentInfo
+import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
+import com.meet.project.analyzer.data.models.storage.SdkInfo
 import com.meet.project.analyzer.data.repository.StorageAnalyzerRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay

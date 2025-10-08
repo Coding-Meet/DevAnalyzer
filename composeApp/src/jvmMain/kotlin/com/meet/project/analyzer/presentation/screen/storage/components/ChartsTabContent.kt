@@ -57,11 +57,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.meet.project.analyzer.core.utility.Utils
-import com.meet.project.analyzer.data.models.AvdInfo
-import com.meet.project.analyzer.data.models.GradleCacheInfo
-import com.meet.project.analyzer.data.models.GradleModulesInfo
-import com.meet.project.analyzer.data.models.JdkInfo
-import com.meet.project.analyzer.data.models.SdkInfo
+import com.meet.project.analyzer.data.models.storage.AvdInfo
+import com.meet.project.analyzer.data.models.storage.GradleCacheInfo
+import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
+import com.meet.project.analyzer.data.models.storage.JdkInfo
+import com.meet.project.analyzer.data.models.storage.SdkInfo
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.project.analyzer.presentation.screen.storage.StorageAnalyzerUiState
 import kotlin.math.cos

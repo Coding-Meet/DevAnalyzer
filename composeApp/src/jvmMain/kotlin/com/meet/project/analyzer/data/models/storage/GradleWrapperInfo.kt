@@ -1,11 +1,12 @@
-package com.meet.project.analyzer.data.models
+package com.meet.project.analyzer.data.models.storage
 
 import kotlinx.serialization.Serializable
 
 @Serializable
-data class StorageInfo(
+data class GradleWrapperInfo(
+    val version: String,
     val path: String,
-    val exists: Boolean,
     val sizeReadable: String,
     val sizeBytes: Long = 0L
 )
+

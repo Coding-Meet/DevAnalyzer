@@ -1,6 +1,6 @@
 package com.meet.project.analyzer.data.models.scanner
 
-import com.meet.project.analyzer.data.models.GradleLibraryInfo
+import com.meet.project.analyzer.data.models.storage.GradleLibraryInfo
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 

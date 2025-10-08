@@ -1,10 +1,10 @@
 package com.meet.project.analyzer.data.repository
 
-import com.meet.project.analyzer.data.models.AvdInfo
-import com.meet.project.analyzer.data.models.DevEnvironmentInfo
-import com.meet.project.analyzer.data.models.GradleCacheInfo
-import com.meet.project.analyzer.data.models.GradleModulesInfo
-import com.meet.project.analyzer.data.models.SdkInfo
+import com.meet.project.analyzer.data.models.storage.AvdInfo
+import com.meet.project.analyzer.data.models.storage.DevEnvironmentInfo
+import com.meet.project.analyzer.data.models.storage.GradleCacheInfo
+import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
+import com.meet.project.analyzer.data.models.storage.SdkInfo
 
 interface StorageAnalyzerRepository {
     suspend fun getAvdInfoList(): List<AvdInfo>

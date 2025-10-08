@@ -28,7 +28,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.meet.project.analyzer.data.models.GradleLibraryInfo
+import com.meet.project.analyzer.data.models.storage.GradleLibraryInfo
 
 @Composable
 fun ColumnScope.AvailableVersionLayout(

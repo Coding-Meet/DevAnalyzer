@@ -36,7 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.Utils
 import com.meet.project.analyzer.core.utility.Utils.openFile
-import com.meet.project.analyzer.data.models.GradleCacheInfo
+import com.meet.project.analyzer.data.models.storage.GradleCacheInfo
 import com.meet.project.analyzer.presentation.components.EmptyStateCard
 import com.meet.project.analyzer.presentation.components.SummaryStatItem
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout

@@ -34,8 +34,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.meet.project.analyzer.data.models.GradleLibraryInfo
-import com.meet.project.analyzer.data.models.GradleModulesInfo
+import com.meet.project.analyzer.data.models.storage.GradleLibraryInfo
+import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
 import com.meet.project.analyzer.presentation.components.EmptyStateCard
 import com.meet.project.analyzer.presentation.components.SummaryStatItem
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout

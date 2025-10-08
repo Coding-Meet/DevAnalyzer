@@ -1,4 +1,4 @@
-package com.meet.project.analyzer.data.models
+package com.meet.project.analyzer.data.models.storage
 
 import kotlinx.serialization.Serializable
 

@@ -1,8 +1,8 @@
 package com.meet.project.analyzer.core.utility
 
-import com.meet.project.analyzer.data.models.GradleLibraryInfo
-import com.meet.project.analyzer.data.models.GradleModulesInfo
-import com.meet.project.analyzer.data.models.GradleVersionInfo
+import com.meet.project.analyzer.data.models.storage.GradleLibraryInfo
+import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
+import com.meet.project.analyzer.data.models.storage.GradleVersionInfo
 import io.github.z4kn4fein.semver.VersionFormatException
 import io.github.z4kn4fein.semver.toVersion
 import java.awt.Desktop

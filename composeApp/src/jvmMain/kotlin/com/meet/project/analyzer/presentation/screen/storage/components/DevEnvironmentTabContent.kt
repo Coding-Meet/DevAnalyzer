@@ -42,11 +42,11 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.Utils.openFile
-import com.meet.project.analyzer.data.models.DevEnvironmentInfo
-import com.meet.project.analyzer.data.models.GradleWrapperInfo
-import com.meet.project.analyzer.data.models.JdkInfo
-import com.meet.project.analyzer.data.models.KonanInfo
-import com.meet.project.analyzer.data.models.StorageInfo
+import com.meet.project.analyzer.data.models.storage.DevEnvironmentInfo
+import com.meet.project.analyzer.data.models.storage.GradleWrapperInfo
+import com.meet.project.analyzer.data.models.storage.JdkInfo
+import com.meet.project.analyzer.data.models.storage.KonanInfo
+import com.meet.project.analyzer.data.models.storage.StorageInfo
 import com.meet.project.analyzer.presentation.components.EmptyStateCard
 import com.meet.project.analyzer.presentation.components.SummaryStatItem
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout

@@ -39,8 +39,8 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.Utils.openFile
-import com.meet.project.analyzer.data.models.SdkInfo
-import com.meet.project.analyzer.data.models.SdkItem
+import com.meet.project.analyzer.data.models.storage.SdkInfo
+import com.meet.project.analyzer.data.models.storage.SdkItem
 import com.meet.project.analyzer.presentation.components.EmptyStateCard
 import com.meet.project.analyzer.presentation.components.SummaryStatItem
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
