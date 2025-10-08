@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -151,6 +152,7 @@ fun TableBodyCellColumn(
     primaryFontWeight: FontWeight = FontWeight.SemiBold
 ) {
     Column {
+        Spacer(Modifier.padding(vertical = 2.dp))
         if (secondaryText != null) {
             Text(
                 text = secondaryText,
@@ -177,5 +179,6 @@ fun TableBodyCellColumn(
                 overflow = TextOverflow.Ellipsis
             )
         }
+        Spacer(Modifier.padding(vertical = 2.dp))
     }
 }
