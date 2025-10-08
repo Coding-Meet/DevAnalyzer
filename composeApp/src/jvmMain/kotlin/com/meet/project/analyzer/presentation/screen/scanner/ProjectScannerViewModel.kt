@@ -43,7 +43,11 @@ class ProjectScannerViewModel(
             is ProjectScannerIntent.ClearError -> clearError()
             is ProjectScannerIntent.SelectTab -> {
                 _uiState.update {
-                    it.copy(selectedTabIndex = intent.index, selectedTab = intent.projectScreenTabs)
+                    it.copy(
+                        previousTabIndex = intent.previousTabIndex,
+                        selectedTabIndex = intent.currentTabIndex,
+                        selectedTab = intent.projectScreenTabs
+                    )
                 }
             }
         }

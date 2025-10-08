@@ -105,12 +105,14 @@ import com.meet.project.analyzer.data.models.SdkInfo
 import com.meet.project.analyzer.data.models.SdkItem
 import com.meet.project.analyzer.data.models.StorageInfo
 import com.meet.project.analyzer.presentation.components.EmptyStateCard
+import com.meet.project.analyzer.presentation.components.TabLayout
+import com.meet.project.analyzer.presentation.components.TabSlideAnimation
+import com.meet.project.analyzer.presentation.components.TopAppBar
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import java.awt.Cursor
 import kotlin.math.cos
 import kotlin.math.sin
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun StorageAnalyzerContent(
     uiState: StorageAnalyzerUiState,
@@ -120,33 +122,16 @@ fun StorageAnalyzerContent(
     onLoadDevEnv: () -> Unit,
     onLoadGradleCaches: () -> Unit,
     onLoadGradleModules: () -> Unit,
+    onTabSelected: (previousTabIndex: Int, currentTabIndex: Int, storageAnalyzerTabs: StorageAnalyzerTabs) -> Unit,
 ) {
-    var selectedTab by rememberSaveable { mutableStateOf(0) }
 
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Top App Bar
-        CenterAlignedTopAppBar(
-            title = {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(
-                        Icons.Default.Storage,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.onPrimary,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    Text(
-                        "Storage Analyzer",
-                        color = MaterialTheme.colorScheme.onPrimary,
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                }
-            },
-            colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                containerColor = MaterialTheme.colorScheme.primary
-            ),
+        // Storage Analyzer - Top App Bar
+        TopAppBar(
+            title = "Storage Analyzer",
+            icon = Icons.Default.Storage,
             actions = {
                 IconButton(
                     modifier = Modifier.pointerHoverIcon(
@@ -161,7 +146,6 @@ fun StorageAnalyzerContent(
                     Icon(
                         Icons.Default.Refresh,
                         contentDescription = "Refresh",
-                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
             }
@@ -176,39 +160,30 @@ fun StorageAnalyzerContent(
         }
 
         // Tab Row
-        PrimaryTabRow(
-            selectedTabIndex = selectedTab,
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        ) {
-            StorageAnalyzerTabs.entries.forEachIndexed { index, tabs ->
-                Tab(
-                    selected = selectedTab == index,
-                    onClick = { selectedTab = index },
-                    modifier = Modifier
-                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-                    text = {
-                        Text(
-                            tabs.title,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = if (selectedTab == index) FontWeight.Bold else FontWeight.Medium
-                        )
-                    }
-                )
-            }
-        }
+        TabLayout(
+            selectedTabIndex = uiState.selectedTabIndex,
+            tabList = StorageAnalyzerTabs.entries,
+            onClick = onTabSelected
+        )
         BoxWithConstraints(
             modifier = Modifier.fillMaxSize()
         ) {
             val scrollState = rememberLazyGridState()
 
-            when (selectedTab) {
-                0 -> OverviewTabContent(uiState, scrollState)
-                1 -> AvdsTabContent(uiState, onLoadAvds, scrollState)
-                2 -> SdkTabContent(uiState, onLoadSdk, scrollState)
-                3 -> DevEnvironmentTabContent(uiState, onLoadDevEnv, scrollState)
-                4 -> GradleCachesTabContent(uiState, onLoadGradleCaches, scrollState)
-                5 -> LibrariesTabContent(uiState, onLoadGradleModules, scrollState)
-                6 -> ChartsTabContent(uiState, scrollState)
+            TabSlideAnimation(
+                selectedTabIndex = uiState.selectedTabIndex,
+                previousTabIndex = uiState.previousTabIndex,
+                targetState = uiState.selectedTabIndex
+            ) { selectedTab ->
+                when (selectedTab) {
+                    0 -> OverviewTabContent(uiState, scrollState)
+                    1 -> AvdsTabContent(uiState, onLoadAvds, scrollState)
+                    2 -> SdkTabContent(uiState, onLoadSdk, scrollState)
+                    3 -> DevEnvironmentTabContent(uiState, onLoadDevEnv, scrollState)
+                    4 -> GradleCachesTabContent(uiState, onLoadGradleCaches, scrollState)
+                    5 -> LibrariesTabContent(uiState, onLoadGradleModules, scrollState)
+                    6 -> ChartsTabContent(uiState, scrollState)
+                }
             }
 
             // Vertical Scrollbar

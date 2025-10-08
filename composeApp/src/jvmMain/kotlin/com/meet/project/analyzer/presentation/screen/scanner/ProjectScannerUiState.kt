@@ -6,6 +6,7 @@ import com.meet.project.analyzer.data.models.scanner.ProjectInfo
 data class ProjectScannerUiState(
     val selectedTab: ProjectScreenTabs = ProjectScreenTabs.Overview,
     val selectedTabIndex: Int = 0,
+    val previousTabIndex: Int = 0,
     val isScanning: Boolean = false,
     val selectedPath: String = "/Users/meet/AndroidStudioProjects/KAppMaker-KMP",
     val projectInfo: ProjectInfo? = null,

@@ -2,7 +2,6 @@ package com.meet.project.analyzer.presentation.screen.scanner
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
@@ -10,11 +9,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -22,14 +17,14 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.ProjectScreenTabs
 import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.project.analyzer.presentation.components.TabLayout
+import com.meet.project.analyzer.presentation.components.TabSlideAnimation
 import com.meet.project.analyzer.presentation.components.TopAppBar
 import com.meet.project.analyzer.presentation.screen.scanner.components.BuildFilesTabContent
 import com.meet.project.analyzer.presentation.screen.scanner.components.DependenciesTabContent
@@ -74,8 +69,14 @@ fun ProjectScannerScreen() {
         onClearError = {
             viewModel.handleIntent(ProjectScannerIntent.ClearError)
         },
-        onTabSelected = { index, projectScreenTabs ->
-            viewModel.handleIntent(ProjectScannerIntent.SelectTab(index, projectScreenTabs))
+        onTabSelected = { previousTabIndex, currentTabIndex, projectScreenTabs ->
+            viewModel.handleIntent(
+                ProjectScannerIntent.SelectTab(
+                    previousTabIndex = previousTabIndex,
+                    currentTabIndex = currentTabIndex,
+                    projectScreenTabs = projectScreenTabs
+                )
+            )
         },
     )
 }
@@ -88,7 +89,7 @@ fun ProjectScannerContent(
     onAnalyzeClick: () -> Unit,
     onClearResults: () -> Unit,
     onClearError: () -> Unit,
-    onTabSelected: (Int, ProjectScreenTabs) -> Unit,
+    onTabSelected: (previousTabIndex: Int, currentTabIndex: Int, projectScreenTabs: ProjectScreenTabs) -> Unit,
 ) {
     var isExpanded by rememberSaveable { mutableStateOf(true) }
 
@@ -102,6 +103,13 @@ fun ProjectScannerContent(
                     if (uiState.projectInfo != null) {
                         // un-expend/expend project selection visible or gone
                         IconButton(
+                            modifier = Modifier.pointerHoverIcon(
+                                PointerIcon(
+                                    Cursor.getPredefinedCursor(
+                                        Cursor.HAND_CURSOR
+                                    )
+                                )
+                            ),
                             onClick = {
                                 isExpanded = !isExpanded
                             },
@@ -138,77 +146,61 @@ fun ProjectScannerContent(
             uiState.projectInfo?.let { project ->
                 Column(modifier = Modifier.fillMaxSize()) {
                     // Tab Row
-                    TabRow(
-                        modifier = Modifier.fillMaxWidth().align(Alignment.CenterHorizontally),
+                    TabLayout(
                         selectedTabIndex = uiState.selectedTabIndex,
-                        containerColor = MaterialTheme.colorScheme.surface,
-                    ) {
-                        ProjectScreenTabs.entries.forEachIndexed { index, projectScreenTabs ->
-                            Tab(
-                                selected = uiState.selectedTabIndex == index,
-                                modifier = Modifier.pointerHoverIcon(
-                                    PointerIcon(
-                                        Cursor.getPredefinedCursor(
-                                            Cursor.HAND_CURSOR
-                                        )
-                                    )
-                                ),
-                                onClick = { onTabSelected(index, projectScreenTabs) },
-                                text = {
-                                    Text(
-                                        projectScreenTabs.title,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = if (uiState.selectedTabIndex == index) FontWeight.Bold else FontWeight.Medium
-                                    )
-                                }
-                            )
-                        }
-                    }
-
+                        tabList = ProjectScreenTabs.entries,
+                        onClick = onTabSelected
+                    )
                     // Tab Content with Scrollbar
-                    when (uiState.selectedTab) {
-                        ProjectScreenTabs.Overview -> {
-                            ProjectOverviewTabContent(projectInfo = project)
-                        }
+                    TabSlideAnimation(
+                        selectedTabIndex = uiState.selectedTabIndex,
+                        previousTabIndex = uiState.previousTabIndex,
+                        targetState = uiState.selectedTab
+                    ) { selectedTab ->
 
-                        ProjectScreenTabs.Modules -> {
-                            ModulesTabContent(
-                                rootModuleInfo = project.rootModuleBuildFileInfo,
-                                subModuleList = project.subModuleBuildFileInfos,
-                            )
-                        }
+                        when (selectedTab) {
+                            ProjectScreenTabs.Overview -> {
+                                ProjectOverviewTabContent(projectInfo = project)
+                            }
 
-                        ProjectScreenTabs.Plugins -> {
-                            PluginsTabContent(
-                                plugins = project.plugins
-                            )
-                        }
+                            ProjectScreenTabs.Modules -> {
+                                ModulesTabContent(
+                                    rootModuleInfo = project.rootModuleBuildFileInfo,
+                                    subModuleList = project.subModuleBuildFileInfos,
+                                )
+                            }
 
-                        ProjectScreenTabs.Dependencies -> {
-                            DependenciesTabContent(
-                                dependencies = project.dependencies,
-                            )
-                        }
+                            ProjectScreenTabs.Plugins -> {
+                                PluginsTabContent(
+                                    plugins = project.plugins
+                                )
+                            }
 
-                        ProjectScreenTabs.BuildFiles -> {
-                            BuildFilesTabContent(
-                                rootModuleInfo = project.rootModuleBuildFileInfo,
-                                subModuleList = project.subModuleBuildFileInfos,
-                                settingsGradleFileInfo = project.settingsGradleFileInfo,
-                                propertiesFileInfo = project.propertiesFileInfo,
-                                gradleWrapperPropertiesFileInfo = project.gradleWrapperPropertiesFileInfo,
-                                versionCatalogFileInfo = project.versionCatalogFileInfo
-                            )
-                        }
+                            ProjectScreenTabs.Dependencies -> {
+                                DependenciesTabContent(
+                                    dependencies = project.dependencies,
+                                )
+                            }
 
-                        ProjectScreenTabs.ProjectFiles -> {
-                            ProjectFilesTabContent(
-                                projectFiles = project.projectFiles
-                            )
-                        }
+                            ProjectScreenTabs.BuildFiles -> {
+                                BuildFilesTabContent(
+                                    rootModuleInfo = project.rootModuleBuildFileInfo,
+                                    subModuleList = project.subModuleBuildFileInfos,
+                                    settingsGradleFileInfo = project.settingsGradleFileInfo,
+                                    propertiesFileInfo = project.propertiesFileInfo,
+                                    gradleWrapperPropertiesFileInfo = project.gradleWrapperPropertiesFileInfo,
+                                    versionCatalogFileInfo = project.versionCatalogFileInfo
+                                )
+                            }
 
+                            ProjectScreenTabs.ProjectFiles -> {
+                                ProjectFilesTabContent(
+                                    projectFiles = project.projectFiles
+                                )
+                            }
+
+                        }
                     }
-
                 }
             } ?: EmptyStateCardLayout(
                 message = "No project selected",

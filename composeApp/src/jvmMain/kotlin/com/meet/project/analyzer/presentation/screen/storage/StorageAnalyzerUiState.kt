@@ -1,5 +1,6 @@
 package com.meet.project.analyzer.presentation.screen.storage
 
+import com.meet.project.analyzer.core.utility.StorageAnalyzerTabs
 import com.meet.project.analyzer.data.models.AvdInfo
 import com.meet.project.analyzer.data.models.DevEnvironmentInfo
 import com.meet.project.analyzer.data.models.GradleCacheInfo
@@ -9,6 +10,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class StorageAnalyzerUiState(
+    val selectedTab: StorageAnalyzerTabs = StorageAnalyzerTabs.Overview,
+    val selectedTabIndex: Int = 0,
+    val previousTabIndex: Int = 0,
     val isLoading: Boolean = false,
     val error: String? = null,
     val avds: List<AvdInfo> = emptyList(),

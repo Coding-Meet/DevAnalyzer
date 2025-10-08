@@ -49,7 +49,16 @@ fun StorageAnalyzerScreen() {
         onLoadSdk = { viewModel.handleIntent(StorageAnalyzerIntent.LoadSdkInfo) },
         onLoadDevEnv = { viewModel.handleIntent(StorageAnalyzerIntent.LoadDevEnvironment) },
         onLoadGradleCaches = { viewModel.handleIntent(StorageAnalyzerIntent.LoadGradleCaches) },
-        onLoadGradleModules = { viewModel.handleIntent(StorageAnalyzerIntent.LoadGradleModules) }
+        onLoadGradleModules = { viewModel.handleIntent(StorageAnalyzerIntent.LoadGradleModules) },
+        onTabSelected = { previousTabIndex, currentTabIndex, storageAnalyzerTabs ->
+            viewModel.handleIntent(
+                StorageAnalyzerIntent.SelectTab(
+                    previousTabIndex,
+                    currentTabIndex,
+                    storageAnalyzerTabs
+                )
+            )
+        }
     )
 //    StorageAnalyzerContent1(
 //        uiState = uiState,

@@ -8,7 +8,10 @@ sealed interface ProjectScannerIntent {
     data object ClearResults : ProjectScannerIntent
     data object ClearError : ProjectScannerIntent
 
-    data class SelectTab(val index: Int, val projectScreenTabs: ProjectScreenTabs) :
-        ProjectScannerIntent
+    data class SelectTab(
+        val previousTabIndex: Int,
+        val currentTabIndex: Int,
+        val projectScreenTabs: ProjectScreenTabs
+    ) : ProjectScannerIntent
 
 }

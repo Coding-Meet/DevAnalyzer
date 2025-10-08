@@ -62,6 +62,15 @@ class StorageAnalyzerViewModel(
             is StorageAnalyzerIntent.LoadGradleModules -> loadGradleModules()
             is StorageAnalyzerIntent.ClearError -> clearError()
             is StorageAnalyzerIntent.RefreshData -> refreshData()
+            is StorageAnalyzerIntent.SelectTab -> {
+                _uiState.update {
+                    it.copy(
+                        previousTabIndex = intent.previousTabIndex,
+                        selectedTabIndex = intent.currentTabIndex,
+                        selectedTab = intent.storageAnalyzerTabs
+                    )
+                }
+            }
         }
     }
 
