@@ -129,9 +129,11 @@ fun ProjectScannerContent(
                 }
             )
         }
-    ) {
+    ) { innerPadding ->
         Column(
-            modifier = Modifier.fillMaxSize().padding(it)
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
         ) {
             // Project Selection Section
             ProjectSelectionSection(
@@ -143,72 +145,72 @@ fun ProjectScannerContent(
                 onClearError = onClearError
             )
             // Results Content with Tabs and Scrollbar
-            uiState.projectInfo?.let { project ->
-                Column(modifier = Modifier.fillMaxSize()) {
-                    // Tab Row
-                    TabLayout(
-                        selectedTabIndex = uiState.selectedTabIndex,
-                        tabList = ProjectScreenTabs.entries,
-                        onClick = onTabSelected
-                    )
-                    // Tab Content with Scrollbar
-                    TabSlideAnimation(
-                        selectedTabIndex = uiState.selectedTabIndex,
-                        previousTabIndex = uiState.previousTabIndex,
-                        targetState = uiState.selectedTab
-                    ) { selectedTab ->
+            if (uiState.projectInfo != null) {
+                // Tab Row
+                TabLayout(
+                    selectedTabIndex = uiState.selectedTabIndex,
+                    tabList = ProjectScreenTabs.entries,
+                    onClick = onTabSelected
+                )
+                // Tab Content with Scrollbar
+                TabSlideAnimation(
+                    selectedTabIndex = uiState.selectedTabIndex,
+                    previousTabIndex = uiState.previousTabIndex,
+                    targetState = uiState.selectedTab
+                ) { selectedTab ->
 
-                        when (selectedTab) {
-                            ProjectScreenTabs.Overview -> {
-                                ProjectOverviewTabContent(projectInfo = project)
-                            }
-
-                            ProjectScreenTabs.Modules -> {
-                                ModulesTabContent(
-                                    rootModuleInfo = project.rootModuleBuildFileInfo,
-                                    subModuleList = project.subModuleBuildFileInfos,
-                                )
-                            }
-
-                            ProjectScreenTabs.Plugins -> {
-                                PluginsTabContent(
-                                    plugins = project.plugins
-                                )
-                            }
-
-                            ProjectScreenTabs.Dependencies -> {
-                                DependenciesTabContent(
-                                    dependencies = project.dependencies,
-                                )
-                            }
-
-                            ProjectScreenTabs.BuildFiles -> {
-                                BuildFilesTabContent(
-                                    rootModuleInfo = project.rootModuleBuildFileInfo,
-                                    subModuleList = project.subModuleBuildFileInfos,
-                                    settingsGradleFileInfo = project.settingsGradleFileInfo,
-                                    propertiesFileInfo = project.propertiesFileInfo,
-                                    gradleWrapperPropertiesFileInfo = project.gradleWrapperPropertiesFileInfo,
-                                    versionCatalogFileInfo = project.versionCatalogFileInfo
-                                )
-                            }
-
-                            ProjectScreenTabs.ProjectFiles -> {
-                                ProjectFilesTabContent(
-                                    projectFiles = project.projectFiles
-                                )
-                            }
-
+                    when (selectedTab) {
+                        ProjectScreenTabs.Overview -> {
+                            ProjectOverviewTabContent(projectInfo = uiState.projectInfo)
                         }
+
+                        ProjectScreenTabs.Modules -> {
+                            ModulesTabContent(
+                                rootModuleInfo = uiState.projectInfo.rootModuleBuildFileInfo,
+                                subModuleList = uiState.projectInfo.subModuleBuildFileInfos,
+                            )
+                        }
+
+                        ProjectScreenTabs.Plugins -> {
+                            PluginsTabContent(
+                                plugins = uiState.projectInfo.plugins
+                            )
+                        }
+
+                        ProjectScreenTabs.Dependencies -> {
+                            DependenciesTabContent(
+                                dependencies = uiState.projectInfo.dependencies,
+                            )
+                        }
+
+                        ProjectScreenTabs.BuildFiles -> {
+                            BuildFilesTabContent(
+                                rootModuleInfo = uiState.projectInfo.rootModuleBuildFileInfo,
+                                subModuleList = uiState.projectInfo.subModuleBuildFileInfos,
+                                settingsGradleFileInfo = uiState.projectInfo.settingsGradleFileInfo,
+                                propertiesFileInfo = uiState.projectInfo.propertiesFileInfo,
+                                gradleWrapperPropertiesFileInfo = uiState.projectInfo.gradleWrapperPropertiesFileInfo,
+                                versionCatalogFileInfo = uiState.projectInfo.versionCatalogFileInfo
+                            )
+                        }
+
+                        ProjectScreenTabs.ProjectFiles -> {
+                            ProjectFilesTabContent(
+                                projectFiles = uiState.projectInfo.projectFiles
+                            )
+                        }
+
                     }
                 }
-            } ?: EmptyStateCardLayout(
-                message = "No project selected",
-                icon = Icons.Default.Folder,
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(10.dp)
-            )
+            } else {
+                EmptyStateCardLayout(
+                    message = "No project selected",
+                    icon = Icons.Default.Folder,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(10.dp)
+                )
+            }
         }
     }
 }
