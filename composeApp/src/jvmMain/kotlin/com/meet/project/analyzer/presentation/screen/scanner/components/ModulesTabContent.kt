@@ -81,7 +81,7 @@ fun ModulesTabContent(
                         size = rootModuleInfo.size,
                         fileName = rootModuleInfo.type.fileName,
                         plugins = rootModuleInfo.plugins,
-                        dependencies = listOf()
+                        dependencies = rootModuleInfo.dependencies
                     )
                 }
             }

@@ -16,6 +16,7 @@ data class RootModuleBuildFileInfo(
     val readLines: List<String>,
     val file: File,
     val plugins: List<Plugin> = emptyList(),
+    val dependencies: List<Dependency> = emptyList(),
 )
 
 enum class BuildFileType(val fileName: String) {

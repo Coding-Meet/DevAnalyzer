@@ -103,6 +103,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
         updateProgress(0.7f, "Analyzing dependencies...")
         val dependencies =
             findDependencies(
+                rootModuleBuildFileInfo = rootModuleBuildFileInfo,
                 subModuleBuildFileInfos = subModuleBuildFileInfos,
                 versionCatalog = versionCatalog,
                 gradleModulesInfo = gradleModulesInfo
@@ -171,6 +172,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
     }
 
     private fun findDependencies(
+        rootModuleBuildFileInfo: RootModuleBuildFileInfo?,
         subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
         versionCatalog: VersionCatalog?,
         gradleModulesInfo: GradleModulesInfo?,
@@ -193,12 +195,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
 
         val dependencies = arrayListOf<Dependency>()
 
-
-        // Submodules
-        subModuleBuildFileInfos.forEach { subModule ->
-            val module = subModule.moduleName
-
-            subModule.content.lineSequence().forEach inner@{ rawLine ->
+        fun findDependencies(mainContent: String, module: String) {
+            mainContent.lineSequence().forEach inner@{ rawLine ->
                 val content = rawLine.trim()
 
                 // Skip comments
@@ -320,6 +318,23 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                     }
                 }
             }
+        }
+
+
+        // Root module
+        rootModuleBuildFileInfo?.let {
+            findDependencies(
+                mainContent = it.content,
+                module = it.moduleName
+            )
+        }
+
+        // Submodules
+        subModuleBuildFileInfos.forEach { subModule ->
+            findDependencies(
+                mainContent = subModule.content,
+                module = subModule.moduleName
+            )
         }
 
         AppLogger.d(TAG) { "Found ${dependencies.size} dependencies" }
