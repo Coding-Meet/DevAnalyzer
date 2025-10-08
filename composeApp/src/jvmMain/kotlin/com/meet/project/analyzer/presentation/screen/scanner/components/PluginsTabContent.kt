@@ -62,6 +62,10 @@ fun PluginsTabContent(
     var sortByColumn by rememberSaveable { mutableStateOf(PluginColumn.NAME) }
     var sortAscending by rememberSaveable { mutableStateOf(true) }
 
+    val scrollState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
+
+
     val filteredPlugins by remember(plugins, searchQuery, sortByColumn, sortAscending) {
         derivedStateOf {
             val filtered = if (searchQuery.isBlank()) {
@@ -157,11 +161,13 @@ fun PluginsTabContent(
                         sortByColumn = it
                         sortAscending = true
                     }
+                    coroutineScope.launch {
+                        scrollState.animateScrollToItem(0)
+                    }
                 }
             )
         }
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val scrollState = rememberLazyListState()
 
             LazyColumn(
                 state = scrollState,

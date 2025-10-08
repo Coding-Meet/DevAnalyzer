@@ -1,5 +1,10 @@
 package com.meet.project.analyzer.presentation.screen.storage
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,7 +17,6 @@ import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -30,6 +34,7 @@ import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.StorageAnalyzerTabs
 import com.meet.project.analyzer.presentation.components.ErrorLayout
+import com.meet.project.analyzer.presentation.components.ProgressStatusLayout
 import com.meet.project.analyzer.presentation.components.TabLayout
 import com.meet.project.analyzer.presentation.components.TabSlideAnimation
 import com.meet.project.analyzer.presentation.components.TopAppBar
@@ -115,11 +120,28 @@ fun StorageAnalyzerContent(
         Column(
             modifier = Modifier.fillMaxSize().padding(it)
         ) {
-            // Loading indicator
-            if (uiState.isLoading) {
-                LinearProgressIndicator(
-                    modifier = Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.primary
-                )
+            // Progress and status
+            AnimatedVisibility(
+                visible = uiState.isScanning,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shadowElevation = 2.dp
+                ) {
+                    Column(
+                        modifier = Modifier.padding(10.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        ProgressStatusLayout(
+                            isScanning = uiState.isScanning,
+                            scanProgress = uiState.scanProgress,
+                            scanStatus = uiState.scanStatus
+                        )
+                    }
+                }
             }
 
             // Error Layout

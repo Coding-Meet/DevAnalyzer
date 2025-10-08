@@ -1,5 +1,10 @@
 package com.meet.project.analyzer.presentation.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -16,7 +21,11 @@ fun ProgressStatusLayout(
     scanProgress: Float,
     scanStatus: String
 ) {
-    if (isScanning) {
+    AnimatedVisibility(
+        visible = isScanning,
+        enter = fadeIn() + expandVertically(),
+        exit = fadeOut() + shrinkVertically()
+    ) {
         Column(
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {

@@ -61,6 +61,8 @@ fun DependenciesTabContent(
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var sortByColumn by rememberSaveable { mutableStateOf(DependencyColumn.NAME) }
     var sortAscending by rememberSaveable { mutableStateOf(true) }
+    val scrollState = rememberLazyListState()
+    val coroutineScope = rememberCoroutineScope()
 
     val filteredDependencies by remember(dependencies, searchQuery, sortByColumn, sortAscending) {
         derivedStateOf {
@@ -158,13 +160,15 @@ fun DependenciesTabContent(
                         sortByColumn = it
                         sortAscending = true
                     }
+                    coroutineScope.launch {
+                        scrollState.animateScrollToItem(0)
+                    }
                 }
             )
         }
 
         // Dependencies Table
         BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
-            val scrollState = rememberLazyListState()
 
             LazyColumn(
                 state = scrollState,

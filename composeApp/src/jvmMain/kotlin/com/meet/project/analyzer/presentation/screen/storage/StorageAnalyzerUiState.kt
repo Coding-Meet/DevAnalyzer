@@ -13,7 +13,6 @@ data class StorageAnalyzerUiState(
     val selectedTab: StorageAnalyzerTabs = StorageAnalyzerTabs.Overview,
     val selectedTabIndex: Int = 0,
     val previousTabIndex: Int = 0,
-    val isLoading: Boolean = false,
     val error: String? = null,
     val avds: List<AvdInfo> = emptyList(),
     val sdkInfo: SdkInfo? = null,
@@ -21,5 +20,9 @@ data class StorageAnalyzerUiState(
     val gradleCaches: List<GradleCacheInfo> = emptyList(),
     val gradleModulesInfo: GradleModulesInfo? = null,
     val totalStorageUsed: String = "0 B",
-    val totalStorageBytes: Long = 0L
+    val totalStorageBytes: Long = 0L,
+
+    val isScanning: Boolean = false,
+    val scanProgress: Float = 0f,
+    val scanStatus: String = "",
 )
