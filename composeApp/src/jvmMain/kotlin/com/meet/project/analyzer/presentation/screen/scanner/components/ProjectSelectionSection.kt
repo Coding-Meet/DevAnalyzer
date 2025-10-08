@@ -1,5 +1,11 @@
 package com.meet.project.analyzer.presentation.screen.scanner.components
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -36,115 +42,130 @@ import java.awt.Cursor
 
 @Composable
 fun ProjectSelectionSection(
+    isExpanded: Boolean,
     uiState: ProjectScannerUiState,
     onClearResults: () -> Unit,
     onBrowseClick: () -> Unit,
     onAnalyzeClick: () -> Unit,
     onClearError: () -> Unit
 ) {
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        color = MaterialTheme.colorScheme.surfaceVariant,
-        shadowElevation = 2.dp
+    AnimatedVisibility(
+        visible = isExpanded,
+        enter = expandVertically(
+            animationSpec = tween(durationMillis = 300)
+        ) + fadeIn(
+            animationSpec = tween(durationMillis = 300)
+        ),
+        exit = shrinkVertically(
+            animationSpec = tween(durationMillis = 250)
+        ) + fadeOut(
+            animationSpec = tween(durationMillis = 250)
+        )
     ) {
-        Column(
-            modifier = Modifier.padding(10.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+        Surface(
+            modifier = Modifier.fillMaxWidth(),
+            color = MaterialTheme.colorScheme.surfaceVariant,
+            shadowElevation = 2.dp
         ) {
-            // Path input and buttons in one row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier.padding(10.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedTextField(
-                    value = uiState.selectedPath,
-                    onValueChange = { },
-                    modifier = Modifier.weight(1f),
-                    placeholder = { Text("No project selected") },
-                    readOnly = true,
-                    singleLine = true,
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Folder,
-                            contentDescription = "Project folder"
-                        )
-                    },
-                    trailingIcon = if (uiState.selectedPath.isNotEmpty()) {
-                        {
-                            IconButton(
-                                modifier = Modifier.pointerHoverIcon(
-                                    PointerIcon(
-                                        Cursor.getPredefinedCursor(
-                                            Cursor.HAND_CURSOR
-                                        )
-                                    )
-                                ),
-                                onClick = onClearResults
-                            ) {
-                                Icon(
-                                    Icons.Default.Clear,
-                                    contentDescription = "Clear selection"
-                                )
-                            }
-                        }
-                    } else null
-                )
-
-                Button(
-                    onClick = onBrowseClick,
-                    enabled = !uiState.isScanning,
-                    modifier = Modifier
-                        .height(56.dp)
-                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                // Path input and buttons in one row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Icon(
-                        Icons.Default.FolderOpen,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                    OutlinedTextField(
+                        value = uiState.selectedPath,
+                        onValueChange = { },
+                        modifier = Modifier.weight(1f),
+                        placeholder = { Text("No project selected") },
+                        readOnly = true,
+                        singleLine = true,
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Folder,
+                                contentDescription = "Project folder"
+                            )
+                        },
+                        trailingIcon = if (uiState.selectedPath.isNotEmpty()) {
+                            {
+                                IconButton(
+                                    modifier = Modifier.pointerHoverIcon(
+                                        PointerIcon(
+                                            Cursor.getPredefinedCursor(
+                                                Cursor.HAND_CURSOR
+                                            )
+                                        )
+                                    ),
+                                    onClick = onClearResults
+                                ) {
+                                    Icon(
+                                        Icons.Default.Clear,
+                                        contentDescription = "Clear selection"
+                                    )
+                                }
+                            }
+                        } else null
                     )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Browse")
-                }
 
-                Button(
-                    onClick = onAnalyzeClick,
-                    enabled = uiState.selectedPath.isNotEmpty() && !uiState.isScanning,
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary
-                    ),
-                    modifier = Modifier
-                        .height(56.dp)
-                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-
+                    Button(
+                        onClick = onBrowseClick,
+                        enabled = !uiState.isScanning,
+                        modifier = Modifier
+                            .height(56.dp)
+                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
                     ) {
-                    if (uiState.isScanning) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(18.dp),
-                            strokeWidth = 2.dp,
-                        )
-                    } else {
                         Icon(
-                            Icons.Default.PlayArrow,
+                            Icons.Default.FolderOpen,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Browse")
                     }
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (uiState.isScanning) "Analyzing..." else "Analyze")
+
+                    Button(
+                        onClick = onAnalyzeClick,
+                        enabled = uiState.selectedPath.isNotEmpty() && !uiState.isScanning,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        ),
+                        modifier = Modifier
+                            .height(56.dp)
+                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+
+                        ) {
+                        if (uiState.isScanning) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(18.dp),
+                                strokeWidth = 2.dp,
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.PlayArrow,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(if (uiState.isScanning) "Analyzing..." else "Analyze")
+                    }
                 }
+
+                // Progress and status
+                ProgressStatusLayout(
+                    isScanning = uiState.isScanning,
+                    scanProgress = uiState.scanProgress,
+                    scanStatus = uiState.scanStatus
+                )
+
+                // Error display
+                ErrorLayout(error = uiState.error, onClearError = onClearError)
+
             }
-
-            // Progress and status
-            ProgressStatusLayout(
-                isScanning = uiState.isScanning,
-                scanProgress = uiState.scanProgress,
-                scanStatus = uiState.scanStatus
-            )
-
-            // Error display
-            ErrorLayout(error = uiState.error, onClearError = onClearError)
-
         }
     }
 }

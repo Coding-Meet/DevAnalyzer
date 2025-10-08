@@ -6,6 +6,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
@@ -14,7 +18,10 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -83,13 +90,35 @@ fun ProjectScannerContent(
     onClearError: () -> Unit,
     onTabSelected: (Int, ProjectScreenTabs) -> Unit,
 ) {
+    var isExpanded by rememberSaveable { mutableStateOf(true) }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
                 title = "Project Scanner",
-                icon = Icons.Default.Folder
+                icon = Icons.Default.Folder,
+                actions = {
+                    if (uiState.projectInfo != null) {
+                        // un-expend/expend project selection visible or gone
+                        IconButton(
+                            onClick = {
+                                isExpanded = !isExpanded
+                            },
+                        ) {
+                            Icon(
+                                imageVector = if (isExpanded)
+                                    Icons.Default.KeyboardArrowUp
+                                else
+                                    Icons.Default.KeyboardArrowDown,
+                                contentDescription = if (isExpanded)
+                                    "Collapse"
+                                else
+                                    "Expand"
+                            )
+                        }
+                    }
+                }
             )
         }
     ) {
@@ -98,6 +127,7 @@ fun ProjectScannerContent(
         ) {
             // Project Selection Section
             ProjectSelectionSection(
+                isExpanded = isExpanded,
                 uiState = uiState,
                 onClearResults = onClearResults,
                 onBrowseClick = onBrowseClick,
