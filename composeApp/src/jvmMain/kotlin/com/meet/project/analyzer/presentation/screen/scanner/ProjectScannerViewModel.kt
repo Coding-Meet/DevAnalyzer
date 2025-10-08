@@ -24,7 +24,10 @@ class ProjectScannerViewModel(
         when (intent) {
             is ProjectScannerIntent.SelectProject -> {
                 _uiState.update {
-                    it.copy(selectedPath = intent.projectPath)
+                    it.copy(
+                        selectedPath = intent.projectPath,
+                        projectInfo = null,
+                    )
                 }
             }
 

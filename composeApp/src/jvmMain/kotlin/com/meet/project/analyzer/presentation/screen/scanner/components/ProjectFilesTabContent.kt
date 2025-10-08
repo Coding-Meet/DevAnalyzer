@@ -414,6 +414,13 @@ fun FileTreeItem(
             .fillMaxWidth()
             .padding(vertical = 1.dp)
             .clip(MaterialTheme.shapes.small)
+            .pointerHoverIcon(
+                PointerIcon(
+                    Cursor.getPredefinedCursor(
+                        Cursor.HAND_CURSOR
+                    )
+                )
+            )
             .clickable { onClick() }
     ) {
         Row(

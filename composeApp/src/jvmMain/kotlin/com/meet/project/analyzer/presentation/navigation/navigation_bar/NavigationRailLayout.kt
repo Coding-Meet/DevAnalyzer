@@ -21,6 +21,7 @@ import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
@@ -71,8 +72,13 @@ fun NavigationRailLayout(
                     },
                     state = rememberTooltipState(),
                 ) {
-                    val isSelected by derivedStateOf {
-                        navigationItem.route == currentNavigationItem?.route
+                    val isSelected by rememberSaveable(
+                        navigationItem.route,
+                        currentNavigationItem?.route
+                    ) {
+                        derivedStateOf {
+                            navigationItem.route == currentNavigationItem?.route
+                        }
                     }
 
                     NavigationRailItem(
@@ -101,11 +107,11 @@ fun NavigationRailLayout(
                         selected = isSelected,
                         onClick = { onNavigate(navigationItem) },
                         colors = NavigationRailItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.primary,
+                            selectedIconColor = MaterialTheme.colorScheme.primaryContainer,
                             selectedTextColor = MaterialTheme.colorScheme.primary,
                             unselectedIconColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
                             unselectedTextColor = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
-                            indicatorColor = MaterialTheme.colorScheme.surface
+                            indicatorColor = MaterialTheme.colorScheme.primary
                         )
                     )
                 }

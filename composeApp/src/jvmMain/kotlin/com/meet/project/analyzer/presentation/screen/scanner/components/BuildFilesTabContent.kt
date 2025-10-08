@@ -32,9 +32,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -353,9 +355,19 @@ fun DetailedBuildFileCard(
     content: String,
     openBuildFile: (BuildFile) -> Unit = {},
 ) {
-    val isSelected = selectedPath == path
+    val isSelected by rememberSaveable(selectedPath, path) {
+        derivedStateOf {
+            selectedPath == path
+        }
+    }
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier.fillMaxWidth().pointerHoverIcon(
+            PointerIcon(
+                Cursor.getPredefinedCursor(
+                    Cursor.HAND_CURSOR
+                )
+            )
+        ),
         colors = CardDefaults.cardColors(
             containerColor = if (isSelected)
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)

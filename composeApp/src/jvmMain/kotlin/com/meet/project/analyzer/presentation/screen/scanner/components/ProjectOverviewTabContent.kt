@@ -65,6 +65,7 @@ fun ProjectOverviewTabContent(
                     dependencies = projectInfo.dependencies,
                     plugins = projectInfo.plugins,
                     moduleBuildFileInfos = projectInfo.moduleBuildFileInfos,
+                    projectFilesSize = projectInfo.projectFiles.size
                 )
             }
         }
@@ -80,6 +81,7 @@ fun ProjectOverviewCard(
     dependencies: List<Dependency>,
     plugins: List<Plugin>,
     moduleBuildFileInfos: List<ModuleBuildFileInfo>,
+    projectFilesSize: Int
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -112,7 +114,7 @@ fun ProjectOverviewCard(
 
             // Stats grid
             LazyVerticalGrid(
-                columns = GridCells.Fixed(4),
+                columns = GridCells.Fixed(5),
                 modifier = Modifier.height(90.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -121,6 +123,13 @@ fun ProjectOverviewCard(
                     ProjectStatItem(
                         label = "Size",
                         value = projectOverviewInfo.totalSize,
+                        icon = Icons.Default.Storage
+                    )
+                }
+                item {
+                    ProjectStatItem(
+                        label = "Files",
+                        value = projectFilesSize.toString(),
                         icon = Icons.Default.Storage
                     )
                 }

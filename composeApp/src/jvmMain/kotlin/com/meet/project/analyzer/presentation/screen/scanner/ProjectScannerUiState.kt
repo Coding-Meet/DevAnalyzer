@@ -7,7 +7,7 @@ data class ProjectScannerUiState(
     val selectedTab: ProjectScreenTabs = ProjectScreenTabs.Overview,
     val selectedTabIndex: Int = 0,
     val previousTabIndex: Int = 0,
-    val selectedPath: String = "/Users/meet/AndroidStudioProjects/KAppMaker-KMP",
+    val selectedPath: String = "",
     val projectInfo: ProjectInfo? = null,
     val error: String? = null,
     val isScanning: Boolean = false,

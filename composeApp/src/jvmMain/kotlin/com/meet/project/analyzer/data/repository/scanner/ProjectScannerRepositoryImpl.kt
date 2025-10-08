@@ -172,6 +172,10 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
         val bundleDepRegex =
             Regex("""(implementation|api|ksp|kapt|compileOnly|runtimeOnly|testImplementation|androidTestImplementation)\((libs\.bundles\.[^)]+)\)""")
 
+        // alias-like without libs prefix → implementation(compose.components.uiToolingPreview)
+        val unprefixedAliasDepRegex =
+            Regex("""(implementation|api|ksp|kapt|compileOnly|runtimeOnly|testImplementation|androidTestImplementation)\(([^)]+)\)""")
+
         val dependencies = arrayListOf<Dependency>()
 
         fun findDependencies(mainContent: String, module: String) {
@@ -252,6 +256,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                             dependencies.add(
                                 versionCatalogDependency
                             )
+                        } else {
+                            AppLogger.d(TAG) { "Library not found in version catalog: $match" }
                         }
                     }
                 }
@@ -293,6 +299,62 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                             )
                             AppLogger.d(TAG) { "Found bundleDependency: $bundleDependency" }
                             dependencies.add(bundleDependency)
+                        } else {
+                            AppLogger.d(TAG) { "Library not found in bundle: $artifact" }
+                        }
+                    }
+                }
+
+                // Unprefixed alias style (e.g. implementation(compose.components.uiToolingPreview))
+                unprefixedAliasDepRegex.findAll(content).forEach { match ->
+                    val path = match.groupValues[2] // e.g. compose.components.uiToolingPreview
+                    // Skip ones already matched by libs.* to avoid duplicates
+                    if (!path.startsWith("libs.") && !path.startsWith("libs.bundles.")
+                        && !path.startsWith("projects.") && !path.startsWith("project.")
+                    ) {
+                        val alias =
+                            path.replace('.', '-') // e.g. compose-components-uiToolingPreview
+
+                        val lib = versionCatalog?.libraries?.find {
+                            it.name == alias
+                        }
+
+                        if (lib != null) {
+                            val availableVersions = findAvailableVersionsInGradleCache(
+                                groupId = lib.group,
+                                artifactId = lib.libName,
+                                gradleModulesInfo = gradleModulesInfo
+                            )
+                            val dependency = Dependency(
+                                versionName = lib.name,
+                                name = lib.libName ?: lib.name,
+                                id = lib.id,
+                                group = lib.group ?: "",
+                                version = lib.version,
+                                configuration = match.groupValues[1],
+                                module = module,
+                                availableVersions = availableVersions,
+                                isAvailable = availableVersions?.versions?.any {
+                                    it.version == lib.version
+                                } == true
+                            )
+                            AppLogger.d(TAG) { "Found unprefixedAliasDependency: $dependency" }
+                            dependencies.add(dependency)
+                        } else {
+                            AppLogger.d(TAG) { "Library not found for unprefixed alias: $path" }
+                            dependencies.add(
+                                Dependency(
+                                    versionName = "",
+                                    name = path.substringAfterLast('.'),
+                                    id = path,
+                                    group = path,
+                                    version = null,
+                                    configuration = match.groupValues[1],
+                                    module = module,
+                                    availableVersions = null,
+                                    isAvailable = false
+                                )
+                            )
                         }
                     }
                 }
@@ -639,6 +701,10 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                     val file = File(moduleDir, buildFileType.fileName)
                     if (file.exists()) {
                         val sizeBytes = file.length()
+                        val relativePath = moduleDir.relativeTo(projectDir).path
+                        val moduleName =
+                            relativePath.replace(File.separatorChar, ':').ifEmpty { moduleDir.name }
+
                         ModuleBuildFileInfo(
                             path = file.absolutePath,
                             type = buildFileType,
@@ -647,7 +713,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                             content = file.readText(),
                             readLines = file.readLines(),
                             file = file,
-                            moduleName = moduleDir.name,
+                            moduleName = moduleName,
                             modulePath = moduleDir.absolutePath
                         )
                     } else null
