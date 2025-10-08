@@ -16,7 +16,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.PlayArrow
@@ -24,9 +23,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -35,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import com.meet.project.analyzer.presentation.components.CustomOutlinedTextField
 import com.meet.project.analyzer.presentation.components.ErrorLayout
 import com.meet.project.analyzer.presentation.components.ProgressStatusLayout
 import com.meet.project.analyzer.presentation.screen.scanner.ProjectScannerUiState
@@ -77,38 +75,15 @@ fun ProjectSelectionSection(
                     horizontalArrangement = Arrangement.spacedBy(12.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedTextField(
+                    CustomOutlinedTextField(
                         value = uiState.selectedPath,
                         onValueChange = { },
+                        onClear = onClearResults,
                         modifier = Modifier.weight(1f),
-                        placeholder = { Text("No project selected") },
+                        leadingIcon = Icons.Default.Folder,
+                        labelText = "Enter Project Path",
                         readOnly = true,
-                        singleLine = true,
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Folder,
-                                contentDescription = "Project folder"
-                            )
-                        },
-                        trailingIcon = if (uiState.selectedPath.isNotEmpty()) {
-                            {
-                                IconButton(
-                                    modifier = Modifier.pointerHoverIcon(
-                                        PointerIcon(
-                                            Cursor.getPredefinedCursor(
-                                                Cursor.HAND_CURSOR
-                                            )
-                                        )
-                                    ),
-                                    onClick = onClearResults
-                                ) {
-                                    Icon(
-                                        Icons.Default.Clear,
-                                        contentDescription = "Clear selection"
-                                    )
-                                }
-                            }
-                        } else null
+                        placeholder = { Text("Ex: /Users/meet/AndroidStudioProjects/AnyKotlinProject") },
                     )
 
                     Button(

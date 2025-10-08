@@ -13,19 +13,14 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -35,12 +30,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.PointerIcon
-import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.DependencyColumn
 import com.meet.project.analyzer.data.models.scanner.Dependency
+import com.meet.project.analyzer.presentation.components.CustomOutlinedTextField
 import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.project.analyzer.presentation.components.TableBodyCell
 import com.meet.project.analyzer.presentation.components.TableBodyCellChip
@@ -51,7 +44,6 @@ import com.meet.project.analyzer.presentation.components.TableHeaderCell
 import com.meet.project.analyzer.presentation.components.TableHeaderLayout
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import kotlinx.coroutines.launch
-import java.awt.Cursor
 
 
 @Composable
@@ -104,49 +96,18 @@ fun DependenciesTabContent(
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             // Search Field
-            OutlinedTextField(
+            CustomOutlinedTextField(
                 value = searchQuery,
                 onValueChange = { searchQuery = it },
+                onClear = { searchQuery = "" },
                 modifier = Modifier.fillMaxWidth(),
-                label = {
-                    Text(
-                        "Search dependencies, modules, or versions... " +
-                                if (searchQuery.isBlank()) {
-                                    "(${dependencies.size} dependencies)"
-                                } else {
-                                    "(${filteredDependencies.size} of ${dependencies.size} dependencies)"
-                                },
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = "Search",
-                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                    )
-                },
-                trailingIcon = {
-                    if (searchQuery.isNotEmpty()) {
-                        IconButton(
-                            modifier = Modifier.pointerHoverIcon(
-                                PointerIcon(
-                                    Cursor.getPredefinedCursor(
-                                        Cursor.HAND_CURSOR
-                                    )
-                                )
-                            ),
-                            onClick = { searchQuery = "" }) {
-                            Icon(
-                                Icons.Default.Clear,
-                                contentDescription = "Clear search",
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
+                leadingIcon = Icons.Default.Search,
+                labelText = "Search dependencies, modules, or versions... " +
+                        if (searchQuery.isBlank()) {
+                            "(${dependencies.size} dependencies)"
+                        } else {
+                            "(${filteredDependencies.size} of ${dependencies.size} dependencies)"
                         }
-                    }
-                },
-                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                singleLine = true,
-                shape = RoundedCornerShape(12.dp)
             )
         }
         if (filteredDependencies.isNotEmpty()) {

@@ -20,20 +20,15 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
-import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -50,13 +45,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import com.meet.project.analyzer.core.utility.Utils.openFile
 import com.meet.project.analyzer.data.models.scanner.FileType
 import com.meet.project.analyzer.data.models.scanner.ProjectFileInfo
+import com.meet.project.analyzer.presentation.components.CustomOutlinedTextField
 import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import java.awt.Cursor
@@ -100,44 +95,15 @@ fun ProjectFilesTabContent(projectFiles: List<ProjectFileInfo>, projectName: Str
             BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
                 Column {
                     // Search Field
-                    OutlinedTextField(
+                    CustomOutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
+                        onClear = { searchQuery = "" },
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(10.dp),
-                        label = {
-                            Text("Search files...")
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Search,
-                                contentDescription = "Search",
-                                tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                            )
-                        },
-                        trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(
-                                    modifier = Modifier.pointerHoverIcon(
-                                        PointerIcon(
-                                            Cursor.getPredefinedCursor(
-                                                Cursor.HAND_CURSOR
-                                            )
-                                        )
-                                    ),
-                                    onClick = { searchQuery = "" }) {
-                                    Icon(
-                                        Icons.Default.Clear,
-                                        contentDescription = "Clear search",
-                                        tint = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f)
-                                    )
-                                }
-                            }
-                        },
-                        keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
-                        singleLine = true,
-                        shape = RoundedCornerShape(12.dp)
+                        leadingIcon = Icons.Default.Search,
+                        labelText = "Search files..."
                     )
                     LazyColumn(
                         state = scrollState,
