@@ -6,6 +6,7 @@ import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,15 +30,32 @@ import androidx.compose.ui.unit.dp
 import java.awt.Cursor
 
 @Composable
+fun TableHeaderLayout(
+    content: @Composable RowScope.() -> Unit
+) {
+    Surface(
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        tonalElevation = 2.dp
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 2.dp),
+            horizontalArrangement = Arrangement.Start,
+            verticalAlignment = Alignment.CenterVertically,
+            content = content
+        )
+    }
+}
+
+@Composable
 fun RowScope.TableHeaderCell(
     title: String,
     weight: Float,
-    sortColumn: String,
-    currentSort: String,
+    isSelected: Boolean,
     sortAscending: Boolean,
     onSort: () -> Unit
 ) {
-    val isSelected = sortColumn == currentSort
     val interactionSource = remember { MutableInteractionSource() }
     val isHovered by interactionSource.collectIsHoveredAsState()
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -58,6 +76,7 @@ fun RowScope.TableHeaderCell(
     Surface(
         modifier = Modifier
             .weight(weight)
+            .padding(horizontal = 8.dp)
             .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
         color = backgroundColor,
         shape = RoundedCornerShape(8.dp),
@@ -68,7 +87,6 @@ fun RowScope.TableHeaderCell(
             modifier = Modifier
                 .padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             Text(
                 title,
@@ -82,7 +100,6 @@ fun RowScope.TableHeaderCell(
                 modifier = Modifier.weight(1f)
             )
 
-            // Always show sort icon but with different states
             Icon(
                 imageVector = when {
                     isSelected && sortAscending -> Icons.Filled.KeyboardArrowUp
