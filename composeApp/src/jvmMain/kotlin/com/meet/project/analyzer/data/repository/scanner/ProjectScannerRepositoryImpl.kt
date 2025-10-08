@@ -13,16 +13,15 @@ import com.meet.project.analyzer.data.models.scanner.Dependency
 import com.meet.project.analyzer.data.models.scanner.FileType
 import com.meet.project.analyzer.data.models.scanner.GradleWrapperPropertiesFileInfo
 import com.meet.project.analyzer.data.models.scanner.Library
+import com.meet.project.analyzer.data.models.scanner.ModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.Plugin
 import com.meet.project.analyzer.data.models.scanner.ProjectFileInfo
 import com.meet.project.analyzer.data.models.scanner.ProjectInfo
 import com.meet.project.analyzer.data.models.scanner.ProjectOverviewInfo
 import com.meet.project.analyzer.data.models.scanner.PropertiesFileInfo
 import com.meet.project.analyzer.data.models.scanner.PropertiesFileType
-import com.meet.project.analyzer.data.models.scanner.RootModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.SettingsGradleFileInfo
 import com.meet.project.analyzer.data.models.scanner.SettingsGradleFileType
-import com.meet.project.analyzer.data.models.scanner.SubModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.Version
 import com.meet.project.analyzer.data.models.scanner.VersionCatalog
 import com.meet.project.analyzer.data.models.scanner.VersionCatalogFileInfo
@@ -48,11 +47,9 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
         val projectDir = File(projectPath)
 
         updateProgress(0.1f, "Finding build files...")
-        val rootModuleBuildFileInfo =
-            findRootModuleBuildFiles(projectDir = projectDir)
 
-        val subModuleBuildFileInfos =
-            findSubModuleBuildFiles(projectDir = projectDir)
+        val moduleBuildFileInfos =
+            findModuleBuildFiles(projectDir = projectDir)
 
         val settingsGradleFileInfo =
             findSettingsGradleFiles(projectDir = projectDir)
@@ -76,17 +73,15 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                 settingsGradleFileInfo = settingsGradleFileInfo,
                 gradleWrapperPropertiesFileInfo = gradleWrapperPropertiesFileInfo,
                 versionCatalog = versionCatalog,
-                subModuleBuildFileInfos = subModuleBuildFileInfos,
-                rootModuleBuildFileInfo = rootModuleBuildFileInfo,
-                isMultiModule = subModuleBuildFileInfos.size > 1
+                moduleBuildFileInfos = moduleBuildFileInfos,
+                isMultiModule = moduleBuildFileInfos.size > 1
             )
 
         updateProgress(0.5f, "Analyzing plugins...")
         val gradleModulesInfo = Utils.getGradleModulesInfo()
         val plugins =
             findPlugin(
-                rootModuleBuildFileInfo = rootModuleBuildFileInfo,
-                subModuleBuildFileInfos = subModuleBuildFileInfos,
+                moduleBuildFileInfos = moduleBuildFileInfos,
                 versionCatalog = versionCatalog,
                 gradleModulesInfo = gradleModulesInfo,
             )
@@ -94,14 +89,13 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
         updateProgress(0.7f, "Analyzing dependencies...")
         val dependencies =
             findDependencies(
-                rootModuleBuildFileInfo = rootModuleBuildFileInfo,
-                subModuleBuildFileInfos = subModuleBuildFileInfos,
+                moduleBuildFileInfos = moduleBuildFileInfos,
                 versionCatalog = versionCatalog,
                 gradleModulesInfo = gradleModulesInfo
             )
-        val subModuleWithDependency =
+        val modulesWithDependency =
             addDependencyEachModule(
-                subModuleBuildFileInfos = subModuleBuildFileInfos,
+                moduleBuildFileInfos = moduleBuildFileInfos,
                 plugins = plugins,
                 dependencies = dependencies
             )
@@ -113,12 +107,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             projectOverviewInfo = projectOverviewInfo,
             plugins = plugins,
             dependencies = dependencies,
-            rootModuleBuildFileInfo = rootModuleBuildFileInfo?.copy(
-                plugins = plugins.filter { plugin ->
-                    plugin.module == rootModuleBuildFileInfo.moduleName
-                }
-            ),
-            subModuleBuildFileInfos = subModuleWithDependency,
+            moduleBuildFileInfos = modulesWithDependency,
             settingsGradleFileInfo = settingsGradleFileInfo,
             propertiesFileInfo = propertiesFileInfo,
             gradleWrapperPropertiesFileInfo = gradleWrapperPropertiesFileInfo,
@@ -131,16 +120,16 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
     }
 
     private fun addDependencyEachModule(
-        subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
+        moduleBuildFileInfos: List<ModuleBuildFileInfo>,
         plugins: List<Plugin>,
         dependencies: List<Dependency>
-    ) = subModuleBuildFileInfos.map { subModuleBuildFileInfo ->
-        subModuleBuildFileInfo.copy(
+    ) = moduleBuildFileInfos.map { moduleBuildFileInfo ->
+        moduleBuildFileInfo.copy(
             plugins = plugins.filter { plugin ->
-                plugin.module == subModuleBuildFileInfo.moduleName
+                plugin.module == moduleBuildFileInfo.moduleName
             },
             dependencies = dependencies.filter { dependency ->
-                dependency.module == subModuleBuildFileInfo.moduleName
+                dependency.module == moduleBuildFileInfo.moduleName
             }
         )
     }
@@ -163,8 +152,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
     }
 
     private fun findDependencies(
-        rootModuleBuildFileInfo: RootModuleBuildFileInfo?,
-        subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
+        moduleBuildFileInfos: List<ModuleBuildFileInfo>,
         versionCatalog: VersionCatalog?,
         gradleModulesInfo: GradleModulesInfo?,
     ): List<Dependency> {
@@ -311,20 +299,10 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             }
         }
 
-
-        // Root module
-        rootModuleBuildFileInfo?.let {
+        moduleBuildFileInfos.forEach { moduleBuildFileInfo ->
             findDependencies(
-                mainContent = it.content,
-                module = it.moduleName
-            )
-        }
-
-        // Submodules
-        subModuleBuildFileInfos.forEach { subModule ->
-            findDependencies(
-                mainContent = subModule.content,
-                module = subModule.moduleName
+                mainContent = moduleBuildFileInfo.content,
+                module = moduleBuildFileInfo.moduleName
             )
         }
 
@@ -337,8 +315,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
     }
 
     private fun findPlugin(
-        rootModuleBuildFileInfo: RootModuleBuildFileInfo?,
-        subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
+        moduleBuildFileInfos: List<ModuleBuildFileInfo>,
         versionCatalog: VersionCatalog? = null,
         gradleModulesInfo: GradleModulesInfo?,
     ): List<Plugin> {
@@ -467,11 +444,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             }
         }
 
-        // Root module
-        rootModuleBuildFileInfo?.let { extractPlugins(it.content, module = "root") }
-
-        // Sub-modules
-        subModuleBuildFileInfos.forEach { extractPlugins(it.content, module = it.moduleName) }
+        // modules
+        moduleBuildFileInfos.forEach { extractPlugins(it.content, module = it.moduleName) }
 
         AppLogger.d(TAG) { "Found ${plugins.size} plugins" }
         plugins.forEach {
@@ -487,8 +461,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
         settingsGradleFileInfo: SettingsGradleFileInfo?,
         gradleWrapperPropertiesFileInfo: GradleWrapperPropertiesFileInfo?,
         versionCatalog: VersionCatalog?,
-        rootModuleBuildFileInfo: RootModuleBuildFileInfo?,
-        subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
+        moduleBuildFileInfos: List<ModuleBuildFileInfo>,
         isMultiModule: Boolean
     ): ProjectOverviewInfo {
         AppLogger.d(TAG) { "Finding project info" }
@@ -501,6 +474,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             val projectName = projectNameLine.substringAfter("=").replace("\"", "").trim()
             return projectName
         }
+        val rootModuleBuildFileInfo =
+            moduleBuildFileInfos.find { it.moduleName == findProjectName() }
 
         fun findGradleVersion(): String? {
             if (gradleWrapperPropertiesFileInfo == null) return null
@@ -570,7 +545,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
 
             val regex = Regex("""compileSdk(?:Version)?\s*=?\s*(\d+)""")
             val subModuleBuildFileInfo =
-                subModuleBuildFileInfos.find { regex.containsMatchIn(it.content) }
+                moduleBuildFileInfos.find { regex.containsMatchIn(it.content) }
             return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
         }
 
@@ -581,7 +556,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
 
             val regex = Regex("""minSdk(?:Version)?\s*=?\s*(\d+)""")
             val subModuleBuildFileInfo =
-                subModuleBuildFileInfos.find { regex.containsMatchIn(it.content) }
+                moduleBuildFileInfos.find { regex.containsMatchIn(it.content) }
             return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
         }
 
@@ -592,7 +567,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
 
             val regex = Regex("""targetSdk(?:Version)?\s*=?\s*(\d+)""")
             val subModuleBuildFileInfo =
-                subModuleBuildFileInfos.find { regex.containsMatchIn(it.content) }
+                moduleBuildFileInfos.find { regex.containsMatchIn(it.content) }
             return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
         }
 
@@ -651,68 +626,34 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             versionCatalogFileInfo
         }
 
-    private suspend fun findRootModuleBuildFiles(projectDir: File): RootModuleBuildFileInfo? =
-        withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Finding root build files" }
-
-
-            // Find root build files
-            val buildFileType = BuildFileType.entries.find { buildFileType ->
-                val file = File(projectDir, buildFileType.fileName)
-                file.exists()
-            }
-            if (buildFileType == null) return@withContext null
-            val file = File(projectDir, buildFileType.fileName)
-            if (!file.exists()) return@withContext null
-            val sizeBytes = file.length()
-
-            val rootModuleBuildFileInfo = RootModuleBuildFileInfo(
-                moduleName = "root",
-                path = file.absolutePath,
-                type = buildFileType,
-                size = Utils.formatSize(sizeBytes),
-                sizeBytes = sizeBytes,
-                content = file.readText(),
-                readLines = file.readLines(),
-                file = file,
-            )
-            AppLogger.d(TAG) { "Found root build files" }
-            AppLogger.i(TAG) {
-                "Name: ${rootModuleBuildFileInfo.moduleName} Path: ${rootModuleBuildFileInfo.path} Type: ${rootModuleBuildFileInfo.type} Size: ${rootModuleBuildFileInfo.size} Size (bytes): ${rootModuleBuildFileInfo.sizeBytes} isContent: ${rootModuleBuildFileInfo.content.isNotEmpty()}"
-            }
-            rootModuleBuildFileInfo
-        }
-
-
-    private suspend fun findSubModuleBuildFiles(projectDir: File): List<SubModuleBuildFileInfo> =
+    private suspend fun findModuleBuildFiles(projectDir: File): List<ModuleBuildFileInfo> =
         withContext(Dispatchers.IO) {
             AppLogger.d(TAG) { "Finding build files" }
 
-            val buildFiles = mutableListOf<SubModuleBuildFileInfo>()
-
+            val moduleDirs = projectDir.walkTopDown()
+                .filter { it.isDirectory && !it.name.startsWith(".") }
+                .toList()
             // Find module build files
-            projectDir.listFiles()?.filter { it.isDirectory && !it.name.startsWith(".") }
-                ?.forEach { moduleDir ->
-                    BuildFileType.entries.forEach { buildFileType ->
-                        val file = File(moduleDir, buildFileType.fileName)
-                        if (file.exists()) {
-                            val sizeBytes = file.length()
-                            buildFiles.add(
-                                SubModuleBuildFileInfo(
-                                    path = file.absolutePath,
-                                    type = buildFileType,
-                                    size = Utils.formatSize(sizeBytes),
-                                    sizeBytes = sizeBytes,
-                                    content = file.readText(),
-                                    readLines = file.readLines(),
-                                    file = file,
-                                    moduleName = moduleDir.name,
-                                    modulePath = moduleDir.absolutePath
-                                )
-                            )
-                        }
-                    }
+            val buildFiles = moduleDirs.flatMap { moduleDir ->
+                BuildFileType.entries.mapNotNull { buildFileType ->
+                    val file = File(moduleDir, buildFileType.fileName)
+                    if (file.exists()) {
+                        val sizeBytes = file.length()
+                        ModuleBuildFileInfo(
+                            path = file.absolutePath,
+                            type = buildFileType,
+                            size = Utils.formatSize(sizeBytes),
+                            sizeBytes = sizeBytes,
+                            content = file.readText(),
+                            readLines = file.readLines(),
+                            file = file,
+                            moduleName = moduleDir.name,
+                            modulePath = moduleDir.absolutePath
+                        )
+                    } else null
                 }
+            }
+
 
             AppLogger.d(TAG) { "Found ${buildFiles.size} build files" }
             buildFiles.forEach {
@@ -1028,7 +969,62 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             AppLogger.d(TAG) { "Finding project files in: ${projectDir.absolutePath}" }
 
             val projectFiles = mutableListOf<ProjectFileInfo>()
+            fun determineFileType(file: File): FileType {
+                val extension = file.extension.lowercase()
+                val path = file.absolutePath.lowercase()
 
+                return when {
+                    extension in listOf("kt", "kts") -> FileType.SOURCE_KOTLIN
+                    extension == "java" -> FileType.SOURCE_JAVA
+                    file.name in listOf(
+                        "build.gradle",
+                        "build.gradle.kts",
+                        "settings.gradle",
+                        "settings.gradle.kts"
+                    ) -> FileType.BUILD_SCRIPT
+
+                    extension == "properties" -> FileType.PROPERTIES
+                    extension == "json" -> FileType.JSON
+                    extension == "xml" && path.contains("androidmanifest") -> FileType.MANIFEST
+                    extension == "xml" && path.contains("layout") -> FileType.LAYOUT
+                    extension == "xml" && path.contains("values") -> FileType.VALUES
+                    extension == "xml" -> FileType.XML
+                    extension == "md" -> FileType.MARKDOWN
+                    extension == "txt" -> FileType.TEXT
+                    extension in listOf(
+                        "png",
+                        "jpg",
+                        "jpeg",
+                        "gif",
+                        "bmp",
+                        "webp",
+                        "svg"
+                    ) -> FileType.IMAGE
+
+                    path.contains("drawable") -> FileType.DRAWABLE
+                    path.contains("assets") -> FileType.ASSETS
+                    path.contains("res/") -> FileType.RESOURCE
+                    extension in listOf(
+                        "toml",
+                        "yaml",
+                        "yml",
+                        "conf",
+                        "config"
+                    ) -> FileType.CONFIGURATION
+
+                    else -> FileType.OTHER
+                }
+            }
+
+            fun isTextFile(file: File): Boolean {
+                val textExtensions = setOf(
+                    "kt", "kts", "java", "xml", "json", "properties", "toml", "yaml", "yml",
+                    "txt", "md", "gradle", "gitignore", "pro", "conf", "config", "sh", "bat",
+                    "swift", "xcconfig", "plist"
+                )
+                return file.extension.lowercase() in textExtensions ||
+                        file.name.lowercase() in setOf("dockerfile", "makefile", "readme")
+            }
             try {
                 projectDir.walkTopDown()
                     .filter { file ->
@@ -1074,46 +1070,5 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             AppLogger.d(TAG) { "Found ${projectFiles.size} project files" }
             projectFiles.sortedBy { it.relativePath }
         }
-
-    private fun determineFileType(file: File): FileType {
-        val extension = file.extension.lowercase()
-        val path = file.absolutePath.lowercase()
-
-        return when {
-            extension in listOf("kt", "kts") -> FileType.SOURCE_KOTLIN
-            extension == "java" -> FileType.SOURCE_JAVA
-            file.name in listOf(
-                "build.gradle",
-                "build.gradle.kts",
-                "settings.gradle",
-                "settings.gradle.kts"
-            ) -> FileType.BUILD_SCRIPT
-
-            extension == "properties" -> FileType.PROPERTIES
-            extension == "json" -> FileType.JSON
-            extension == "xml" && path.contains("androidmanifest") -> FileType.MANIFEST
-            extension == "xml" && path.contains("layout") -> FileType.LAYOUT
-            extension == "xml" && path.contains("values") -> FileType.VALUES
-            extension == "xml" -> FileType.XML
-            extension == "md" -> FileType.MARKDOWN
-            extension == "txt" -> FileType.TEXT
-            extension in listOf("png", "jpg", "jpeg", "gif", "bmp", "webp", "svg") -> FileType.IMAGE
-            path.contains("drawable") -> FileType.DRAWABLE
-            path.contains("assets") -> FileType.ASSETS
-            path.contains("res/") -> FileType.RESOURCE
-            extension in listOf("toml", "yaml", "yml", "conf", "config") -> FileType.CONFIGURATION
-            else -> FileType.OTHER
-        }
-    }
-
-    private fun isTextFile(file: File): Boolean {
-        val textExtensions = setOf(
-            "kt", "kts", "java", "xml", "json", "properties", "toml", "yaml", "yml",
-            "txt", "md", "gradle", "gitignore", "pro", "conf", "config", "sh", "bat",
-            "swift", "xcconfig", "plist"
-        )
-        return file.extension.lowercase() in textExtensions ||
-                file.name.lowercase() in setOf("dockerfile", "makefile", "readme")
-    }
 
 }

@@ -49,9 +49,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.data.models.scanner.Dependency
+import com.meet.project.analyzer.data.models.scanner.ModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.Plugin
-import com.meet.project.analyzer.data.models.scanner.RootModuleBuildFileInfo
-import com.meet.project.analyzer.data.models.scanner.SubModuleBuildFileInfo
 import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 import java.awt.Cursor
@@ -59,8 +58,8 @@ import java.awt.Cursor
 
 @Composable
 fun ModulesTabContent(
-    rootModuleInfo: RootModuleBuildFileInfo?,
-    subModuleList: List<SubModuleBuildFileInfo>,
+    moduleBuildFileInfos: List<ModuleBuildFileInfo>,
+    projectName: String,
 ) {
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val scrollState = rememberLazyGridState()
@@ -72,22 +71,8 @@ fun ModulesTabContent(
             verticalArrangement = Arrangement.spacedBy(16.dp),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            if (rootModuleInfo != null) {
-                item(
-                    key = rootModuleInfo.uniqueId
-                ) {
-                    DetailedModuleCard(
-                        moduleName = rootModuleInfo.moduleName,
-                        size = rootModuleInfo.size,
-                        fileName = rootModuleInfo.type.fileName,
-                        plugins = rootModuleInfo.plugins,
-                        dependencies = rootModuleInfo.dependencies
-                    )
-                }
-            }
-
             items(
-                items = subModuleList,
+                items = moduleBuildFileInfos,
                 key = { module -> module.uniqueId }
             ) { module ->
                 DetailedModuleCard(
@@ -96,10 +81,11 @@ fun ModulesTabContent(
                     plugins = module.plugins,
                     fileName = module.type.fileName,
                     dependencies = module.dependencies,
+                    projectName = projectName
                 )
             }
 
-            if (subModuleList.isEmpty() && rootModuleInfo == null) {
+            if (moduleBuildFileInfos.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
                     EmptyStateCardLayout("No modules found")
                 }
@@ -117,6 +103,7 @@ fun DetailedModuleCard(
     fileName: String,
     plugins: List<Plugin>,
     dependencies: List<Dependency>,
+    projectName: String,
 ) {
 
     Card(
@@ -137,9 +124,9 @@ fun DetailedModuleCard(
             ) {
 
                 Icon(
-                    imageVector = getModuleIcon(moduleName),
+                    imageVector = getModuleIcon(moduleName = moduleName, projectName = projectName),
                     contentDescription = moduleName,
-                    tint = getModuleColor(moduleName),
+                    tint = getModuleColor(moduleName = moduleName, projectName = projectName),
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -153,7 +140,7 @@ fun DetailedModuleCard(
                     Text(
                         text = fileName.replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.bodyMedium,
-                        color = getModuleColor(moduleName)
+                        color = getModuleColor(moduleName = moduleName, projectName = projectName)
                     )
                 }
                 Surface(

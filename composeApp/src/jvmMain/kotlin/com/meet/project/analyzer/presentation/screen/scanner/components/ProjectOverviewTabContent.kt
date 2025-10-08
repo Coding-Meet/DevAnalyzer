@@ -40,10 +40,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.data.models.scanner.Dependency
+import com.meet.project.analyzer.data.models.scanner.ModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.Plugin
 import com.meet.project.analyzer.data.models.scanner.ProjectInfo
 import com.meet.project.analyzer.data.models.scanner.ProjectOverviewInfo
-import com.meet.project.analyzer.data.models.scanner.SubModuleBuildFileInfo
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
 
 @Composable
@@ -64,7 +64,7 @@ fun ProjectOverviewTabContent(
                     projectOverviewInfo = projectInfo.projectOverviewInfo,
                     dependencies = projectInfo.dependencies,
                     plugins = projectInfo.plugins,
-                    subModuleBuildFileInfos = projectInfo.subModuleBuildFileInfos,
+                    moduleBuildFileInfos = projectInfo.moduleBuildFileInfos,
                 )
             }
         }
@@ -79,7 +79,7 @@ fun ProjectOverviewCard(
     projectOverviewInfo: ProjectOverviewInfo,
     dependencies: List<Dependency>,
     plugins: List<Plugin>,
-    subModuleBuildFileInfos: List<SubModuleBuildFileInfo>,
+    moduleBuildFileInfos: List<ModuleBuildFileInfo>,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -127,7 +127,7 @@ fun ProjectOverviewCard(
                 item {
                     ProjectStatItem(
                         label = "Modules",
-                        value = subModuleBuildFileInfos.size.toString(),
+                        value = moduleBuildFileInfos.size.toString(),
                         icon = Icons.Default.AccountTree
                     )
                 }

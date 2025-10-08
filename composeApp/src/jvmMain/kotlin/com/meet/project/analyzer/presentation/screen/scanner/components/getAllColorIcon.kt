@@ -73,16 +73,16 @@ fun getBuildFileColor(type: String): Color {
 }
 
 @Composable
-fun getModuleColor(moduleName: String): Color {
-    return if (moduleName == "root") {
+fun getModuleColor(moduleName: String, projectName: String): Color {
+    return if (moduleName == projectName) {
         MaterialTheme.colorScheme.primary
     } else {
         MaterialTheme.colorScheme.onSurfaceVariant
     }
 }
 
-fun getModuleIcon(moduleName: String): ImageVector {
-    return if (moduleName == "root") {
+fun getModuleIcon(moduleName: String, projectName: String): ImageVector {
+    return if (moduleName == projectName) {
         Icons.Default.Extension
     } else {
         Icons.Default.Folder

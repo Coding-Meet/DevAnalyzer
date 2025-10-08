@@ -166,8 +166,8 @@ fun ProjectScannerContent(
 
                         ProjectScreenTabs.Modules -> {
                             ModulesTabContent(
-                                rootModuleInfo = uiState.projectInfo.rootModuleBuildFileInfo,
-                                subModuleList = uiState.projectInfo.subModuleBuildFileInfos,
+                                moduleBuildFileInfos = uiState.projectInfo.moduleBuildFileInfos,
+                                projectName = uiState.projectInfo.projectOverviewInfo.projectName,
                             )
                         }
 
@@ -185,8 +185,8 @@ fun ProjectScannerContent(
 
                         ProjectScreenTabs.BuildFiles -> {
                             BuildFilesTabContent(
-                                rootModuleInfo = uiState.projectInfo.rootModuleBuildFileInfo,
-                                subModuleList = uiState.projectInfo.subModuleBuildFileInfos,
+                                projectName = uiState.projectInfo.projectOverviewInfo.projectName,
+                                moduleBuildFileInfos = uiState.projectInfo.moduleBuildFileInfos,
                                 settingsGradleFileInfo = uiState.projectInfo.settingsGradleFileInfo,
                                 propertiesFileInfo = uiState.projectInfo.propertiesFileInfo,
                                 gradleWrapperPropertiesFileInfo = uiState.projectInfo.gradleWrapperPropertiesFileInfo,
@@ -196,7 +196,8 @@ fun ProjectScannerContent(
 
                         ProjectScreenTabs.ProjectFiles -> {
                             ProjectFilesTabContent(
-                                projectFiles = uiState.projectInfo.projectFiles
+                                projectFiles = uiState.projectInfo.projectFiles,
+                                projectName = uiState.projectInfo.projectOverviewInfo.projectName
                             )
                         }
 

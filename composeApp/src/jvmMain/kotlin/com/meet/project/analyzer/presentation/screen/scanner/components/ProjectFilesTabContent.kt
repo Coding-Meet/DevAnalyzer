@@ -63,7 +63,7 @@ import java.awt.Cursor
 import java.io.File
 
 @Composable
-fun ProjectFilesTabContent(projectFiles: List<ProjectFileInfo>) {
+fun ProjectFilesTabContent(projectFiles: List<ProjectFileInfo>, projectName: String) {
     var selectedFile by remember { mutableStateOf<ProjectFileInfo?>(null) }
     var searchQuery by remember { mutableStateOf("") }
 
@@ -83,7 +83,7 @@ fun ProjectFilesTabContent(projectFiles: List<ProjectFileInfo>) {
                 if (pathParts.size > 1) {
                     pathParts.dropLast(1).joinToString("/")
                 } else {
-                    "Root"
+                    projectName
                 }
             }.toSortedMap()
         }
@@ -157,8 +157,13 @@ fun ProjectFilesTabContent(projectFiles: List<ProjectFileInfo>) {
 
                             // Build file tree structure
                             fileTree.forEach { (folder, projectFileInfoList) ->
-                                item {
-                                    FolderHeader(folder, projectFileInfoList.size)
+                                item(
+                                    key = folder
+                                ) {
+                                    FolderHeader(
+                                        folderPath = folder,
+                                        fileCount = projectFileInfoList.size
+                                    )
                                 }
                                 items(
                                     items = projectFileInfoList,

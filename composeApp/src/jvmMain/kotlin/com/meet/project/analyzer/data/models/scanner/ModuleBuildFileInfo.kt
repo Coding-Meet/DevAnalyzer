@@ -9,7 +9,7 @@ import kotlin.uuid.Uuid
 
 
 @OptIn(ExperimentalUuidApi::class)
-data class SubModuleBuildFileInfo(
+data class ModuleBuildFileInfo(
     val uniqueId: String = Uuid.random().toString(),
     val moduleName: String,
     val path: String,

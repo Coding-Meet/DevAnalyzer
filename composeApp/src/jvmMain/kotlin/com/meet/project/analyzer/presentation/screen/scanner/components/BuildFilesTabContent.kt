@@ -47,10 +47,9 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.Utils.openFile
 import com.meet.project.analyzer.data.models.scanner.GradleWrapperPropertiesFileInfo
+import com.meet.project.analyzer.data.models.scanner.ModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.PropertiesFileInfo
-import com.meet.project.analyzer.data.models.scanner.RootModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.SettingsGradleFileInfo
-import com.meet.project.analyzer.data.models.scanner.SubModuleBuildFileInfo
 import com.meet.project.analyzer.data.models.scanner.VersionCatalogFileInfo
 import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.project.analyzer.presentation.components.VerticalScrollBarLayout
@@ -59,8 +58,8 @@ import java.io.File
 
 @Composable
 fun BuildFilesTabContent(
-    rootModuleInfo: RootModuleBuildFileInfo?,
-    subModuleList: List<SubModuleBuildFileInfo>,
+    projectName: String,
+    moduleBuildFileInfos: List<ModuleBuildFileInfo>,
     settingsGradleFileInfo: SettingsGradleFileInfo?,
     propertiesFileInfo: PropertiesFileInfo?,
     gradleWrapperPropertiesFileInfo: GradleWrapperPropertiesFileInfo?,
@@ -86,37 +85,19 @@ fun BuildFilesTabContent(
                     ),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    if (rootModuleInfo != null) {
-                        item(
-                            key = rootModuleInfo.uniqueId
-                        ) {
-                            DetailedBuildFileCard(
-                                selectedPath = selectedBuildFile?.path,
-                                type = rootModuleInfo.type.name,
-                                moduleName = "root",
-                                size = rootModuleInfo.size,
-                                fileName = rootModuleInfo.type.fileName,
-                                path = rootModuleInfo.path,
-                                file = rootModuleInfo.file,
-                                content = rootModuleInfo.content
-                            ) {
-                                selectedBuildFile = it
-                            }
-                        }
-                    }
                     items(
-                        items = subModuleList,
+                        items = moduleBuildFileInfos,
                         key = { it.uniqueId }
-                    ) { subModule ->
+                    ) { moduleBuildFileInfo ->
                         DetailedBuildFileCard(
                             selectedPath = selectedBuildFile?.path,
-                            type = subModule.type.name,
-                            moduleName = subModule.moduleName,
-                            size = subModule.size,
-                            fileName = subModule.type.fileName,
-                            path = subModule.path,
-                            file = subModule.file,
-                            content = subModule.content
+                            type = moduleBuildFileInfo.type.name,
+                            moduleName = moduleBuildFileInfo.moduleName,
+                            size = moduleBuildFileInfo.size,
+                            fileName = moduleBuildFileInfo.type.fileName,
+                            path = moduleBuildFileInfo.path,
+                            file = moduleBuildFileInfo.file,
+                            content = moduleBuildFileInfo.content
                         ) {
                             selectedBuildFile = it
                         }
@@ -129,7 +110,7 @@ fun BuildFilesTabContent(
                             DetailedBuildFileCard(
                                 selectedPath = selectedBuildFile?.path,
                                 type = settingsGradleFileInfo.type.name,
-                                moduleName = "root",
+                                moduleName = projectName,
                                 size = settingsGradleFileInfo.size,
                                 fileName = settingsGradleFileInfo.type.fileName,
                                 path = settingsGradleFileInfo.path,
@@ -148,7 +129,7 @@ fun BuildFilesTabContent(
                             DetailedBuildFileCard(
                                 selectedPath = selectedBuildFile?.path,
                                 type = propertiesFileInfo.type.name,
-                                moduleName = "root",
+                                moduleName = projectName,
                                 size = propertiesFileInfo.size,
                                 fileName = propertiesFileInfo.type.fileName,
                                 path = propertiesFileInfo.path,
@@ -167,7 +148,7 @@ fun BuildFilesTabContent(
                             DetailedBuildFileCard(
                                 selectedPath = selectedBuildFile?.path,
                                 type = "properties",
-                                moduleName = "root",
+                                moduleName = projectName,
                                 size = gradleWrapperPropertiesFileInfo.size,
                                 fileName = gradleWrapperPropertiesFileInfo.name,
                                 path = gradleWrapperPropertiesFileInfo.path,
@@ -186,7 +167,7 @@ fun BuildFilesTabContent(
                             DetailedBuildFileCard(
                                 selectedPath = selectedBuildFile?.path,
                                 type = versionCatalogFileInfo.name,
-                                moduleName = "root",
+                                moduleName = projectName,
                                 size = versionCatalogFileInfo.size,
                                 fileName = versionCatalogFileInfo.name,
                                 path = versionCatalogFileInfo.path,
@@ -199,8 +180,7 @@ fun BuildFilesTabContent(
                         }
                     }
 
-                    if (rootModuleInfo == null &&
-                        subModuleList.isEmpty() &&
+                    if (moduleBuildFileInfos.isEmpty() &&
                         settingsGradleFileInfo == null &&
                         propertiesFileInfo == null &&
                         gradleWrapperPropertiesFileInfo == null &&
