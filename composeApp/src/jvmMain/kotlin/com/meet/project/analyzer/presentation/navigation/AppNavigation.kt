@@ -21,7 +21,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.meet.project.analyzer.presentation.navigation.navigation_bar.NavigationItem
 import com.meet.project.analyzer.presentation.navigation.navigation_bar.NavigationRailLayout
-import com.meet.project.analyzer.presentation.screen.dependencies.MainApp
+import com.meet.project.analyzer.presentation.screen.dependencies.SystemDependencyScreen
 import com.meet.project.analyzer.presentation.screen.scanner.ProjectScannerScreen
 import com.meet.project.analyzer.presentation.screen.storage.StorageAnalyzerScreen
 
@@ -92,7 +92,8 @@ fun AppNavigation() {
                 ProjectScannerScreen()
             }
             composable<AppRoute.Dependencies> {
-                MainApp()
+                SystemDependencyScreen()
+//                MainApp()
             }
             composable<AppRoute.Storage> {
                 StorageAnalyzerScreen()
