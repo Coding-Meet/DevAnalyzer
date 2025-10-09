@@ -6,18 +6,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
-import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Text
-import androidx.compose.material3.TooltipBox
-import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.VerticalDivider
-import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -26,11 +21,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import com.meet.project.analyzer.presentation.components.CustomToolTip
 import java.awt.Cursor
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NavigationRailLayout(
     currentNavigationItem: NavigationItem?,
@@ -45,32 +39,9 @@ fun NavigationRailLayout(
             Spacer(Modifier.weight(1f))
 
             NavigationItem.entries.forEach { navigationItem ->
-                TooltipBox(
-                    positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
-                    tooltip = {
-                        RichTooltip(
-                            title = {
-                                Text(
-                                    text = navigationItem.title.asString(),
-                                    style = MaterialTheme.typography.labelSmall
-                                )
-                            },
-                            text = {
-                                Text(
-                                    text = navigationItem.description.asString(),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
-                            },
-                            caretSize = DpSize(32.dp, 16.dp),
-                            colors = TooltipDefaults.richTooltipColors(
-                                containerColor = MaterialTheme.colorScheme.surface,
-                                contentColor = MaterialTheme.colorScheme.onSurface,
-                                titleContentColor = MaterialTheme.colorScheme.primary,
-                                actionContentColor = MaterialTheme.colorScheme.primary
-                            )
-                        )
-                    },
-                    state = rememberTooltipState(),
+                CustomToolTip(
+                    title = navigationItem.title.asString(),
+                    description = navigationItem.description.asString()
                 ) {
                     val isSelected by rememberSaveable(
                         navigationItem.route,

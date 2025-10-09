@@ -75,8 +75,8 @@ fun PluginsTabContent(
 
             val sorted = when (sortByColumn) {
                 PluginColumn.NAME -> filtered.sortedBy { it.name }
-                PluginColumn.CURRENT -> filtered.sortedBy { it.version }
-                PluginColumn.VERSIONS -> filtered.sortedBy { it.availableVersions?.versions?.size }
+                PluginColumn.CURRENT_VERSION -> filtered.sortedBy { it.version }
+                PluginColumn.AVAILABLE_VERSIONS -> filtered.sortedBy { it.availableGradleVersions?.versions?.size }
                 PluginColumn.CONFIGURATION -> filtered.sortedBy { it.configuration }
                 PluginColumn.MODULE -> filtered.sortedBy { it.module }
             }
@@ -172,6 +172,7 @@ fun PluginTableHeaderRow(
         PluginColumn.entries.forEach { pluginColumn ->
             TableHeaderCell(
                 title = pluginColumn.title,
+                description = pluginColumn.description,
                 weight = pluginColumn.weight,
                 isSelected = sortByColumn == pluginColumn,
                 sortAscending = sortAscending,
@@ -196,7 +197,7 @@ fun PluginTableRow(
     TableBodyLayout(
         isEven = isEven,
         innerContent = {
-            // Plugin name
+            // Plugin name, group, and id
             TableBodyCell(weight = PluginColumn.NAME.weight) {
                 TableBodyCellColumn(
                     primaryText = plugin.name,
@@ -206,16 +207,16 @@ fun PluginTableRow(
             }
 
             // Current version
-            TableBodyCell(weight = PluginColumn.CURRENT.weight) {
+            TableBodyCell(weight = PluginColumn.CURRENT_VERSION.weight) {
                 if (plugin.version != null) {
                     TableBodyCellChip(
                         text = plugin.version,
-                        backgroundColor = if (plugin.isAvailable) {
+                        backgroundColor = if (plugin.isVersionSynced) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceVariant
                         },
-                        contentColor = if (plugin.isAvailable) {
+                        contentColor = if (plugin.isVersionSynced) {
                             MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
@@ -227,10 +228,10 @@ fun PluginTableRow(
             }
 
             // Available versions (expandable)
-            TableBodyCell(weight = PluginColumn.VERSIONS.weight) {
-                if (plugin.availableVersions?.versions?.isNotEmpty() == true) {
+            TableBodyCell(weight = PluginColumn.AVAILABLE_VERSIONS.weight) {
+                if (plugin.availableGradleVersions?.versions?.isNotEmpty() == true) {
                     TableBodyCellChip(
-                        text = "${plugin.availableVersions.versions.size} versions",
+                        text = "${plugin.availableGradleVersions.versions.size} versions",
                         backgroundColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                         onClick = {
@@ -275,11 +276,11 @@ fun PluginTableRow(
 
         },
         outerContent = {
-            // Expanded available versions
-            AvailableVersionLayout(
+            // Expanded available gradle versions
+            AvailableGradleVersions(
                 color = getDependencyTypeColor(plugin.configuration),
                 isExpanded = isExpanded,
-                availableVersions = plugin.availableVersions,
+                gradleLibraryInfo = plugin.availableGradleVersions,
                 version = plugin.version
             )
         }

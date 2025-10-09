@@ -37,30 +37,35 @@ fun <EnumEntries : TabItem> TabLayout(
     ) {
         tabList.forEachIndexed { index, tabItem ->
             val isSelected = selectedTabIndex == index
-            Tab(
-                selected = isSelected,
-                modifier = Modifier.pointerHoverIcon(
-                    PointerIcon(
-                        Cursor.getPredefinedCursor(
-                            Cursor.HAND_CURSOR
+            CustomToolTip(
+                title = tabItem.title,
+                description = tabItem.description
+            ) {
+                Tab(
+                    selected = isSelected,
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
                         )
-                    )
-                ),
-                onClick = {
-                    onClick(
-                        selectedTabIndex,
-                        index,
-                        tabItem
-                    )
-                },
-                text = {
-                    Text(
-                        tabItem.title,
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                    )
-                }
-            )
+                    ),
+                    onClick = {
+                        onClick(
+                            selectedTabIndex,
+                            index,
+                            tabItem
+                        )
+                    },
+                    text = {
+                        Text(
+                            tabItem.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
+                        )
+                    }
+                )
+            }
         }
     }
 }

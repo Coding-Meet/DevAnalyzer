@@ -196,7 +196,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                     val artifact = match.groupValues[3] // material
                     val version = match.groupValues[4] // 1.11.0
 
-                    val availableVersions = findAvailableVersionsInGradleCache(
+                    val availableGradleVersions = findAvailableVersionsInGradleCache(
                         groupId = group,
                         artifactId = artifact,
                         gradleModulesInfo = gradleModulesInfo
@@ -209,8 +209,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                         version = version,
                         configuration = type,
                         module = module,
-                        availableVersions = availableVersions,
-                        isAvailable = availableVersions?.versions?.any {
+                        availableGradleVersions = availableGradleVersions,
+                        isVersionSynced = availableGradleVersions?.versions?.any {
                             it.version == version
                         } == true
                     )
@@ -234,7 +234,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                         }
 
                         if (lib != null) {
-                            val availableVersions = findAvailableVersionsInGradleCache(
+                            val availableGradleVersions = findAvailableVersionsInGradleCache(
                                 groupId = lib.group,
                                 artifactId = lib.libName,
                                 gradleModulesInfo = gradleModulesInfo
@@ -247,8 +247,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                 version = lib.version,
                                 configuration = match.groupValues[1],
                                 module = module,
-                                availableVersions = availableVersions,
-                                isAvailable = availableVersions?.versions?.any {
+                                availableGradleVersions = availableGradleVersions,
+                                isVersionSynced = availableGradleVersions?.versions?.any {
                                     it.version == lib.version
                                 } == true
                             )
@@ -279,7 +279,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                             val id = library.id.split(":")
                             val groupId = id[0]
                             val artifactId = id[1]
-                            val availableVersions = findAvailableVersionsInGradleCache(
+                            val availableGradleVersions = findAvailableVersionsInGradleCache(
                                 groupId = groupId,
                                 artifactId = artifactId,
                                 gradleModulesInfo = gradleModulesInfo
@@ -292,8 +292,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                 version = library.version,
                                 configuration = match.groupValues[1],
                                 module = module,
-                                availableVersions = availableVersions,
-                                isAvailable = availableVersions?.versions?.any {
+                                availableGradleVersions = availableGradleVersions,
+                                isVersionSynced = availableGradleVersions?.versions?.any {
                                     it.version == library.version
                                 } == true
                             )
@@ -320,7 +320,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                         }
 
                         if (lib != null) {
-                            val availableVersions = findAvailableVersionsInGradleCache(
+                            val availableGradleVersions = findAvailableVersionsInGradleCache(
                                 groupId = lib.group,
                                 artifactId = lib.libName,
                                 gradleModulesInfo = gradleModulesInfo
@@ -333,8 +333,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                 version = lib.version,
                                 configuration = match.groupValues[1],
                                 module = module,
-                                availableVersions = availableVersions,
-                                isAvailable = availableVersions?.versions?.any {
+                                availableGradleVersions = availableGradleVersions,
+                                isVersionSynced = availableGradleVersions?.versions?.any {
                                     it.version == lib.version
                                 } == true
                             )
@@ -351,8 +351,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                     version = null,
                                     configuration = match.groupValues[1],
                                     module = module,
-                                    availableVersions = null,
-                                    isAvailable = false
+                                    availableGradleVersions = null,
+                                    isVersionSynced = false
                                 )
                             )
                         }
@@ -370,7 +370,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
 
         AppLogger.d(TAG) { "Found ${dependencies.size} dependencies" }
         dependencies.forEach {
-            AppLogger.i(TAG) { "Dependency name: ${it.name} id: ${it.id} version: ${it.version} module: ${it.module} type: ${it.configuration} isAvailable: ${it.isAvailable} availableVersions: ${it.availableVersions}" }
+            AppLogger.i(TAG) { "Dependency name: ${it.name} id: ${it.id} version: ${it.version} module: ${it.module} type: ${it.configuration} isAvailable: ${it.isVersionSynced} availableGradleVersions: ${it.availableGradleVersions}" }
         }
 
         return dependencies
@@ -411,7 +411,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                             val artifactId = id.substringAfterLast('.') // ex google-services
                             val version = match.groupValues[2]  // ex: 8.3.2
 
-                            val availableVersions = findAvailableVersionsInGradleCache(
+                            val availableGradleVersions = findAvailableVersionsInGradleCache(
                                 groupId = groupId,
                                 artifactId = artifactId,
                                 gradleModulesInfo = gradleModulesInfo
@@ -423,8 +423,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                 version = version,
                                 module = module,
                                 configuration = "normal",
-                                availableVersions = availableVersions,
-                                isAvailable = availableVersions?.versions?.any {
+                                availableGradleVersions = availableGradleVersions,
+                                isVersionSynced = availableGradleVersions?.versions?.any {
                                     it.version == version
                                 } == true
                             )
@@ -442,7 +442,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                             val groupId = id.substringBeforeLast(":")  // ex com.android.tools.build
                             val artifactId = id.substringAfterLast(':') // ex gradle
 
-                            val availableVersions = findAvailableVersionsInGradleCache(
+                            val availableGradleVersions = findAvailableVersionsInGradleCache(
                                 groupId = groupId,
                                 artifactId = artifactId,
                                 gradleModulesInfo = gradleModulesInfo
@@ -454,8 +454,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                 version = version,
                                 module = module,
                                 configuration = "classpath",
-                                availableVersions = availableVersions,
-                                isAvailable = availableVersions?.versions?.any {
+                                availableGradleVersions = availableGradleVersions,
+                                isVersionSynced = availableGradleVersions?.versions?.any {
                                     it.version == version
                                 } == true
                             )
@@ -478,7 +478,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                 val mainId = catalogPlugin.id + ".gradle.plugin"
                                 val groupId = catalogPlugin.id
                                 AppLogger.d(TAG) { "Found catalogPlugin: $catalogPlugin" }
-                                val availableVersions = findAvailableVersionsInGradleCache(
+                                val availableGradleVersions = findAvailableVersionsInGradleCache(
                                     groupId = groupId,
                                     artifactId = mainId,
                                     gradleModulesInfo = gradleModulesInfo
@@ -489,8 +489,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                     version = catalogPlugin.version,
                                     module = module,
                                     configuration = "versionCatalog",
-                                    availableVersions = availableVersions,
-                                    isAvailable = availableVersions?.versions?.any {
+                                    availableGradleVersions = availableGradleVersions,
+                                    isVersionSynced = availableGradleVersions?.versions?.any {
                                         it.version == catalogPlugin.version
                                     } == true,
                                     group = groupId,

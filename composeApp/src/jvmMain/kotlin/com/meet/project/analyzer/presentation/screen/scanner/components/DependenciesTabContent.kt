@@ -73,8 +73,8 @@ fun DependenciesTabContent(
 
             val sorted = when (sortByColumn) {
                 DependencyColumn.NAME -> filtered.sortedBy { it.name }
-                DependencyColumn.CURRENT -> filtered.sortedBy { it.version }
-                DependencyColumn.VERSIONS -> filtered.sortedBy { it.availableVersions?.versions?.size }
+                DependencyColumn.CURRENT_VERSION -> filtered.sortedBy { it.version }
+                DependencyColumn.AVAILABLE_VERSIONS -> filtered.sortedBy { it.availableGradleVersions?.versions?.size }
                 DependencyColumn.CONFIGURATION -> filtered.sortedBy { it.configuration }
                 DependencyColumn.MODULE -> filtered.sortedBy { it.module }
             }
@@ -173,6 +173,7 @@ fun DependencyTableHeaderRow(
         DependencyColumn.entries.forEach { dependencyColumn ->
             TableHeaderCell(
                 title = dependencyColumn.title,
+                description = dependencyColumn.description,
                 weight = dependencyColumn.weight,
                 isSelected = sortByColumn == dependencyColumn,
                 sortAscending = sortAscending,
@@ -198,26 +199,26 @@ fun DependencyTableBodyRow(
     TableBodyLayout(
         isEven = isEven,
         innerContent = {
-            // Dependency name
+            // Dependency name, group, and id
             TableBodyCell(weight = DependencyColumn.NAME.weight) {
                 TableBodyCellColumn(
                     primaryText = dependency.name,
                     secondaryText = dependency.group,
-                    tertiaryText = dependency.versionName
+                    tertiaryText = dependency.id
                 )
             }
 
             // Current version
-            TableBodyCell(weight = DependencyColumn.CURRENT.weight) {
+            TableBodyCell(weight = DependencyColumn.CURRENT_VERSION.weight) {
                 if (dependency.version != null) {
                     TableBodyCellChip(
                         text = dependency.version,
-                        backgroundColor = if (dependency.isAvailable) {
+                        backgroundColor = if (dependency.isVersionSynced) {
                             MaterialTheme.colorScheme.primaryContainer
                         } else {
                             MaterialTheme.colorScheme.surfaceVariant
                         },
-                        contentColor = if (dependency.isAvailable) {
+                        contentColor = if (dependency.isVersionSynced) {
                             MaterialTheme.colorScheme.onPrimaryContainer
                         } else {
                             MaterialTheme.colorScheme.onSurfaceVariant
@@ -229,10 +230,10 @@ fun DependencyTableBodyRow(
             }
 
             // Available versions (expandable)
-            TableBodyCell(weight = DependencyColumn.VERSIONS.weight) {
-                if (dependency.availableVersions?.versions?.isNotEmpty() == true) {
+            TableBodyCell(weight = DependencyColumn.AVAILABLE_VERSIONS.weight) {
+                if (dependency.availableGradleVersions?.versions?.isNotEmpty() == true) {
                     TableBodyCellChip(
-                        text = "${dependency.availableVersions.versions.size} versions",
+                        text = "${dependency.availableGradleVersions.versions.size} versions",
                         backgroundColor = MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.7f),
                         contentColor = MaterialTheme.colorScheme.onTertiaryContainer,
                         onClick = {
@@ -276,11 +277,11 @@ fun DependencyTableBodyRow(
             }
         }, outerContent = {
 
-            // Expanded available versions
-            AvailableVersionLayout(
+            // Expanded available gradle versions
+            AvailableGradleVersions(
                 color = getDependencyTypeColor(dependency.configuration),
                 isExpanded = isExpanded,
-                availableVersions = dependency.availableVersions,
+                gradleLibraryInfo = dependency.availableGradleVersions,
                 version = dependency.version
             )
         }

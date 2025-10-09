@@ -31,20 +31,20 @@ import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.data.models.storage.GradleLibraryInfo
 
 @Composable
-fun ColumnScope.AvailableVersionLayout(
+fun ColumnScope.AvailableGradleVersions(
     color: Color,
     isExpanded: Boolean,
-    availableVersions: GradleLibraryInfo?,
+    gradleLibraryInfo: GradleLibraryInfo?,
     version: String?,
 ) {
     AnimatedVisibility(
-        visible = isExpanded && availableVersions != null,
+        visible = isExpanded && gradleLibraryInfo != null,
         enter = expandVertically() + fadeIn(),
         exit = shrinkVertically() + fadeOut()
     ) {
-        availableVersions?.let { libraryInfo ->
+        gradleLibraryInfo?.let { libraryInfo ->
             Column(
-                modifier = Modifier.padding(start = 16.dp, end = 16.dp, bottom = 16.dp),
+                modifier = Modifier.padding(horizontal = 24.dp),
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Row(
@@ -53,7 +53,7 @@ fun ColumnScope.AvailableVersionLayout(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        "Available Versions:",
+                        text = "Local Gradle Cache Versions:",
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Medium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.8f)
@@ -71,7 +71,6 @@ fun ColumnScope.AvailableVersionLayout(
                         )
                     }
                 }
-                Spacer(modifier = Modifier.height(4.dp))
                 FlowRow(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -134,6 +133,7 @@ fun ColumnScope.AvailableVersionLayout(
                         }
                     }
                 }
+                Spacer(modifier = Modifier.height(4.dp))
             }
         }
     }

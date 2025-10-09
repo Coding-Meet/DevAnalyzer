@@ -51,6 +51,7 @@ fun TableHeaderLayout(
 @Composable
 fun RowScope.TableHeaderCell(
     title: String,
+    description: String,
     weight: Float,
     isSelected: Boolean,
     sortAscending: Boolean,
@@ -83,40 +84,48 @@ fun RowScope.TableHeaderCell(
         onClick = onSort,
         interactionSource = interactionSource,
     ) {
-        Row(
-            modifier = Modifier
-                .padding(horizontal = 10.dp, vertical = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
+        CustomToolTip(
+            title = title,
+            description = description
         ) {
-            Text(
-                title,
-                style = MaterialTheme.typography.titleSmall,
-                fontWeight = when {
-                    isSelected -> FontWeight.Bold
-                    isHovered -> FontWeight.SemiBold
-                    else -> FontWeight.Medium
-                },
-                color = contentColor,
-                modifier = Modifier.weight(1f)
-            )
+            Row(
+                modifier = Modifier
+                    .padding(horizontal = 10.dp, vertical = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text(
+                    title,
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = when {
+                        isSelected -> FontWeight.Bold
+                        isHovered -> FontWeight.SemiBold
+                        else -> FontWeight.Medium
+                    },
+                    color = contentColor,
+                    modifier = Modifier.weight(1f)
+                )
 
-            Icon(
-                imageVector = when {
-                    isSelected && sortAscending -> Icons.Filled.KeyboardArrowUp
-                    isSelected && !sortAscending -> Icons.Filled.KeyboardArrowDown
-                    else -> Icons.Filled.KeyboardArrowUp
-                },
-                contentDescription = when {
-                    isSelected -> if (sortAscending) "Sorted ascending, click for descending" else "Sorted descending, click for ascending"
-                    else -> "Click to sort by $title"
-                },
-                modifier = Modifier.size(18.dp),
-                tint = when {
-                    isSelected -> MaterialTheme.colorScheme.primary
-                    isHovered -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                    else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                }
-            )
+                Icon(
+                    imageVector = when {
+                        isSelected && sortAscending -> Icons.Filled.KeyboardArrowUp
+                        isSelected && !sortAscending -> Icons.Filled.KeyboardArrowDown
+                        else -> Icons.Filled.KeyboardArrowUp
+                    },
+                    contentDescription = when {
+                        isSelected -> if (sortAscending)
+                            "Sorted ascending, click for descending"
+                        else "Sorted descending, click for ascending"
+
+                        else -> "Click to sort by $title"
+                    },
+                    modifier = Modifier.size(18.dp),
+                    tint = when {
+                        isSelected -> MaterialTheme.colorScheme.primary
+                        isHovered -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
+                    }
+                )
+            }
         }
     }
 }

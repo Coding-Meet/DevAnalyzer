@@ -31,11 +31,11 @@ data class Plugin(
     val name: String, // ex: com.android.application.gradle.plugin
     val id: String, // ex: com.android.application:com.android.application.gradle.plugin
     val group: String, // ex: com.android.application
-    val version: String?, // ex: 8.7.1
+    val version: String?, // version in project ex: 8.7.1
     val module: String, // ex: root, sub-module like app, core, etc.
     val configuration: String,    // ex: normal, classpath, versionCatalog
-    val isAvailable: Boolean = false,
-    val availableVersions: GradleLibraryInfo? = null
+    val isVersionSynced: Boolean = false, // whether currentVersion exists in Gradle list
+    val availableGradleVersions: GradleLibraryInfo? = null  // versions fetched from locally in the Gradle cache
 )
 
 data class Bundle(
@@ -50,9 +50,9 @@ data class Dependency(
     val name: String,      // ex: material
     val id: String,        // ex: com.google.android.material:material
     val group: String,     // ex: com.google.android.material
-    val version: String?,   // ex: 1.11.0
+    val version: String?,   // version in project ex: 1.11.0
     val module: String,    // ex: sub-module like app, core, etc.
     val configuration: String,       // ex: implementation, api, compileOnly, runtimeOnly, testImplementation, androidTestImplementation
-    val isAvailable: Boolean = false,
-    val availableVersions: GradleLibraryInfo? = null
+    val isVersionSynced: Boolean = false, // whether currentVersion exists in Gradle list
+    val availableGradleVersions: GradleLibraryInfo? = null // versions fetched from locally in the Gradle cache
 )
