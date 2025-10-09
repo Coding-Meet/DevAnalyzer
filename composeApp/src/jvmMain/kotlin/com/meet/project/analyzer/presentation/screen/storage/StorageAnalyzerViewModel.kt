@@ -10,7 +10,7 @@ import com.meet.project.analyzer.data.models.storage.AvdInfo
 import com.meet.project.analyzer.data.models.storage.DevEnvironmentInfo
 import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
 import com.meet.project.analyzer.data.models.storage.SdkInfo
-import com.meet.project.analyzer.data.repository.StorageAnalyzerRepository
+import com.meet.project.analyzer.data.repository.storage.StorageAnalyzerRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow

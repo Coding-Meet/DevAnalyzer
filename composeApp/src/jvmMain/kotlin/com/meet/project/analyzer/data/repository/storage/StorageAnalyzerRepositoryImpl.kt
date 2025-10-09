@@ -1,4 +1,4 @@
-package com.meet.project.analyzer.data.repository
+package com.meet.project.analyzer.data.repository.storage
 
 import com.meet.project.analyzer.core.utility.AppLogger
 import com.meet.project.analyzer.core.utility.Utils

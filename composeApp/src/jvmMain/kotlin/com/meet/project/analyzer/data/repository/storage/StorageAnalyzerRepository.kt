@@ -1,4 +1,4 @@
-package com.meet.project.analyzer.data.repository
+package com.meet.project.analyzer.data.repository.storage
 
 import com.meet.project.analyzer.data.models.storage.AvdInfo
 import com.meet.project.analyzer.data.models.storage.DevEnvironmentInfo
