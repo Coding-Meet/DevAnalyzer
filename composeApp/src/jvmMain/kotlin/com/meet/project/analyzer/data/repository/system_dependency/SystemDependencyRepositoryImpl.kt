@@ -9,7 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-class SystemDependencyImpl : SystemDependency {
+class SystemDependencyRepositoryImpl : SystemDependencyRepository {
     private val TAG = tagName(javaClass)
 
     override suspend fun getAllDependencies(rootDirPath: String) {
