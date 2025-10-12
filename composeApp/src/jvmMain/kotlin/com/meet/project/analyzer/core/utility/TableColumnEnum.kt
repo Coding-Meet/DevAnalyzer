@@ -65,3 +65,30 @@ enum class DependencyColumn(
         description = "Indicates which sub-module of your project uses this dependency."
     )
 }
+
+enum class StorageLibraryColumn(
+    val title: String,
+    val weight: Float,
+    val description: String
+) {
+    NAME(
+        title = "Name",
+        weight = 0.34f,
+        description = "The library name, group, and full ID used in the project."
+    ),
+    GROUP(
+        title = "Group",
+        weight = 0.20f,
+        description = "The group of the library."
+    ),
+    AVAILABLE_VERSIONS(
+        title = "Available",
+        weight = 0.12f,
+        description = "Versions of this library that exist locally in the Gradle cache on your system."
+    ),
+    TOTAL_SIZE_OPEN_FILE(
+        title = "Total Size",
+        weight = 0.16f,
+        description = "The total size of the library in the Gradle cache. "
+    ),
+}

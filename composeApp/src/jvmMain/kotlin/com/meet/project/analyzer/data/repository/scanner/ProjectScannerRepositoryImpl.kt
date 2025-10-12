@@ -434,7 +434,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                             )
                         }
 
-                        // Library: com.android.tools.build:gradle groupId: com.android.tools.build artifactId: gradle versions: [7.2.2, 8.0.0, 8.1.4, 8.10.0, 8.10.1, 8.11.1, 8.12.0, 8.12.2, 8.12.3, 8.13.0, 8.5.2, 8.7.3, 8.8.0] totalSize: 142.89 MB totalSizeBytes: 149827947
+                        // Library: com.android.tools.build:gradle groupId: com.android.tools.build artifactId: gradle versions: [7.2.2, 8.0.0, 8.1.4, 8.10.0, 8.10.1, 8.11.1, 8.12.0, 8.12.2, 8.12.3, 8.13.0, 8.5.2, 8.7.3, 8.8.0] sizeReadable: 142.89 MB totalSizeBytes: 149827947
                         // Case: classpath 'com.android.tools.build:gradle:8.0.2'
                         regexList[2].pattern -> {
                             val id = match.groupValues[1] // ex: com.android.tools.build:gradle
@@ -466,7 +466,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                         }
 
                         // Case: alias(libs.plugins.xxx)
-                        // Library: org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin groupId: org.jetbrains.kotlin.plugin.serialization artifactId: org.jetbrains.kotlin.plugin.serialization.gradle.plugin versions: [2.1.21, 2.2.10, 2.2.20] totalSize: 4.40 KB totalSizeBytes: 4506
+                        // Library: org.jetbrains.kotlin.plugin.serialization:org.jetbrains.kotlin.plugin.serialization.gradle.plugin groupId: org.jetbrains.kotlin.plugin.serialization artifactId: org.jetbrains.kotlin.plugin.serialization.gradle.plugin versions: [2.1.21, 2.2.10, 2.2.20] sizeReadable: 4.40 KB totalSizeBytes: 4506
                         // alias(libs.plugins.kotlinSerialization) apply false
                         regexList[3].pattern -> {
                             val id = match.groupValues[1] // ex: libs.plugins.kotlinSerialization
@@ -638,7 +638,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
         val projectOverviewInfo = ProjectOverviewInfo(
             projectPath = projectDir.absolutePath,
             projectName = findProjectName(),
-            totalSize = Utils.formatSize(sizeBytes),
+            sizeReadable = Utils.formatSize(sizeBytes),
             totalSizeBytes = sizeBytes,
             isMultiModule = isMultiModule,
             gradleVersion = findGradleVersion(),
@@ -653,7 +653,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             """ 
                 Project Info:
                 Name: ${projectOverviewInfo.projectName} Path: ${projectOverviewInfo.projectPath}
-                Total Size: ${projectOverviewInfo.totalSize} Total Size (bytes): ${projectOverviewInfo.totalSizeBytes} 
+                Total Size: ${projectOverviewInfo.sizeReadable} Total Size (bytes): ${projectOverviewInfo.totalSizeBytes} 
                 Gradle Version: ${projectOverviewInfo.gradleVersion} Kotlin Version: ${projectOverviewInfo.kotlinVersion}
                 isMultiModule: ${projectOverviewInfo.isMultiModule} Android Gradle Plugin Version: ${projectOverviewInfo.androidGradlePluginVersion}
                 Compile SDK Version: ${projectOverviewInfo.compileSdkVersion} Target SDK Version: ${projectOverviewInfo.targetSdkVersion} Min SDK Version: ${projectOverviewInfo.minSdkVersion}

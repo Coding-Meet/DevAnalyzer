@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class SdkInfo(
     val sdkPath: String,
-    val totalSize: String,
+    val sizeReadable: String,
     val freeSpace: String,
     val platforms: List<SdkItem>,
     val buildTools: List<SdkItem>,

@@ -122,7 +122,7 @@ fun ProjectOverviewCard(
                 item {
                     ProjectStatItem(
                         label = "Size",
-                        value = projectOverviewInfo.totalSize,
+                        value = projectOverviewInfo.sizeReadable,
                         icon = Icons.Default.Storage
                     )
                 }

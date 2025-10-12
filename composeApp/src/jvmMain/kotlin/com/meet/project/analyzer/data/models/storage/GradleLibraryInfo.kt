@@ -7,6 +7,7 @@ data class GradleLibraryInfo(
     val groupId: String,
     val artifactId: String,
     val versions: List<GradleVersionInfo>,
-    val totalSize: String,
+    val path: String,
+    val sizeReadable: String,
     val totalSizeBytes: Long
 )

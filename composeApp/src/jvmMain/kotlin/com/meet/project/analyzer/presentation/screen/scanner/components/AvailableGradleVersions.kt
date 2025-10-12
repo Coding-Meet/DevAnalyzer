@@ -63,7 +63,7 @@ fun ColumnScope.AvailableGradleVersions(
                         shape = RoundedCornerShape(6.dp)
                     ) {
                         Text(
-                            "Total: ${libraryInfo.totalSize}",
+                            "Total: ${libraryInfo.sizeReadable}",
                             modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                             style = MaterialTheme.typography.labelMedium,
                             fontWeight = FontWeight.Medium,

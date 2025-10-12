@@ -3,7 +3,7 @@ package com.meet.project.analyzer.data.models.scanner
 data class ProjectOverviewInfo(
     val projectPath: String,
     val projectName: String,
-    val totalSize: String,
+    val sizeReadable: String,
     val totalSizeBytes: Long,
     val gradleVersion: String?,
     val kotlinVersion: String?,

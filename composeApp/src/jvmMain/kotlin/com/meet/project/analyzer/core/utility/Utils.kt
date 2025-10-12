@@ -99,6 +99,7 @@ object Utils {
                         val versionSizeBytes = calculateFolderSize(versionDir)
                         GradleVersionInfo(
                             version = version,
+                            path = versionDir.absolutePath,
                             sizeReadable = formatSize(versionSizeBytes),
                             sizeBytes = versionSizeBytes
                         )
@@ -109,6 +110,7 @@ object Utils {
                         val versionSizeBytes = calculateFolderSize(versionDir)
                         GradleVersionInfo(
                             version = version,
+                            path = versionDir.absolutePath,
                             sizeReadable = formatSize(versionSizeBytes),
                             sizeBytes = versionSizeBytes
                         )
@@ -119,7 +121,8 @@ object Utils {
                     groupId = groupId,
                     artifactId = artifactId,
                     versions = versionInfos,
-                    totalSize = formatSize(artifactSizeBytes),
+                    path = artifactDir.absolutePath,
+                    sizeReadable = formatSize(artifactSizeBytes),
                     totalSizeBytes = artifactSizeBytes
                 )
             }
@@ -141,7 +144,7 @@ object Utils {
             """.trimIndent()
         }
         gradleModulesInfo.libraries.forEach {
-            AppLogger.d(TAG) { "Library: ${it.groupId}:${it.artifactId} groupId: ${it.groupId} artifactId: ${it.artifactId} versions: ${it.versions} totalSize: ${it.totalSize} totalSizeBytes: ${it.totalSizeBytes}" }
+            AppLogger.d(TAG) { "Library: ${it.groupId}:${it.artifactId} groupId: ${it.groupId} artifactId: ${it.artifactId} versions: ${it.versions} sizeReadable: ${it.sizeReadable} totalSizeBytes: ${it.totalSizeBytes}" }
         }
         return gradleModulesInfo
     }

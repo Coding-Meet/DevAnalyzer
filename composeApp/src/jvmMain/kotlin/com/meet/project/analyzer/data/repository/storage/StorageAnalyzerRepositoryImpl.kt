@@ -150,7 +150,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
         try {
             val sdkRoot = findAndroidSdkPath() ?: return@withContext SdkInfo(
                 sdkPath = "Unknown",
-                totalSize = "Unknown",
+                sizeReadable = "Unknown",
                 freeSpace = "Unknown",
                 platforms = emptyList(),
                 buildTools = emptyList(),
@@ -185,7 +185,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
 
             SdkInfo(
                 sdkPath = sdkRoot,
-                totalSize = formatSize(totalSizeBytes),
+                sizeReadable = formatSize(totalSizeBytes),
                 freeSpace = formatSize(sdkDir.freeSpace),
                 platforms = platforms,
                 buildTools = buildTools,
@@ -197,7 +197,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             AppLogger.e(TAG, e) { "Error loading SDK information" }
             SdkInfo(
                 sdkPath = "Error",
-                totalSize = "Error",
+                sizeReadable = "Error",
                 freeSpace = "Error",
                 platforms = emptyList(),
                 buildTools = emptyList(),

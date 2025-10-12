@@ -172,7 +172,7 @@ fun OverviewContent(uiState: StorageAnalyzerUiState) {
                     BreakdownItem(
                         name = "SDK",
                         sizeByte = uiState.sdkInfo?.totalSizeBytes ?: 0L,
-                        sizeReadable = uiState.sdkInfo?.totalSize ?: "0 B",
+                        sizeReadable = uiState.sdkInfo?.sizeReadable ?: "0 B",
                         icon = Icons.Default.Android
                     ),
                     BreakdownItem(

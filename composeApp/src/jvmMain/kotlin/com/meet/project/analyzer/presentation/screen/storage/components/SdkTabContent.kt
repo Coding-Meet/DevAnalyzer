@@ -55,6 +55,7 @@ fun SdkTabContent(
     BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
         val scrollState = rememberLazyGridState()
         LazyVerticalGrid(
+            state = scrollState,
             columns = GridCells.Adaptive(minSize = 320.dp),
             contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
@@ -150,7 +151,7 @@ fun SdkSummaryCard(sdk: SdkInfo) {
                 verticalArrangement = Arrangement.spacedBy(4.dp)
             ) {
                 Text("Path: ${sdk.sdkPath}", style = MaterialTheme.typography.bodyMedium)
-                Text("Total Size: ${sdk.totalSize}", style = MaterialTheme.typography.bodyMedium)
+                Text("Total Size: ${sdk.sizeReadable}", style = MaterialTheme.typography.bodyMedium)
                 Text("Free Space: ${sdk.freeSpace}", style = MaterialTheme.typography.bodyMedium)
                 Text(
                     "Platforms: ${sdk.platforms.size}",

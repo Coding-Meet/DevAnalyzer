@@ -6,5 +6,6 @@ import kotlinx.serialization.Serializable
 data class GradleVersionInfo(
     val version: String,
     val sizeReadable: String,
-    val sizeBytes: Long
+    val sizeBytes: Long,
+    val path: String,
 )

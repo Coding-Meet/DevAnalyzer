@@ -297,7 +297,7 @@ class StorageAnalyzerViewModel(
                         scanStatus = "SDK info loaded successfully!"
                     )
                 }
-                AppLogger.i(TAG) { "SDK info loaded: ${sdkInfo.totalSize}" }
+                AppLogger.i(TAG) { "SDK info loaded: ${sdkInfo.sizeReadable}" }
             } catch (e: Exception) {
                 AppLogger.e(TAG, e) { "Error loading SDK info" }
                 _uiState.update {
