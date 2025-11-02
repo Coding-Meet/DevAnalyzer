@@ -1,0 +1,88 @@
+name: Build Desktop Distributions
+
+on:
+  push:
+    tags:
+      - 'v*' # Runs on version tags like v1.0.0
+
+jobs:
+  build:
+    name: Build for ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          #          - os: macos-latest
+          #            format: macos
+          #            gradle_task: packageDistributionForCurrentOS
+          - os: windows-latest
+            format: windows
+            gradle_task: packageDistributionForCurrentOS
+          - os: ubuntu-latest
+            format: linux
+            gradle_task: packageDistributionForCurrentOS
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Grant execute permission for Gradlew
+        if: runner.os != 'Windows'
+        run: chmod +x gradlew
+
+      - name: Build native packages
+        run: ./gradlew ${{ matrix.gradle_task }} packageUberJarForCurrentOS --stacktrace
+
+      - name: Check build output
+        run: ls -R composeApp/build || true
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-${{ matrix.format }}
+          path: |
+            composeApp/build/compose/binaries/**/dmg/*
+            composeApp/build/compose/binaries/**/pkg/*
+            composeApp/build/compose/binaries/**/deb/*
+            composeApp/build/compose/binaries/**/msi/*
+            composeApp/build/compose/jars/*.jar
+  #            composeApp/build/compose/binaries/**/app/*
+
+  release:
+    name: Create GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: ./artifacts
+
+      - name: List downloaded files
+        run: ls -R ./artifacts
+
+      - name: Upload to GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/build-macos/**/*.dmg
+            artifacts/build-macos/**/*.app
+            artifacts/build-macos/**/*.pkg
+            artifacts/build-macos/**/*.jar
+            artifacts/build-windows/**/*.msi
+            artifacts/build-windows/**/*.exe
+            artifacts/build-windows/**/*.jar
+            artifacts/build-linux/**/*.deb
+            artifacts/build-linux/**/*.rpm
+            artifacts/build-linux/**/*.jar
+          draft: true
+          tag_name: ${{ github.ref_name }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
