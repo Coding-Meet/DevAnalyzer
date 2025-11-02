@@ -27,10 +27,10 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.meet.dev.analyzer.Res
+import com.meet.dev.analyzer.app_logo
 import com.meet.dev.analyzer.core.utility.ObserveAsEvents
 import com.meet.dev.analyzer.presentation.navigation.AppRoute
-import devanalyzer.composeapp.generated.resources.Res
-import devanalyzer.composeapp.generated.resources.app_logo
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 

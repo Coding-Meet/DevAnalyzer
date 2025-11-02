@@ -18,8 +18,6 @@ import com.meet.dev.analyzer.presentation.navigation.AppNavigation
 import com.meet.dev.analyzer.presentation.screen.app.AppUiIntent
 import com.meet.dev.analyzer.presentation.screen.app.AppViewModel
 import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
-import devanalyzer.composeapp.generated.resources.Res
-import devanalyzer.composeapp.generated.resources.app_logo
 import io.github.vinceglb.filekit.FileKit
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject

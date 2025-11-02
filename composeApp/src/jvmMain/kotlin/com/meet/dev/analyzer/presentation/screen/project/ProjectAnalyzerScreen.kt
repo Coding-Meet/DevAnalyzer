@@ -34,11 +34,13 @@ import com.meet.dev.analyzer.presentation.screen.project.components.PluginsTabCo
 import com.meet.dev.analyzer.presentation.screen.project.components.ProjectFilesTabContent
 import com.meet.dev.analyzer.presentation.screen.project.components.ProjectOverviewTabContent
 import com.meet.dev.analyzer.presentation.screen.project.components.ProjectSelectionSection
+import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.path
 import kotlinx.coroutines.launch
 import org.koin.compose.viewmodel.koinViewModel
 import java.awt.Cursor
+import java.io.File
 
 @Composable
 fun ProjectAnalyzerScreen() {
@@ -47,7 +49,9 @@ fun ProjectAnalyzerScreen() {
     val coroutineScope = rememberCoroutineScope()
 
     // Directory picker launcher
-    val directoryPickerLauncher = rememberDirectoryPickerLauncher { directory ->
+    val directoryPickerLauncher = rememberDirectoryPickerLauncher(
+        directory = PlatformFile(File(System.getProperty("user.home"), "AndroidStudioProjects"))
+    ) { directory ->
         if (directory != null) {
             coroutineScope.launch {
                 val path = directory.path

@@ -10,7 +10,7 @@ plugins {
 
 kotlin {
     jvm()
-    
+    jvmToolchain(17)
     sourceSets {
         commonMain.dependencies {
             // Compose Multiplatform - UI Framework
@@ -81,14 +81,55 @@ kotlin {
 }
 
 
-compose.desktop {
-    application {
-        mainClass = "com.meet.dev.analyzer.MainKt"
+compose {
+    resources {
+        packageOfResClass = "com.meet.dev.analyzer"
+        generateResClass = always
+    }
+    desktop {
+        application {
+            mainClass = "com.meet.dev.analyzer.MainKt"
+//            javaHome = System.getenv("JAVA_HOME")
+            javaHome = "/Users/meet/Library/Java/JavaVirtualMachines/ms-17.0.15/Contents/Home"
 
-        nativeDistributions {
-            targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.meet.dev.analyzer"
-            packageVersion = "1.0.0"
+            nativeDistributions {
+                targetFormats(
+                    TargetFormat.Dmg, TargetFormat.Pkg, // macOS
+                    TargetFormat.Msi, TargetFormat.Exe, // Windows
+                    TargetFormat.Deb                    // Linux
+                )
+                packageName = "DevAnalyzer"
+                packageVersion = "1.0.0"
+                includeAllModules = true
+                description = "Deep insights into your development environment."
+                vendor = "Meet"
+
+                copyright = "© 2025 Meet. All rights reserved."
+                licenseFile.set(project.file("../LICENSE"))
+
+
+                buildTypes.release.proguard {
+                    obfuscate = true
+                    optimize = true
+                    configurationFiles.from(project.file("compose-desktop.pro"))
+                }
+                val iconsRoot = project.file("src/jvmMain/resources/icons/")
+                macOS {
+                    iconFile.set(iconsRoot.resolve("app_logo.icns"))
+                    minimumSystemVersion = "12.0"
+                    bundleID = "com.meet.dev.analyzer"
+
+                }
+                windows {
+                    iconFile.set(iconsRoot.resolve("app_logo.ico"))
+                    perUserInstall = true
+                }
+                linux {
+                    iconFile.set(iconsRoot.resolve("app_logo.png"))
+
+                }
+
+            }
         }
     }
 }
