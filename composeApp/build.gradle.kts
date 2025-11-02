@@ -90,7 +90,7 @@ compose {
         application {
             mainClass = "com.meet.dev.analyzer.MainKt"
 //            javaHome = System.getenv("JAVA_HOME")
-            javaHome = "/Users/meet/Library/Java/JavaVirtualMachines/ms-17.0.15/Contents/Home"
+//            javaHome = "/Users/meet/Library/Java/JavaVirtualMachines/ms-17.0.15/Contents/Home"
 
             nativeDistributions {
                 targetFormats(
