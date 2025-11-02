@@ -13,37 +13,77 @@ import kotlin.math.pow
 object Utils {
     private val TAG = tagName(javaClass = javaClass)
 
-
-    fun calculateFolderSize(file: File): Long {
+    fun calculateFolderSize(file: File, isCommend: Boolean = true): Long {
         AppLogger.d(TAG) { "Calculating size for: ${file.absolutePath}" }
-        return try {
-            if (!file.exists()) return 0L
-            if (file.isFile) return file.length()
-            return file
-                .walkTopDown()
-                .map { it.length() }
-                .sum()
-//            file.listFiles()?.sumOf { childFile ->
-//                calculateFolderSize(childFile)
-//            } ?: 0L
-        } catch (e: Exception) {
-            AppLogger.e(
-                TAG,
-                throwable = e
-            ) {
-                "Error calculating folder size for ${file.absolutePath}"
+
+        if (!file.exists()) return 0L
+        if (file.isFile) return file.length()
+
+        val os = System.getProperty("os.name").lowercase()
+        val path = file.path
+
+        return if (isCommend) {
+            try {
+                when {
+                    os.contains("win") -> {
+                        // 🪟 Windows - PowerShell method
+                        val command = listOf(
+                            "powershell",
+                            "-Command",
+                            "(Get-ChildItem \"$path\" -Recurse | Measure-Object -Property Length -Sum).Sum"
+                        )
+                        val process = ProcessBuilder(command).start()
+                        val output = process.inputStream.bufferedReader().readText().trim()
+                        val bytes = output.toLongOrNull()
+                        if (bytes != null) {
+                            AppLogger.d(TAG) { "Windows PowerShell method worked: $bytes bytes" }
+                        }
+                        bytes
+                    }
+
+                    else -> {
+                        // 🍎 macOS / 🐧 Linux - du method
+                        val command = listOf(
+                            "bash", "-c", "du -sk \"$path\" | awk '{print \$1 * 1024}'"
+                        )
+                        val process = ProcessBuilder(command).start()
+                        val output = process.inputStream.bufferedReader().readText().trim()
+                        val bytes = output.toLongOrNull() ?: output.split("\t").firstOrNull()
+                            ?.toLongOrNull()
+                        if (bytes != null) {
+                            AppLogger.d(TAG) { "macOS/Linux du method worked: $bytes bytes" }
+                        }
+                        bytes
+                    }
+                } ?: run {
+                    // Fallback: Walk through all files
+                    val bytes = file.walkTopDown().map { it.length() }.sum()
+                    AppLogger.d(TAG) { "Fallback walkTopDown method used: $bytes bytes" }
+                    bytes
+                }
+            } catch (e: Exception) {
+                AppLogger.e(
+                    TAG,
+                    throwable = e
+                ) { "Error calculating folder size for ${file.absolutePath}" }
+                0L
             }
-            0L
+        } else {
+            val bytes = file.walkTopDown().map { it.length() }.sum()
+            AppLogger.d(TAG) { "Fallback walkTopDown method used: $bytes bytes" }
+            bytes
         }
+
     }
 
     fun formatSize(bytes: Long): String {
         if (bytes <= 0) return "0 B"
         val units = arrayOf("B", "KB", "MB", "GB", "TB")
-        val digitGroups = (log10(bytes.toDouble()) / log10(1024.0)).toInt()
+        val base = 1000.0 // Decimal (1000): 6.33 GB Binary (1024): 5.90 GB
+        val digitGroups = (log10(bytes.toDouble()) / log10(base)).toInt()
         return String.format(
             "%.2f %s",
-            bytes / 1024.0.pow(digitGroups.toDouble()),
+            bytes / base.pow(digitGroups.toDouble()),
             units[digitGroups]
         )
     }
@@ -63,11 +103,13 @@ object Utils {
         file.openFile()
     }
 
-    fun getGradleModulesInfo(): GradleModulesInfo? {
+    fun getGradleModulesInfo(): GradleModulesInfo {
         AppLogger.d(TAG) { "Getting gradle modules info" }
         val modulesDir =
-            File(System.getProperty("user.home"), ".gradle/caches/modules-2/files-2.1")
-        if (!modulesDir.exists()) return null
+            File(
+                System.getProperty("user.home"),
+                ".gradle" + File.separator + "caches" + File.separator + "modules-2" + File.separator + "files-2.1"
+            )
 
         val sizeBytes = calculateFolderSize(modulesDir)
         val libraryMap = mutableMapOf<String, MutableMap<String, MutableSet<String>>>()
@@ -96,7 +138,7 @@ object Utils {
                 val versionInfos = try {
                     versions.map { version ->
                         val versionDir = File(artifactDir, version)
-                        val versionSizeBytes = calculateFolderSize(versionDir)
+                        val versionSizeBytes = calculateFolderSize(versionDir, isCommend = false)
                         GradleVersionInfo(
                             version = version,
                             path = versionDir.absolutePath,
@@ -107,7 +149,7 @@ object Utils {
                 } catch (e: VersionFormatException) {
                     versions.map { version ->
                         val versionDir = File(artifactDir, version)
-                        val versionSizeBytes = calculateFolderSize(versionDir)
+                        val versionSizeBytes = calculateFolderSize(versionDir, isCommend = false)
                         GradleVersionInfo(
                             version = version,
                             path = versionDir.absolutePath,
@@ -131,6 +173,7 @@ object Utils {
         val gradleModulesInfo = GradleModulesInfo(
             path = modulesDir.absolutePath,
             sizeReadable = formatSize(sizeBytes),
+            groupList = libraries.distinctBy { it.groupId },
             libraries = libraries.sortedBy { "${it.groupId}:${it.artifactId}" },
             sizeBytes = sizeBytes
         )

@@ -38,13 +38,13 @@ import com.meet.project.analyzer.presentation.components.ProgressStatusLayout
 import com.meet.project.analyzer.presentation.components.TabLayout
 import com.meet.project.analyzer.presentation.components.TabSlideAnimation
 import com.meet.project.analyzer.presentation.components.TopAppBar
-import com.meet.project.analyzer.presentation.screen.storage.components.AvdsTabContent
-import com.meet.project.analyzer.presentation.screen.storage.components.ChartsTabContent
-import com.meet.project.analyzer.presentation.screen.storage.components.DevEnvironmentTabContent
-import com.meet.project.analyzer.presentation.screen.storage.components.GradleCachesTabContent
+import com.meet.project.analyzer.presentation.screen.storage.components.AndroidSdkTabContent
+import com.meet.project.analyzer.presentation.screen.storage.components.AvdSystemImagesInfoTabContent
+import com.meet.project.analyzer.presentation.screen.storage.components.GradleTabContent
+import com.meet.project.analyzer.presentation.screen.storage.components.IdeInfoTabContent
+import com.meet.project.analyzer.presentation.screen.storage.components.KotlinNativeJdkTabContent
 import com.meet.project.analyzer.presentation.screen.storage.components.LibrariesTabContent
 import com.meet.project.analyzer.presentation.screen.storage.components.OverviewTabContent
-import com.meet.project.analyzer.presentation.screen.storage.components.SdkTabContent
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
@@ -61,43 +61,22 @@ fun StorageAnalyzerScreen() {
 //    )
     StorageAnalyzerContent(
         uiState = uiState,
-        onRefresh = { viewModel.handleIntent(StorageAnalyzerIntent.RefreshData) },
-        onLoadAvds = { viewModel.handleIntent(StorageAnalyzerIntent.LoadAvds) },
-        onLoadSdk = { viewModel.handleIntent(StorageAnalyzerIntent.LoadSdkInfo) },
-        onLoadDevEnv = { viewModel.handleIntent(StorageAnalyzerIntent.LoadDevEnvironment) },
-        onLoadGradleCaches = { viewModel.handleIntent(StorageAnalyzerIntent.LoadGradleCaches) },
-        onLoadGradleModules = { viewModel.handleIntent(StorageAnalyzerIntent.LoadGradleModules) },
-        onTabSelected = { previousTabIndex, currentTabIndex, storageAnalyzerTabs ->
-            viewModel.handleIntent(
-                StorageAnalyzerIntent.SelectTab(
-                    previousTabIndex, currentTabIndex, storageAnalyzerTabs
-                )
-            )
-        },
-        onClearError = {
-            viewModel.handleIntent(StorageAnalyzerIntent.ClearError)
-        }
+        onEvent = viewModel::handleIntent,
     )
 }
 
 @Composable
 fun StorageAnalyzerContent(
     uiState: StorageAnalyzerUiState,
-    onRefresh: () -> Unit,
-    onLoadAvds: () -> Unit,
-    onLoadSdk: () -> Unit,
-    onLoadDevEnv: () -> Unit,
-    onLoadGradleCaches: () -> Unit,
-    onLoadGradleModules: () -> Unit,
-    onTabSelected: (previousTabIndex: Int, currentTabIndex: Int, storageAnalyzerTabs: StorageAnalyzerTabs) -> Unit,
-    onClearError: () -> Unit
+    onEvent: (StorageAnalyzerIntent) -> Unit,
 ) {
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         topBar = {
-            // Storage Analyzer - Top App Bar
             TopAppBar(
-                title = "Storage Analyzer", icon = Icons.Default.Storage, actions = {
+                title = "Development Storage Analyzer",
+                icon = Icons.Default.Storage,
+                actions = {
                     IconButton(
                         modifier = Modifier.pointerHoverIcon(
                             PointerIcon(
@@ -105,7 +84,9 @@ fun StorageAnalyzerContent(
                                     Cursor.HAND_CURSOR
                                 )
                             )
-                        ), onClick = onRefresh
+                        ), onClick = {
+                            onEvent(StorageAnalyzerIntent.RefreshData)
+                        }
                     ) {
                         Icon(
                             Icons.Default.Refresh,
@@ -126,21 +107,15 @@ fun StorageAnalyzerContent(
                 enter = fadeIn() + expandVertically(),
                 exit = fadeOut() + shrinkVertically()
             ) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surfaceVariant,
-                    shadowElevation = 2.dp
+                Column(
+                    modifier = Modifier.padding(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Column(
-                        modifier = Modifier.padding(10.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        ProgressStatusLayout(
-                            isScanning = uiState.isScanning,
-                            scanProgress = uiState.scanProgress,
-                            scanStatus = uiState.scanStatus
-                        )
-                    }
+                    ProgressStatusLayout(
+                        isScanning = uiState.isScanning,
+                        scanProgress = uiState.scanProgress,
+                        scanStatus = uiState.scanStatus
+                    )
                 }
             }
 
@@ -154,7 +129,9 @@ fun StorageAnalyzerContent(
                     Row(
                         modifier = Modifier.fillMaxWidth().padding(10.dp),
                     ) {
-                        ErrorLayout(error = uiState.error, onClearError = onClearError)
+                        ErrorLayout(error = uiState.error, onClearError = {
+                            onEvent(StorageAnalyzerIntent.ClearError)
+                        })
                     }
                 }
             }
@@ -163,7 +140,13 @@ fun StorageAnalyzerContent(
             TabLayout(
                 selectedTabIndex = uiState.selectedTabIndex,
                 tabList = StorageAnalyzerTabs.entries,
-                onClick = onTabSelected
+                onClick = { previousTabIndex, currentTabIndex, storageAnalyzerTabs ->
+                    onEvent(
+                        StorageAnalyzerIntent.SelectTab(
+                            previousTabIndex, currentTabIndex, storageAnalyzerTabs
+                        )
+                    )
+                }
             )
 
             // Tab Content with Scrollbar
@@ -178,34 +161,43 @@ fun StorageAnalyzerContent(
                         OverviewTabContent(uiState = uiState)
                     }
 
-                    StorageAnalyzerTabs.AVDs -> {
-                        AvdsTabContent(uiState = uiState, onLoadAvds = onLoadAvds)
+                    StorageAnalyzerTabs.IdeData -> {
+                        IdeInfoTabContent(
+                            ideDataInfo = uiState.storageAnalyzerInfo?.ideDataInfo,
+                        )
                     }
 
-                    StorageAnalyzerTabs.SDK -> {
-                        SdkTabContent(uiState = uiState, onLoadSdk = onLoadSdk)
+                    StorageAnalyzerTabs.AvdAndSystemImages -> {
+                        AvdSystemImagesInfoTabContent(
+                            androidAvdInfo = uiState.storageAnalyzerInfo?.androidAvdInfo,
+                            androidSdkInfo = uiState.storageAnalyzerInfo?.androidSdkInfo
+                        )
                     }
 
-                    StorageAnalyzerTabs.Environment -> {
-                        DevEnvironmentTabContent(uiState = uiState, onLoadDevEnv = onLoadDevEnv)
+                    StorageAnalyzerTabs.AndroidSdk -> {
+                        AndroidSdkTabContent(
+                            androidSdkInfo = uiState.storageAnalyzerInfo?.androidSdkInfo
+                        )
                     }
 
-                    StorageAnalyzerTabs.Caches -> {
-                        GradleCachesTabContent(
-                            uiState = uiState,
-                            onLoadGradleCaches = onLoadGradleCaches
+                    StorageAnalyzerTabs.KotlinNativeJdk -> {
+                        KotlinNativeJdkTabContent(
+                            konanInfo = uiState.storageAnalyzerInfo?.konanInfo,
+                            jdkInfo = uiState.storageAnalyzerInfo?.gradleInfo?.jdkInfo
+                        )
+
+                    }
+
+                    StorageAnalyzerTabs.Gradle -> {
+                        GradleTabContent(
+                            gradleInfo = uiState.storageAnalyzerInfo?.gradleInfo,
                         )
                     }
 
                     StorageAnalyzerTabs.Libraries -> {
                         LibrariesTabContent(
-                            uiState = uiState,
-                            onLoadGradleModules = onLoadGradleModules
+                            gradleModulesInfo = uiState.storageAnalyzerInfo?.gradleInfo?.gradleModulesInfo
                         )
-                    }
-
-                    StorageAnalyzerTabs.Charts -> {
-                        ChartsTabContent(uiState = uiState)
                     }
                 }
             }

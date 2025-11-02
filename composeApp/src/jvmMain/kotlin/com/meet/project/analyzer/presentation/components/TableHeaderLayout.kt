@@ -1,5 +1,6 @@
 package com.meet.project.analyzer.presentation.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsHoveredAsState
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -64,7 +65,7 @@ fun RowScope.TableHeaderCell(
     val backgroundColor = when {
         isPressed -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
         isHovered -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
-        isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+        isSelected -> MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
         else -> Color.Transparent
     }
 
@@ -82,6 +83,7 @@ fun RowScope.TableHeaderCell(
         color = backgroundColor,
         shape = RoundedCornerShape(8.dp),
         onClick = onSort,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
         interactionSource = interactionSource,
     ) {
         CustomToolTip(

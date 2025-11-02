@@ -23,11 +23,12 @@ import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Description
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -95,7 +96,7 @@ fun BuildFilesTabContent(
                             selectedPath = selectedBuildFile?.path,
                             type = moduleBuildFileInfo.type.name,
                             moduleName = moduleBuildFileInfo.moduleName,
-                            size = moduleBuildFileInfo.size,
+                            sizeReadable = moduleBuildFileInfo.sizeReadable,
                             fileName = moduleBuildFileInfo.type.fileName,
                             path = moduleBuildFileInfo.path,
                             file = moduleBuildFileInfo.file,
@@ -113,14 +114,13 @@ fun BuildFilesTabContent(
                                 selectedPath = selectedBuildFile?.path,
                                 type = settingsGradleFileInfo.type.name,
                                 moduleName = projectName,
-                                size = settingsGradleFileInfo.size,
+                                sizeReadable = settingsGradleFileInfo.size,
                                 fileName = settingsGradleFileInfo.type.fileName,
                                 path = settingsGradleFileInfo.path,
                                 file = settingsGradleFileInfo.file,
                                 content = settingsGradleFileInfo.content
                             ) {
                                 selectedBuildFile = it
-
                             }
                         }
                     }
@@ -132,14 +132,13 @@ fun BuildFilesTabContent(
                                 selectedPath = selectedBuildFile?.path,
                                 type = propertiesFileInfo.type.name,
                                 moduleName = projectName,
-                                size = propertiesFileInfo.size,
+                                sizeReadable = propertiesFileInfo.size,
                                 fileName = propertiesFileInfo.type.fileName,
                                 path = propertiesFileInfo.path,
                                 file = propertiesFileInfo.file,
                                 content = propertiesFileInfo.content
                             ) {
                                 selectedBuildFile = it
-
                             }
                         }
                     }
@@ -151,14 +150,13 @@ fun BuildFilesTabContent(
                                 selectedPath = selectedBuildFile?.path,
                                 type = "properties",
                                 moduleName = projectName,
-                                size = gradleWrapperPropertiesFileInfo.size,
+                                sizeReadable = gradleWrapperPropertiesFileInfo.size,
                                 fileName = gradleWrapperPropertiesFileInfo.name,
                                 path = gradleWrapperPropertiesFileInfo.path,
                                 file = gradleWrapperPropertiesFileInfo.file,
                                 content = gradleWrapperPropertiesFileInfo.content
                             ) {
                                 selectedBuildFile = it
-
                             }
                         }
                     }
@@ -170,14 +168,13 @@ fun BuildFilesTabContent(
                                 selectedPath = selectedBuildFile?.path,
                                 type = versionCatalogFileInfo.name,
                                 moduleName = projectName,
-                                size = versionCatalogFileInfo.size,
+                                sizeReadable = versionCatalogFileInfo.sizeReadable,
                                 fileName = versionCatalogFileInfo.name,
                                 path = versionCatalogFileInfo.path,
                                 file = versionCatalogFileInfo.file,
                                 content = versionCatalogFileInfo.content
                             ) {
                                 selectedBuildFile = it
-
                             }
                         }
                     }
@@ -190,10 +187,9 @@ fun BuildFilesTabContent(
                     ) {
                         item {
                             EmptyStateCardLayout(
-                                "No build files found",
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(vertical = 10.dp)
+                                title = "Build files",
+                                description = "No build files found",
+                                icon = Icons.Default.Build
                             )
                         }
                     }
@@ -292,10 +288,10 @@ fun BuildFileContentViewer(
                 }
                 Surface(
                     color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = MaterialTheme.shapes.small
+                    shape = MaterialTheme.shapes.small,
                 ) {
                     Text(
-                        buildFile.size,
+                        buildFile.sizeReadable,
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -306,25 +302,22 @@ fun BuildFileContentViewer(
             modifier = Modifier.fillMaxSize()
         ) {
 
-            Column(
+            OutlinedCard(
                 modifier = Modifier
                     .fillMaxSize()
                     .verticalScroll(scrollState)
-                    .padding(16.dp)
+                    .padding(16.dp),
+                colors = CardDefaults.outlinedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                ),
             ) {
-                Surface(
-                    color = MaterialTheme.colorScheme.surface,
-                    shape = MaterialTheme.shapes.medium,
-                    shadowElevation = 1.dp
-                ) {
-                    SelectionContainer {
-                        Text(
-                            buildFile.content,
-                            style = MaterialTheme.typography.bodySmall,
-                            fontFamily = FontFamily.Monospace,
-                            modifier = Modifier.fillMaxWidth().padding(16.dp)
-                        )
-                    }
+                SelectionContainer {
+                    Text(
+                        buildFile.content,
+                        style = MaterialTheme.typography.bodySmall,
+                        fontFamily = FontFamily.Monospace,
+                        modifier = Modifier.fillMaxWidth().padding(16.dp)
+                    )
                 }
             }
             VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
@@ -336,7 +329,7 @@ fun BuildFileContentViewer(
 data class BuildFile(
     val type: String,
     val moduleName: String,
-    val size: String,
+    val sizeReadable: String,
     val fileName: String,
     val path: String,
     val file: File,
@@ -348,7 +341,7 @@ fun DetailedBuildFileCard(
     selectedPath: String?,
     type: String,
     moduleName: String,
-    size: String,
+    sizeReadable: String,
     fileName: String,
     path: String,
     file: File,
@@ -360,7 +353,7 @@ fun DetailedBuildFileCard(
             selectedPath == path
         }
     }
-    Card(
+    OutlinedCard(
         modifier = Modifier.fillMaxWidth().pointerHoverIcon(
             PointerIcon(
                 Cursor.getPredefinedCursor(
@@ -368,7 +361,7 @@ fun DetailedBuildFileCard(
                 )
             )
         ),
-        colors = CardDefaults.cardColors(
+        colors = CardDefaults.outlinedCardColors(
             containerColor = if (isSelected)
                 MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.5f)
             else
@@ -379,7 +372,7 @@ fun DetailedBuildFileCard(
                 BuildFile(
                     type = type,
                     moduleName = moduleName,
-                    size = size,
+                    sizeReadable = sizeReadable,
                     fileName = fileName,
                     path = path,
                     file = file,
@@ -387,7 +380,6 @@ fun DetailedBuildFileCard(
                 )
             )
         },
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
 
         // Build file header
@@ -422,4 +414,3 @@ fun DetailedBuildFileCard(
         }
     }
 }
-

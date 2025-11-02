@@ -64,6 +64,8 @@ kotlin {
             // Semantic Versioning library
             implementation(libs.github.z4kn4fein.semver)
 
+            // Theme Changer
+            implementation(libs.jsystemthemedetector)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)

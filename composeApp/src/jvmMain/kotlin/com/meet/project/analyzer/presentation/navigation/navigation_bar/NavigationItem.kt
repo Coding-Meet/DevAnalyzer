@@ -2,50 +2,38 @@ package com.meet.project.analyzer.presentation.navigation.navigation_bar
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
-import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.AccountTree
-import androidx.compose.material.icons.outlined.FolderOpen
-import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Storage
-import com.meet.project.analyzer.core.utility.IconResource
-import com.meet.project.analyzer.core.utility.UiText
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.meet.project.analyzer.presentation.navigation.AppRoute
 
 enum class NavigationItem(
-    val title: UiText,
-    val route: AppRoute,
-    val selectedIcon: IconResource,
-    val unSelectedIcon: IconResource,
-    val description: UiText,
+    val title: String,
+    val appRoute: AppRoute,
+    val selectedIcon: ImageVector,
+    val unSelectedIcon: ImageVector,
+    val description: String,
 ) {
-    PROJECT_SCANNER(
-        title = UiText.DynamicString("Scanner"),
-        route = AppRoute.ProjectScanner,
-        selectedIcon = IconResource.ImageVector(Icons.Filled.FolderOpen),
-        unSelectedIcon = IconResource.ImageVector(Icons.Outlined.FolderOpen),
-        description = UiText.DynamicString("Scan and analyze projects")
+    Project(
+        title = "Project",
+        appRoute = AppRoute.ProjectAnalyzer,
+        selectedIcon = Icons.Filled.AccountTree,
+        unSelectedIcon = Icons.Outlined.AccountTree,
+        description = "Analyze project structure, modules, plugins, and dependencies."
     ),
-    DEPENDENCIES(
-        title = UiText.DynamicString("Dependencies"),
-        route = AppRoute.Dependencies,
-        selectedIcon = IconResource.ImageVector(Icons.Filled.AccountTree),
-        unSelectedIcon = IconResource.ImageVector(Icons.Outlined.AccountTree),
-        description = UiText.DynamicString("View dependency analysis")
+    Storage(
+        title = "Storage",
+        appRoute = AppRoute.StorageAnalyzer,
+        selectedIcon = Icons.Filled.Storage,
+        unSelectedIcon = Icons.Outlined.Storage,
+        description = "Analyze SDK, IDE, Gradle, and library storage usage."
     ),
-    STORAGE(
-        title = UiText.DynamicString("Storage"),
-        route = AppRoute.Storage,
-        selectedIcon = IconResource.ImageVector(Icons.Filled.Storage),
-        unSelectedIcon = IconResource.ImageVector(Icons.Outlined.Storage),
-        description = UiText.DynamicString("System storage analysis")
-    ),
-    SETTINGS(
-        title = UiText.DynamicString("Settings"),
-        route = AppRoute.Settings,
-        selectedIcon = IconResource.ImageVector(Icons.Filled.Settings),
-        unSelectedIcon = IconResource.ImageVector(Icons.Outlined.Settings),
-        description = UiText.DynamicString("Application settings")
-    )
+//    Settings(
+//        title ="Settings",
+//        route = AppRoute.Settings,
+//        selectedIcon = Icons.Filled.Settings,
+//        unSelectedIcon = Icons.Outlined.Settings,
+//        description = "Customize preferences and configuration options for analyzers."
+//    )
 }

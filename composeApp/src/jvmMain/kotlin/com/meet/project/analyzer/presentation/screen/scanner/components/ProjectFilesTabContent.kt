@@ -25,10 +25,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Block
 import androidx.compose.material.icons.filled.Description
+import androidx.compose.material.icons.filled.FileOpen
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -44,6 +47,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -133,8 +137,8 @@ fun ProjectFilesTabContent(projectFiles: List<ProjectFileInfo>, projectName: Str
                                 }
                                 items(
                                     items = projectFileInfoList,
-                                    key = {
-                                        it.uniqueId
+                                    key = { projectFileInfo ->
+                                        projectFileInfo.uniqueId
                                     }) { projectFileInfo ->
                                     FileTreeItem(
                                         projectFileInfo = projectFileInfo,
@@ -146,9 +150,10 @@ fun ProjectFilesTabContent(projectFiles: List<ProjectFileInfo>, projectName: Str
                         } else {
                             item {
                                 EmptyStateCardLayout(
-                                    message = if (searchQuery.isBlank()) "No files found"
+                                    title = "Project files",
+                                    description = if (searchQuery.isBlank()) "No files found"
                                     else "No results for \"$searchQuery\"",
-                                    modifier = Modifier.fillMaxWidth()
+                                    icon = Icons.Default.FileOpen
                                 )
                             }
                         }
@@ -246,7 +251,7 @@ fun FileContentViewer(projectFileInfo: ProjectFileInfo) {
                     shape = MaterialTheme.shapes.small
                 ) {
                     Text(
-                        projectFileInfo.size,
+                        text = projectFileInfo.sizeReadable,
                         style = MaterialTheme.typography.labelMedium,
                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
                     )
@@ -269,25 +274,22 @@ fun FileContentViewer(projectFileInfo: ProjectFileInfo) {
                         .clip(MaterialTheme.shapes.medium)
                 )
             } else if (projectFileInfo.isReadable && projectFileInfo.content != null) {
-                Column(
+                OutlinedCard(
                     modifier = Modifier
                         .fillMaxSize()
                         .verticalScroll(scrollState)
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    colors = CardDefaults.outlinedCardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
                 ) {
-                    Surface(
-                        color = MaterialTheme.colorScheme.surface,
-                        shape = MaterialTheme.shapes.medium,
-                        shadowElevation = 1.dp
-                    ) {
-                        SelectionContainer {
-                            Text(
-                                projectFileInfo.content,
-                                style = MaterialTheme.typography.bodySmall,
-                                fontFamily = androidx.compose.ui.text.font.FontFamily.Monospace,
-                                modifier = Modifier.padding(16.dp)
-                            )
-                        }
+                    SelectionContainer {
+                        Text(
+                            projectFileInfo.content,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontFamily = FontFamily.Monospace,
+                            modifier = Modifier.fillMaxWidth().padding(16.dp)
+                        )
                     }
                 }
 
@@ -412,7 +414,7 @@ fun FileTreeItem(
                 maxLines = 1
             )
             Text(
-                projectFileInfo.size,
+                projectFileInfo.sizeReadable,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

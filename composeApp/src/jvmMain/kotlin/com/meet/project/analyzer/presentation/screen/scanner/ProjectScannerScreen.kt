@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Folder
+import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
@@ -97,7 +98,7 @@ fun ProjectScannerContent(
         modifier = Modifier.fillMaxSize(),
         topBar = {
             TopAppBar(
-                title = "Project Scanner",
+                title = "Development Project Analyzer",
                 icon = Icons.Default.Folder,
                 actions = {
                     if (uiState.projectInfo != null) {
@@ -205,11 +206,10 @@ fun ProjectScannerContent(
                 }
             } else {
                 EmptyStateCardLayout(
-                    message = "No project selected",
-                    icon = Icons.Default.Folder,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(10.dp)
+                    title = "No Project Selected",
+                    description = "Browse and select an Android Studio project folder, then click Analyze to view modules, plugins, and dependencies.",
+                    icon = Icons.Default.FolderOpen,
+                    modifier = Modifier.padding(10.dp).fillMaxSize()
                 )
             }
         }

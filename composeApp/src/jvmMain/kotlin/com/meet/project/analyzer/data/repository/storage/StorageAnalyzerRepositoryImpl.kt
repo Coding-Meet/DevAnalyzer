@@ -1,36 +1,327 @@
 package com.meet.project.analyzer.data.repository.storage
 
 import com.meet.project.analyzer.core.utility.AppLogger
+import com.meet.project.analyzer.core.utility.IdeDataSection
 import com.meet.project.analyzer.core.utility.Utils
-import com.meet.project.analyzer.core.utility.Utils.formatSize
 import com.meet.project.analyzer.core.utility.Utils.tagName
-import com.meet.project.analyzer.data.models.storage.AvdInfo
-import com.meet.project.analyzer.data.models.storage.CacheInfo
-import com.meet.project.analyzer.data.models.storage.DevEnvironmentInfo
-import com.meet.project.analyzer.data.models.storage.GradleCacheInfo
+import com.meet.project.analyzer.data.models.storage.AndroidAvdInfo
+import com.meet.project.analyzer.data.models.storage.AndroidSdkInfo
+import com.meet.project.analyzer.data.models.storage.AvdItem
+import com.meet.project.analyzer.data.models.storage.BuildToolInfo
+import com.meet.project.analyzer.data.models.storage.BuildToolItem
+import com.meet.project.analyzer.data.models.storage.CachesGradleWrapperInfo
+import com.meet.project.analyzer.data.models.storage.CachesGradleWrapperItem
+import com.meet.project.analyzer.data.models.storage.CmakeInfo
+import com.meet.project.analyzer.data.models.storage.CmakeInfoItem
+import com.meet.project.analyzer.data.models.storage.DaemonInfo
+import com.meet.project.analyzer.data.models.storage.DaemonItem
+import com.meet.project.analyzer.data.models.storage.DependenciesInfo
+import com.meet.project.analyzer.data.models.storage.DependenciesItem
+import com.meet.project.analyzer.data.models.storage.ExtrasInfo
+import com.meet.project.analyzer.data.models.storage.ExtrasInfoItem
 import com.meet.project.analyzer.data.models.storage.GradleInfo
-import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
-import com.meet.project.analyzer.data.models.storage.GradleWrapperInfo
+import com.meet.project.analyzer.data.models.storage.IdeDataInfo
+import com.meet.project.analyzer.data.models.storage.IdeGroup
+import com.meet.project.analyzer.data.models.storage.IdeInstallation
 import com.meet.project.analyzer.data.models.storage.JdkInfo
+import com.meet.project.analyzer.data.models.storage.JdkItem
 import com.meet.project.analyzer.data.models.storage.KonanInfo
-import com.meet.project.analyzer.data.models.storage.SdkInfo
-import com.meet.project.analyzer.data.models.storage.SdkItem
-import com.meet.project.analyzer.data.models.storage.StorageInfo
+import com.meet.project.analyzer.data.models.storage.KotlinNativeInfo
+import com.meet.project.analyzer.data.models.storage.KotlinNativeItem
+import com.meet.project.analyzer.data.models.storage.NdkInfo
+import com.meet.project.analyzer.data.models.storage.NdkItem
+import com.meet.project.analyzer.data.models.storage.OtherGradleFolderInfo
+import com.meet.project.analyzer.data.models.storage.OtherGradleFolderItem
+import com.meet.project.analyzer.data.models.storage.PlatformInfo
+import com.meet.project.analyzer.data.models.storage.PlatformItem
+import com.meet.project.analyzer.data.models.storage.SourcesInfo
+import com.meet.project.analyzer.data.models.storage.SourcesInfoItem
+import com.meet.project.analyzer.data.models.storage.SystemImageInfo
+import com.meet.project.analyzer.data.models.storage.SystemImageInfoItem
+import com.meet.project.analyzer.data.models.storage.WrapperInfo
+import com.meet.project.analyzer.data.models.storage.WrapperItem
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.withContext
 import java.io.File
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.Properties
+import kotlin.uuid.ExperimentalUuidApi
+import kotlin.uuid.Uuid
 
 class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
 
     private val TAG = tagName(javaClass = javaClass)
 
-    override suspend fun getAvdInfoList(): List<AvdInfo> = withContext(Dispatchers.IO) {
+
+    override suspend fun analyzeIdeData(): IdeDataInfo = withContext(Dispatchers.IO) {
+        fun extractIdeNameAndVersionByFirstDigit(folderName: String): Pair<String, String> {
+            val name = folderName.trim()
+            val firstDigitIndex = name.indexOfFirst { it.isDigit() }
+            if (firstDigitIndex == -1) return folderName to ""
+
+            val idePart = name.substring(0, firstDigitIndex).trim()
+            val versionPart = name.substring(firstDigitIndex).trim()
+
+            if (idePart.isEmpty() || versionPart.isEmpty()) return folderName to ""
+            return idePart to versionPart
+        }
+
+        fun scanBase(
+            vendor: String,
+            category: String,
+            basePath: String
+        ): List<IdeInstallation> {
+            val dir = File(basePath)
+            if (!dir.exists() || !dir.isDirectory) return emptyList()
+
+            return dir.listFiles()
+                ?.filter { it.isDirectory && it.name.any { ch -> ch.isDigit() } }
+                ?.mapNotNull { file ->
+                    val sizeBytes = Utils.calculateFolderSize(file)
+                    val sizeReadable = Utils.formatSize(sizeBytes)
+                    val info = extractIdeNameAndVersionByFirstDigit(file.name)
+                    val (ideName, version) = info
+
+                    IdeInstallation(
+                        name = file.name,
+                        ideName = ideName,
+                        version = version,
+                        category = category,
+                        path = file.absolutePath,
+                        sizeBytes = sizeBytes,
+                        vendor = vendor,
+                        sizeReadable = sizeReadable
+                    )
+                } ?: emptyList()
+        }
+
+        fun buildBasePaths(userHome: String, isWindows: Boolean): Map<String, Map<String, String>> {
+            return if (isWindows) {
+                mapOf(
+                    "Google" to mapOf(
+                        "PROGRAM_FILES" to "C:/Program Files/Android",
+                        "LOCAL" to "$userHome/AppData/Local/Google",
+                        "ROAMING" to "$userHome/AppData/Roaming/Google",
+                    ),
+                    "JetBrains" to mapOf(
+                        "PROGRAM_FILES" to "C:/Program Files/JetBrains",
+                        "LOCAL" to "$userHome/AppData/Local/JetBrains",
+                        "ROAMING" to "$userHome/AppData/Roaming/JetBrains",
+                    )
+                )
+            } else { // macOS
+                mapOf(
+                    "Google" to mapOf(
+                        "CACHES" to "$userHome/Library/Caches/Google",
+                        "LOGS" to "$userHome/Library/Logs/Google",
+                        "SUPPORT" to "$userHome/Library/Application Support/Google"
+                    ),
+                    "JetBrains" to mapOf(
+                        "CACHES" to "$userHome/Library/Caches/JetBrains",
+                        "LOGS" to "$userHome/Library/Logs/JetBrains",
+                        "SUPPORT" to "$userHome/Library/Application Support/JetBrains"
+                    )
+                )
+            }
+        }
+        try {
+            val userHome = System.getProperty("user.home")
+            val os = System.getProperty("os.name").lowercase()
+            val isWindows = os.contains("windows")
+            val basePaths = buildBasePaths(userHome = userHome, isWindows = isWindows)
+
+            val allInstallations = buildList {
+                basePaths.forEach { (vendor, categories) ->
+                    categories.forEach { (category, path) ->
+                        addAll(scanBase(vendor, category, path))
+                    }
+                }
+            }
+
+            val firstCategoryKey = if (isWindows) "PROGRAM_FILES" else "CACHES"
+            val secondCategoryKey = if (isWindows) "LOCAL" else "LOGS"
+            val thirdCategoryKey = if (isWindows) "ROAMING" else "SUPPORT"
+
+            val firstCategoryGroups = allInstallations.filter { it.category == firstCategoryKey }
+                .sortedByDescending { it.sizeBytes }
+            val secondCategoryGroups = allInstallations.filter { it.category == secondCategoryKey }
+                .sortedByDescending { it.sizeBytes }
+            val thirdCategoryGroups = allInstallations.filter { it.category == thirdCategoryKey }
+                .sortedByDescending { it.sizeBytes }
+
+            val totalSizeBytes = allInstallations.sumOf { it.sizeBytes }
+            val totalSizeReadable = Utils.formatSize(totalSizeBytes)
+
+            val firstCategorySizeBytes = firstCategoryGroups.sumOf { it.sizeBytes }
+            val firstCategorySizeReadable = Utils.formatSize(firstCategorySizeBytes)
+            val secondCategorySizeBytes = secondCategoryGroups.sumOf { it.sizeBytes }
+            val secondCategorySizeReadable = Utils.formatSize(secondCategorySizeBytes)
+            val thirdCategorySizeBytes = thirdCategoryGroups.sumOf { it.sizeBytes }
+            val thirdCategorySizeReadable = Utils.formatSize(thirdCategorySizeBytes)
+
+            val firstCategoryGroup = IdeGroup(
+                totalSizeBytes = firstCategorySizeBytes,
+                sizeReadable = firstCategorySizeReadable,
+                installations = firstCategoryGroups,
+                type = if (isWindows) IdeDataSection.WinProgramFiles else IdeDataSection.MacCaches,
+                totalLabel = "Total " + if (isWindows) "Program Files" else "Caches"
+            )
+            val secondCategoryGroup = IdeGroup(
+                totalSizeBytes = secondCategorySizeBytes,
+                sizeReadable = secondCategorySizeReadable,
+                installations = secondCategoryGroups,
+                type = if (isWindows) IdeDataSection.WinLocal else IdeDataSection.MacLogs,
+                totalLabel = "Total " + if (isWindows) "Local" else "Logs"
+            )
+            val thirdCategoryGroup = IdeGroup(
+                totalSizeBytes = thirdCategorySizeBytes,
+                sizeReadable = thirdCategorySizeReadable,
+                installations = thirdCategoryGroups,
+                type = if (isWindows) IdeDataSection.WinRoaming else IdeDataSection.MacSupport,
+                totalLabel = "Total " + if (isWindows) "Roaming" else "Support"
+            )
+
+            IdeDataInfo(
+                totalSizeReadable = totalSizeReadable,
+                totalSizeBytes = totalSizeBytes,
+                totalInstallations = allInstallations.size,
+                firstCategoryGroup = firstCategoryGroup,
+                secondCategoryGroup = secondCategoryGroup,
+                thirdCategoryGroup = thirdCategoryGroup
+            )
+        } catch (e: Exception) {
+            AppLogger.e(TAG, e) { "Error analyzing IDE data" }
+            throw e
+        }
+    }
+
+
+    override suspend fun analyzeKonanData(): KonanInfo = withContext(Dispatchers.IO) {
+
+        suspend fun loadDependenciesInfos(konanRootDir: File): List<DependenciesItem> =
+            withContext(Dispatchers.IO) {
+                val dependenciesDir = File(konanRootDir, "dependencies")
+                if (!dependenciesDir.exists()) return@withContext emptyList()
+
+                dependenciesDir.listFiles()
+                    ?.filter { it.isDirectory && it.name.any { ch -> ch.isDigit() } }
+                    ?.map { dir ->
+                        async {
+                            val version = dir.name
+                            val displayVersion = when {
+                                version.startsWith("llvm") -> {
+                                    // Example: llvm-19-aarch64-macos-essentials-79
+                                    val regex = Regex("""llvm-(\d+).*-(\d+)$""")
+                                    val match = regex.find(version)
+                                    if (match != null) {
+                                        val llvmVer = match.groupValues[1]
+                                        val buildVer = match.groupValues[2]
+                                        "LLVM $llvmVer (v$buildVer)"
+                                    } else version
+                                }
+
+                                version.startsWith("lldb") -> {
+                                    // Example: lldb-4-macos
+                                    val regex = Regex("""lldb-(\d+).*""")
+                                    val match = regex.find(version)
+                                    if (match != null) {
+                                        val lldbVer = match.groupValues[1]
+                                        "LLDB $lldbVer"
+                                    } else version
+                                }
+
+                                version.startsWith("libffi") -> {
+                                    // Example: libffi-3.3-1-macos-arm64
+                                    val regex = Regex("""libffi-(\d+\.\d+).*""")
+                                    val match = regex.find(version)
+                                    if (match != null) {
+                                        val ffiVer = match.groupValues[1]
+                                        "libffi $ffiVer"
+                                    } else version
+                                }
+
+                                else -> version
+                            }
+                            val sizeBytes = Utils.calculateFolderSize(dir)
+                            DependenciesItem(
+                                version = displayVersion,
+                                path = dir.absolutePath,
+                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeBytes = sizeBytes
+                            )
+                        }
+                    }?.awaitAll()?.sortedByDescending {
+                        it.sizeBytes
+                    } ?: emptyList()
+            }
+
+        suspend fun loadKotlinNativeInfos(konanRootDir: File): List<KotlinNativeItem> =
+            withContext(Dispatchers.IO) {
+                val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
+                konanRootDir.listFiles()
+                    ?.filter { it.isDirectory && it.name.contains("kotlin-native-prebuilt") }
+                    ?.map { dir ->
+                        async {
+                            val version = versionRegex.find(dir.name)?.value ?: dir.name
+                            val sizeBytes = Utils.calculateFolderSize(dir)
+                            KotlinNativeItem(
+                                version = version,
+                                path = dir.absolutePath,
+                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeBytes = sizeBytes
+                            )
+                        }
+                    }?.awaitAll()?.sortedByDescending {
+                        it.sizeBytes
+                    } ?: emptyList()
+            }
+        try {
+            AppLogger.i(TAG) { "Analyzing Konan data" }
+            val konanRootDir = File(System.getProperty("user.home"), ".konan")
+
+            val totalSizeBytes = Utils.calculateFolderSize(konanRootDir)
+            val totalSizeReadable = Utils.formatSize(totalSizeBytes)
+
+
+            val kotlinNativeInfosDeferred =
+                async { loadKotlinNativeInfos(konanRootDir = konanRootDir) }
+            val dependenciesInfosDeferred =
+                async { loadDependenciesInfos(konanRootDir = konanRootDir) }
+
+            val kotlinNativeItems = kotlinNativeInfosDeferred.await()
+            val kotlinNativeTotalSizeBytes = kotlinNativeItems.sumOf { it.sizeBytes }
+            val kotlinNativeTotalSizeReadable = Utils.formatSize(kotlinNativeTotalSizeBytes)
+            val kotlinNativeInfo = KotlinNativeInfo(
+                name = "Kotlin/Native (.konan)",
+                sizeBytes = kotlinNativeTotalSizeBytes,
+                sizeReadable = kotlinNativeTotalSizeReadable,
+                kotlinNativeItems = kotlinNativeItems
+            )
+            val dependenciesItems = dependenciesInfosDeferred.await()
+            val dependenciesTotalSizeBytes = dependenciesItems.sumOf { it.sizeBytes }
+            val dependenciesTotalSizeReadable = Utils.formatSize(dependenciesTotalSizeBytes)
+            val dependenciesInfo = DependenciesInfo(
+                name = "Dependencies (.konan)",
+                sizeBytes = dependenciesTotalSizeBytes,
+                sizeReadable = dependenciesTotalSizeReadable,
+                dependenciesItems = dependenciesItems
+            )
+            KonanInfo(
+                rootPath = konanRootDir.absolutePath,
+                sizeReadable = totalSizeReadable,
+                totalSizeBytes = totalSizeBytes,
+                kotlinNativeInfo = kotlinNativeInfo,
+                dependenciesInfo = dependenciesInfo,
+            )
+        } catch (e: Exception) {
+            AppLogger.e(TAG, e) { "Error analyzing Konan data" }
+            throw e
+        }
+    }
+
+    override suspend fun analyzeAvdData(): AndroidAvdInfo = withContext(Dispatchers.IO) {
 
         fun parseConfiguredSize(raw: String?): String {
             if (raw == null) return "Unknown"
@@ -38,20 +329,20 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                 when {
                     raw.endsWith("M", true) -> {
                         val mb = raw.dropLast(1).toLong()
-                        formatSize(mb * 1024 * 1024)
+                        Utils.formatSize(mb * 1024 * 1024)
                     }
 
                     raw.endsWith("K", true) -> {
                         val kb = raw.dropLast(1).toLong()
-                        formatSize(kb * 1024)
+                        Utils.formatSize(kb * 1024)
                     }
 
                     raw.endsWith("G", true) -> {
                         val gb = raw.dropLast(1).toLong()
-                        formatSize(gb * 1024 * 1024 * 1024)
+                        Utils.formatSize(gb * 1024 * 1024 * 1024)
                     }
 
-                    raw.toLongOrNull() != null -> formatSize(raw.toLong())
+                    raw.toLongOrNull() != null -> Utils.formatSize(raw.toLong())
                     else -> raw
                 }
             } catch (e: Exception) {
@@ -60,24 +351,15 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             }
         }
 
-        AppLogger.i(TAG) { "Loading AVD information" }
-        try {
-            val home = System.getProperty("user.home")
-            val avdDir = File("$home/.android/avd")
-
-            if (!avdDir.exists()) {
-                AppLogger.e(TAG) { "AVD directory not found: ${avdDir.absolutePath}" }
-                return@withContext emptyList()
-            }
-
+        suspend fun loadAvdInfos(avdDir: File): List<AvdItem> = withContext(Dispatchers.IO) {
             avdDir.listFiles { file -> file.extension == "ini" }
-                ?.mapNotNull { iniFile ->
+                ?.map { iniFile ->
                     async {
                         try {
                             val props = Properties().apply {
                                 load(iniFile.inputStream())
                             }
-                            val path = props.getProperty("path") ?: return@async null
+                            val path = props.getProperty("path")
                             val configFile = File(path, "config.ini")
 
                             if (!configFile.exists()) return@async null
@@ -92,8 +374,8 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                             val configuredRaw = configProps.getProperty("disk.dataPartition.size")
                             val configuredStorage = parseConfiguredSize(configuredRaw)
                             val actualSizeBytes = Utils.calculateFolderSize(File(path))
-                            val actualSize = formatSize(actualSizeBytes)
-                            AvdInfo(
+                            val actualSize = Utils.formatSize(actualSizeBytes)
+                            AvdItem(
                                 name = name,
                                 apiLevel = apiLevel,
                                 device = device,
@@ -110,57 +392,102 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                 }?.awaitAll()?.filterNotNull()?.sortedByDescending {
                     it.sizeBytes
                 } ?: emptyList()
+        }
+        AppLogger.i(TAG) { "Loading AVD information" }
+        try {
+            val home = System.getProperty("user.home")
+            val avdDir = File("$home/.android/avd")
+
+            val avdItemLists = async {
+                loadAvdInfos(avdDir)
+            }.await()
+            val totalSizeBytes = avdItemLists.sumOf { it.sizeBytes }
+            AndroidAvdInfo(
+                avdItemList = avdItemLists,
+                totalSizeBytes = totalSizeBytes,
+                sizeReadable = Utils.formatSize(totalSizeBytes)
+            )
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error loading AVD information" }
-            emptyList()
+            throw e
         }
     }
 
-    override suspend fun getSdkInfo(): SdkInfo = withContext(Dispatchers.IO) {
+    @OptIn(ExperimentalUuidApi::class)
+    data class SdkItem(
+        val uniqueId: String = Uuid.random().toString(),
+        val name: String,
+        val path: String,
+        val size: String,
+        val sizeBytes: Long,
+    )
 
-        suspend fun findAndroidSdkPath(): String? = withContext(Dispatchers.IO) {
+    override suspend fun analyzeAndroidEvnData(): AndroidSdkInfo = withContext(Dispatchers.IO) {
+
+        suspend fun findAndroidSdkPath(): String = withContext(Dispatchers.IO) {
             AppLogger.d(TAG) { "Finding Android SDK path" }
             val userHome = System.getProperty("user.home")
             val os = System.getProperty("os.name").lowercase()
 
             val possiblePaths = when {
-                os.contains("windows") -> listOf(
-                    "$userHome\\AppData\\Local\\Android\\Sdk",
-                    "C:\\Android\\Sdk"
-                )
-
-                os.contains("mac") -> listOf(
-                    "$userHome/Library/Android/sdk",
-                    "$userHome/Android/Sdk"
-                )
-
-                else -> listOf(
-                    "$userHome/Android/Sdk",
-                    "$userHome/android-sdk"
-                )
+                os.contains("windows") -> "$userHome/Android/Sdk"
+                else -> "$userHome/Library/Android/sdk"
             }
 
             System.getenv("ANDROID_HOME")
                 ?: System.getenv("ANDROID_SDK_ROOT")
-                ?: possiblePaths.find { File(it).exists() }
+                ?: possiblePaths
         }
 
+        suspend fun loadSdkItems(directory: File): List<SdkItem> = withContext(Dispatchers.IO) {
+            try {
+                directory.listFiles()
+                    ?.filter { !it.name.startsWith(".") }
+                    ?.map { dir ->
+                        async {
+                            val sizeBytes = Utils.calculateFolderSize(dir)
+                            SdkItem(
+                                name = dir.name,
+                                path = dir.absolutePath,
+                                size = Utils.formatSize(sizeBytes),
+                                sizeBytes = sizeBytes
+                            )
+                        }
+                    }?.awaitAll()?.sortedByDescending {
+                        it.sizeBytes
+                    } ?: emptyList()
+            } catch (e: Exception) {
+                AppLogger.e(TAG, e) { "Error loading SDK items from ${directory.absolutePath}" }
+                emptyList()
+            }
+        }
+
+        suspend fun loadSdkExtras(sdkDir: File): List<SdkItem> = withContext(Dispatchers.IO) {
+            val extraFolders = listOf("platform-tools", "emulator")
+            extraFolders.map { folder ->
+                async {
+                    val dir = File(sdkDir, folder)
+                    if (dir.exists()) {
+                        val sizeBytes = Utils.calculateFolderSize(dir)
+                        SdkItem(
+                            name = folder,
+                            path = dir.absolutePath,
+                            size = Utils.formatSize(sizeBytes),
+                            sizeBytes = sizeBytes
+                        )
+                    } else null
+                }
+            }.awaitAll().filterNotNull().sortedByDescending {
+                it.sizeBytes
+            }
+        }
 
         AppLogger.i(TAG) { "Loading SDK information" }
         try {
-            val sdkRoot = findAndroidSdkPath() ?: return@withContext SdkInfo(
-                sdkPath = "Unknown",
-                sizeReadable = "Unknown",
-                freeSpace = "Unknown",
-                platforms = emptyList(),
-                buildTools = emptyList(),
-                systemImages = emptyList(),
-                extras = emptyList()
-            )
+            val sdkRoot = findAndroidSdkPath()
 
             val sdkDir = File(sdkRoot)
 
-            // Process different SDK components in parallel
             val platformsDeferred = async {
                 loadSdkItems(File(sdkDir, "platforms"))
             }
@@ -170,241 +497,390 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             val systemImagesDeferred = async {
                 loadSdkItems(File(sdkDir, "system-images"))
             }
+            val ndkDeferred = async {
+                loadSdkItems(File(sdkDir, "ndk"))
+            }
+
+            val sourcesDeferred = async {
+                loadSdkItems(File(sdkDir, "sources"))
+            }
+
+            val cmakeDeferred = async {
+                loadSdkItems(File(sdkDir, "cmake"))
+            }
+
             val extrasDeferred = async {
                 loadSdkExtras(sdkDir)
             }
-            val totalSizeDeferred = async {
-                Utils.calculateFolderSize(sdkDir)
+
+            val platforms = platformsDeferred.await().map {
+                PlatformItem(
+                    name = it.name,
+                    path = it.path,
+                    sizeReadable = it.size,
+                    sizeBytes = it.sizeBytes,
+                )
             }
-
-            val platforms = platformsDeferred.await()
-            val buildTools = buildToolsDeferred.await()
-            val systemImages = systemImagesDeferred.await()
-            val extras = extrasDeferred.await()
-            val totalSizeBytes = totalSizeDeferred.await()
-
-            SdkInfo(
-                sdkPath = sdkRoot,
-                sizeReadable = formatSize(totalSizeBytes),
-                freeSpace = formatSize(sdkDir.freeSpace),
+            val platformsSize = platforms.sumOf { it.sizeBytes }
+            val platformsSizeReadable = Utils.formatSize(platformsSize)
+            val platformInfo = PlatformInfo(
                 platforms = platforms,
+                sizeReadable = platformsSizeReadable,
+                totalSizeBytes = platformsSize
+            )
+
+            val buildTools = buildToolsDeferred.await().map {
+                BuildToolItem(
+                    name = it.name,
+                    path = it.path,
+                    sizeReadable = it.size,
+                    sizeBytes = it.sizeBytes,
+                )
+            }
+            val buildToolsSize = buildTools.sumOf { it.sizeBytes }
+            val buildToolsSizeReadable = Utils.formatSize(buildToolsSize)
+            val buildToolInfo = BuildToolInfo(
                 buildTools = buildTools,
+                sizeReadable = buildToolsSizeReadable,
+                totalSizeBytes = buildToolsSize
+            )
+
+            val systemImages = systemImagesDeferred.await().map {
+                SystemImageInfoItem(
+                    name = it.name,
+                    path = it.path,
+                    sizeReadable = it.size,
+                    sizeBytes = it.sizeBytes,
+                )
+            }
+            val systemImageSize = systemImages.sumOf { it.sizeBytes }
+            val systemImageSizeReadable = Utils.formatSize(systemImageSize)
+            val systemImageInfo = SystemImageInfo(
                 systemImages = systemImages,
-                extras = extras,
-                totalSizeBytes = totalSizeBytes
+                sizeReadable = systemImageSizeReadable,
+                totalSizeBytes = systemImageSize
+            )
+
+            val ndkItems = ndkDeferred.await().map {
+                NdkItem(
+                    name = it.name,
+                    path = it.path,
+                    sizeReadable = it.size,
+                    sizeBytes = it.sizeBytes,
+                )
+            }
+            val ndkSize = ndkItems.sumOf { it.sizeBytes }
+            val ndkSizeReadable = Utils.formatSize(ndkSize)
+            val ndkInfo = NdkInfo(
+                ndkItems = ndkItems,
+                sizeReadable = ndkSizeReadable,
+                totalSizeBytes = ndkSize
+            )
+
+            val sources = sourcesDeferred.await().map {
+                SourcesInfoItem(
+                    name = it.name,
+                    path = it.path,
+                    sizeReadable = it.size,
+                    sizeBytes = it.sizeBytes,
+                )
+            }
+            val sourcesSize = sources.sumOf { it.sizeBytes }
+            val sourcesSizeReadable = Utils.formatSize(sourcesSize)
+            val sourcesInfo = SourcesInfo(
+                sources = sources,
+                sizeReadable = sourcesSizeReadable,
+                totalSizeBytes = sourcesSize
+            )
+
+            val cmakeList = cmakeDeferred.await().map {
+                CmakeInfoItem(
+                    name = it.name,
+                    path = it.path,
+                    sizeReadable = it.size,
+                    sizeBytes = it.sizeBytes
+                )
+            }
+            val cmakeSize = cmakeList.sumOf { it.sizeBytes }
+            val cmakeSizeReadable = Utils.formatSize(cmakeSize)
+            val cmakeInfo = CmakeInfo(
+                cmakeItems = cmakeList,
+                sizeReadable = cmakeSizeReadable,
+                totalSizeBytes = cmakeSize
+            )
+
+
+            val extras = extrasDeferred.await().map {
+                ExtrasInfoItem(
+                    name = it.name,
+                    path = it.path,
+                    sizeReadable = it.size,
+                    sizeBytes = it.sizeBytes
+                )
+            }
+            val extrasSize = extras.sumOf { it.sizeBytes }
+            val extrasSizeReadable = Utils.formatSize(extrasSize)
+            val extrasInfo = ExtrasInfo(
+                extrasInfoItems = extras,
+                sizeReadable = extrasSizeReadable,
+                totalSizeBytes = extrasSize
+            )
+
+            val sdkDirSizeBytes =
+                platformsSize + buildToolsSize + systemImageSize + ndkSize + sourcesSize + cmakeSize + extrasSize
+            val sdkDirSizeReadable = Utils.formatSize(sdkDirSizeBytes)
+
+
+            AndroidSdkInfo(
+                sdkPath = sdkDir.absolutePath,
+                sizeReadable = sdkDirSizeReadable,
+                totalSizeBytes = sdkDirSizeBytes,
+                platformInfo = platformInfo,
+                buildToolInfo = buildToolInfo,
+                systemImageInfo = systemImageInfo,
+                ndkInfo = ndkInfo,
+                sourcesInfo = sourcesInfo,
+                cmakeInfo = cmakeInfo,
+                extrasInfo = extrasInfo
             )
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error loading SDK information" }
-            SdkInfo(
-                sdkPath = "Error",
-                sizeReadable = "Error",
-                freeSpace = "Error",
-                platforms = emptyList(),
-                buildTools = emptyList(),
-                systemImages = emptyList(),
-                extras = emptyList()
-            )
-        }
-    }
-
-    private suspend fun loadSdkItems(directory: File): List<SdkItem> = withContext(Dispatchers.IO) {
-        try {
-            directory.listFiles()
-                ?.filter { !it.name.startsWith(".") }
-                ?.map { dir ->
-                    async {
-                        val sizeBytes = Utils.calculateFolderSize(dir)
-                        SdkItem(
-                            name = dir.name,
-                            path = dir.absolutePath,
-                            size = formatSize(sizeBytes),
-                            sizeBytes = sizeBytes
-                        )
-                    }
-                }?.awaitAll()?.sortedByDescending {
-                    it.sizeBytes
-                } ?: emptyList()
-        } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error loading SDK items from ${directory.absolutePath}" }
-            emptyList()
-        }
-    }
-
-    private suspend fun loadSdkExtras(sdkDir: File): List<SdkItem> = withContext(Dispatchers.IO) {
-        val extraFolders = listOf("platform-tools", "emulator", "cmdline-tools")
-        extraFolders.map { folder ->
-            async {
-                val dir = File(sdkDir, folder)
-                if (dir.exists()) {
-                    val sizeBytes = Utils.calculateFolderSize(dir)
-                    SdkItem(
-                        name = folder,
-                        path = dir.absolutePath,
-                        size = formatSize(sizeBytes),
-                        sizeBytes = sizeBytes
-                    )
-                } else null
-            }
-        }.awaitAll().filterNotNull().sortedByDescending {
-            it.sizeBytes
-        }
-    }
-
-    override suspend fun getDevEnvironmentInfo(): DevEnvironmentInfo = withContext(Dispatchers.IO) {
-        AppLogger.i(TAG) { "Loading development environment information" }
-        try {
-            val userHome = System.getProperty("user.home")
-
-            val gradleCacheDeferred = async { loadGradleCache(userHome) }
-            val ideaCacheDeferred = async { loadIdeaCache(userHome) }
-            val konanInfoDeferred = async { loadKonanInfo() }
-            val skikoInfoDeferred = async { loadSkikoInfo() }
-            val konanInfosDeferred = async { loadKonanInfos() }
-            val gradleInfosDeferred = async { loadGradleInfos() }
-            val gradleWrapperInfosDeferred = async { loadGradleWrapperInfos() }
-            val jdksDeferred = async { loadJdks() }
-
-            DevEnvironmentInfo(
-                gradleCache = gradleCacheDeferred.await(),
-                ideaCache = ideaCacheDeferred.await(),
-                konanInfo = konanInfoDeferred.await(),
-                skikoInfo = skikoInfoDeferred.await(),
-                konanInfos = konanInfosDeferred.await(),
-                gradleInfos = gradleInfosDeferred.await(),
-                gradleWrapperInfos = gradleWrapperInfosDeferred.await(),
-                jdks = jdksDeferred.await()
-            )
-        } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error loading development environment info" }
             throw e
         }
     }
 
-    private suspend fun loadGradleCache(userHome: String): StorageInfo =
-        withContext(Dispatchers.IO) {
-            val gradleCachePath = Paths.get(userHome, ".gradle")
-            val sizeBytes = Utils.calculateFolderSize(gradleCachePath.toFile())
-            StorageInfo(
-                path = gradleCachePath.toString(),
-                exists = Files.exists(gradleCachePath),
-                sizeReadable = formatSize(sizeBytes),
-                sizeBytes = sizeBytes
+    override suspend fun analyzeGradleData(): GradleInfo = withContext(Dispatchers.IO) {
+        try {
+            suspend fun loadOtherFolder(gradleDir: File): List<OtherGradleFolderItem> =
+                withContext(Dispatchers.IO) {
+                    val cachesDir = File(gradleDir, "caches")
+
+                    val otherFolderList = listOf("transforms-3", "jars-9", "build-cache-1")
+                    val cachesList = cachesDir.listFiles()
+                        ?.filter { it.isDirectory && otherFolderList.contains(it.name) }
+                        ?.map { distDir ->
+                            async {
+                                val sizeBytes = Utils.calculateFolderSize(distDir)
+                                OtherGradleFolderItem(
+                                    version = distDir.name,
+                                    path = distDir.absolutePath,
+                                    sizeReadable = Utils.formatSize(sizeBytes),
+                                    sizeBytes = sizeBytes
+                                )
+                            }
+                        }?.awaitAll()?.sortedByDescending {
+                            it.sizeBytes
+                        } ?: emptyList()
+
+                    val modulesDir = File(cachesDir, "modules-2")
+                    val metadataList = modulesDir.listFiles()
+                        ?.filter { it.isDirectory && it.name != "files-2.1" }
+                        ?.map { metaDir ->
+                            async {
+                                val sizeBytes = Utils.calculateFolderSize(metaDir)
+                                OtherGradleFolderItem(
+                                    version = metaDir.name,
+                                    path = metaDir.absolutePath,
+                                    sizeReadable = Utils.formatSize(sizeBytes),
+                                    sizeBytes = sizeBytes
+                                )
+                            }
+                        }?.awaitAll()?.sortedByDescending {
+                            it.sizeBytes
+                        } ?: emptyList()
+
+                    val tempDir = File(gradleDir, ".tmp")
+                    val temp = async {
+                        val sizeBytes = Utils.calculateFolderSize(tempDir)
+                        OtherGradleFolderItem(
+                            version = tempDir.name,
+                            path = tempDir.absolutePath,
+                            sizeReadable = Utils.formatSize(sizeBytes),
+                            sizeBytes = sizeBytes
+                        )
+                    }.await()
+                    cachesList + metadataList + temp
+                }
+
+            suspend fun loadCachesGradleWrapperInfos(gradleDir: File): List<CachesGradleWrapperItem> =
+                withContext(Dispatchers.IO) {
+                    val wrapperDir = File(gradleDir, "caches")
+
+                    val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
+                    val ignoreDirs =
+                        listOf("modules-2", "transforms-3", "jars-9", "journal-1", "build-cache-1")
+
+                    wrapperDir.listFiles()
+                        ?.filter { it.isDirectory && !ignoreDirs.contains(it.name) }
+                        ?.map { distDir ->
+                            async {
+                                val version = versionRegex.find(distDir.name)?.value ?: distDir.name
+                                val sizeBytes = Utils.calculateFolderSize(distDir)
+                                CachesGradleWrapperItem(
+                                    version = version,
+                                    path = distDir.absolutePath,
+                                    sizeReadable = Utils.formatSize(sizeBytes),
+                                    sizeBytes = sizeBytes
+                                )
+                            }
+                        }?.awaitAll()?.sortedByDescending {
+                            it.sizeBytes
+                        } ?: emptyList()
+                }
+
+            suspend fun loadDaemonInfos(gradleDir: File): List<DaemonItem> =
+                withContext(Dispatchers.IO) {
+                    val wrapperDir = File(gradleDir, "daemon")
+
+                    val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
+                    wrapperDir.listFiles()
+                        ?.filter { it.isDirectory }
+                        ?.map { distDir ->
+                            async {
+                                val version = versionRegex.find(distDir.name)?.value ?: distDir.name
+                                val sizeBytes = Utils.calculateFolderSize(distDir)
+                                DaemonItem(
+                                    name = version,
+                                    path = distDir.absolutePath,
+                                    sizeReadable = Utils.formatSize(sizeBytes),
+                                    sizeBytes = sizeBytes
+                                )
+                            }
+                        }?.awaitAll()?.sortedByDescending {
+                            it.sizeBytes
+                        } ?: emptyList()
+                }
+
+            suspend fun loadGradleWrapperInfos(gradleDir: File): List<WrapperItem> =
+                withContext(Dispatchers.IO) {
+                    val wrapperDir = File(gradleDir, "wrapper/dists")
+
+                    val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
+                    wrapperDir.listFiles()
+                        ?.filter { it.isDirectory }
+                        ?.map { distDir ->
+                            async {
+                                val version = versionRegex.find(distDir.name)?.value ?: distDir.name
+                                val sizeBytes = Utils.calculateFolderSize(distDir)
+                                WrapperItem(
+                                    version = version,
+                                    path = distDir.absolutePath,
+                                    sizeReadable = Utils.formatSize(sizeBytes),
+                                    sizeBytes = sizeBytes
+                                )
+                            }
+                        }?.awaitAll()?.sortedByDescending {
+                            it.sizeBytes
+                        } ?: emptyList()
+                }
+
+            val gradleDir = File(System.getProperty("user.home"), ".gradle")
+            val jdkInfoDeferred = async { loadJdkInfo() }
+            val wrapperItemDeferred = async { loadGradleWrapperInfos(gradleDir) }
+            val daemonItemDeferred = async { loadDaemonInfos(gradleDir) }
+            val cachesGradleWrapperItemDeferred = async { loadCachesGradleWrapperInfos(gradleDir) }
+            val otherFolderItemDeferred = async { loadOtherFolder(gradleDir) }
+
+
+            val wrapperItems = wrapperItemDeferred.await()
+            val wrapperTotalSizeBytes = wrapperItems.sumOf { it.sizeBytes }
+            val wrapperTotalSizeReadable = Utils.formatSize(wrapperTotalSizeBytes)
+            val wrapperInfo = WrapperInfo(
+                totalSizeBytes = wrapperTotalSizeBytes,
+                sizeReadable = wrapperTotalSizeReadable,
+                wrapperItems = wrapperItems
+            )
+
+            val daemonItems = daemonItemDeferred.await()
+            val daemonTotalSizeBytes = daemonItems.sumOf { it.sizeBytes }
+            val daemonTotalSizeReadable = Utils.formatSize(daemonTotalSizeBytes)
+            val daemonInfo = DaemonInfo(
+                totalSizeBytes = daemonTotalSizeBytes,
+                sizeReadable = daemonTotalSizeReadable,
+                daemonItems = daemonItems
+            )
+
+            val cachesGradleWrapperItems = cachesGradleWrapperItemDeferred.await()
+            val cachesGradleWrapperTotalSizeBytes = cachesGradleWrapperItems.sumOf { it.sizeBytes }
+            val cachesGradleWrapperTotalSizeReadable =
+                Utils.formatSize(cachesGradleWrapperTotalSizeBytes)
+            val cachesGradleWrapperInfo = CachesGradleWrapperInfo(
+                totalSizeBytes = cachesGradleWrapperTotalSizeBytes,
+                sizeReadable = cachesGradleWrapperTotalSizeReadable,
+                cachesGradleWrapperItems = cachesGradleWrapperItems
+            )
+
+            val jdkInfo = jdkInfoDeferred.await()
+
+            val gradleModulesInfo = Utils.getGradleModulesInfo()
+
+            val otherGradleFolderItems = otherFolderItemDeferred.await()
+            val otherGradleFolderTotalSizeBytes = otherGradleFolderItems.sumOf { it.sizeBytes }
+            val otherGradleFolderTotalSizeReadable =
+                Utils.formatSize(otherGradleFolderTotalSizeBytes)
+            val otherGradleFolderInfo = OtherGradleFolderInfo(
+                totalSizeBytes = otherGradleFolderTotalSizeBytes,
+                sizeReadable = otherGradleFolderTotalSizeReadable,
+                otherGradleFolderItems = otherGradleFolderItems
+            )
+
+            val totalSizeBytes = gradleModulesInfo.sizeBytes + cachesGradleWrapperTotalSizeBytes +
+                    daemonTotalSizeBytes + wrapperTotalSizeBytes + jdkInfo.totalSizeBytes + otherGradleFolderTotalSizeBytes
+            val totalSizeReadable = Utils.formatSize(totalSizeBytes)
+
+            GradleInfo(
+                rootPath = gradleDir.absolutePath,
+                jdkInfo = jdkInfo,
+                wrapperInfo = wrapperInfo,
+                daemonInfo = daemonInfo,
+                cachesGradleWrapperInfo = cachesGradleWrapperInfo,
+                totalSizeBytes = totalSizeBytes,
+                sizeReadable = totalSizeReadable,
+                gradleModulesInfo = gradleModulesInfo,
+                otherGradleFolderInfo = otherGradleFolderInfo
+            )
+        } catch (e: Exception) {
+            AppLogger.e(TAG, e) { "Error analyzing Gradle data" }
+            throw e
+        }
+    }
+
+    private suspend fun loadJdkInfo(): JdkInfo = withContext(Dispatchers.IO) {
+
+        suspend fun readJdkInfo(jdkDir: File): JdkItem = withContext(Dispatchers.IO) {
+            val version = try {
+                val possibleReleaseFiles = listOf(
+                    File(jdkDir, "release"),
+                    File(jdkDir, "Contents/Home/release"),
+                    File(jdkDir, "Home/release")
+                )
+
+                val releaseFile = possibleReleaseFiles.firstOrNull { it.exists() }
+                    ?: jdkDir.walkTopDown()
+                        .maxDepth(4)
+                        .firstOrNull { it.isFile && it.name == "release" }
+
+                releaseFile?.useLines { lines ->
+                    lines.firstOrNull { it.startsWith("JAVA_VERSION=") }
+                        ?.substringAfter("=")
+                        ?.replace("\"", "")
+                }
+            } catch (e: Exception) {
+                AppLogger.e(TAG, e) { "Error reading JDK version from ${jdkDir.absolutePath}" }
+                null
+            }
+
+            val sizeBytes = Utils.calculateFolderSize(jdkDir)
+            JdkItem(
+                path = jdkDir.absolutePath,
+                name = version,
+                sizeReadable = Utils.formatSize(sizeBytes),
+                sizeBytes = sizeBytes,
             )
         }
 
-    private suspend fun loadIdeaCache(userHome: String): StorageInfo = withContext(Dispatchers.IO) {
-        val ideaCachePath = when {
-            System.getProperty("os.name").lowercase().contains("mac") ->
-                Paths.get(userHome, "Library", "Caches")
 
-            System.getProperty("os.name").lowercase().contains("windows") ->
-                Paths.get(userHome, "AppData", "Local", "JetBrains")
-
-            else -> Paths.get(userHome, ".cache")
-        }
-        val sizeBytes = Utils.calculateFolderSize(ideaCachePath.toFile())
-        StorageInfo(
-            path = ideaCachePath.toString(),
-            exists = Files.exists(ideaCachePath),
-            sizeReadable = formatSize(sizeBytes),
-            sizeBytes = sizeBytes
-        )
-    }
-
-    private suspend fun loadKonanInfo(): CacheInfo = withContext(Dispatchers.IO) {
-        val konanDir = File(System.getProperty("user.home"), ".konan")
-        val sizeBytes = if (konanDir.exists()) Utils.calculateFolderSize(konanDir) else 0L
-        CacheInfo(
-            name = "Kotlin/Native (.konan)",
-            path = konanDir.absolutePath,
-            sizeReadable = formatSize(sizeBytes),
-            sizeBytes = sizeBytes
-        )
-    }
-
-    private suspend fun loadSkikoInfo(): CacheInfo = withContext(Dispatchers.IO) {
-        val skikoDir = File(System.getProperty("user.home"), ".skiko")
-        val sizeBytes = if (skikoDir.exists()) Utils.calculateFolderSize(skikoDir) else 0L
-        CacheInfo(
-            name = "Skiko (.skiko)",
-            path = skikoDir.absolutePath,
-            sizeReadable = formatSize(sizeBytes),
-            sizeBytes = sizeBytes
-        )
-    }
-
-    private suspend fun loadKonanInfos(): List<KonanInfo> = withContext(Dispatchers.IO) {
-        val konanDir = File(System.getProperty("user.home"), ".konan")
-        if (!konanDir.exists()) return@withContext emptyList()
-
-        val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
-        konanDir.listFiles()
-            ?.filter { it.isDirectory && it.name.contains("kotlin-native-prebuilt") }
-            ?.map { dir ->
-                async {
-                    val version = versionRegex.find(dir.name)?.value
-                    val sizeBytes = Utils.calculateFolderSize(dir)
-                    KonanInfo(
-                        version = version,
-                        path = dir.absolutePath,
-                        sizeReadable = formatSize(sizeBytes),
-                        sizeBytes = sizeBytes
-                    )
-                }
-            }?.awaitAll()?.sortedByDescending {
-                it.sizeBytes
-            } ?: emptyList()
-    }
-
-    private suspend fun loadGradleInfos(): List<GradleInfo> = withContext(Dispatchers.IO) {
-        val gradleDir = File(System.getProperty("user.home"), ".gradle")
-        if (!gradleDir.exists()) return@withContext emptyList()
-
-        val targets = listOf("caches", ".tmp", "wrapper", "daemon")
-        targets.map { sub ->
-            async {
-                val folder = File(gradleDir, sub)
-                if (folder.exists()) {
-                    val sizeBytes = Utils.calculateFolderSize(folder)
-                    GradleInfo(
-                        type = sub,
-                        path = folder.absolutePath,
-                        sizeReadable = formatSize(sizeBytes),
-                        sizeBytes = sizeBytes
-                    )
-                } else null
-            }
-        }.awaitAll().filterNotNull().sortedByDescending {
-            it.sizeBytes
-        }
-    }
-
-    private suspend fun loadGradleWrapperInfos(): List<GradleWrapperInfo> =
-        withContext(Dispatchers.IO) {
-            val wrapperDir = File(System.getProperty("user.home"), ".gradle/wrapper/dists")
-            if (!wrapperDir.exists()) return@withContext emptyList()
-
-            val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
-            wrapperDir.listFiles()
-                ?.filter { it.isDirectory }
-                ?.map { distDir ->
-                    async {
-                        val version = versionRegex.find(distDir.name)?.value
-                        val sizeBytes = Utils.calculateFolderSize(distDir)
-                        GradleWrapperInfo(
-                            version = version ?: "Unknown",
-                            path = distDir.absolutePath,
-                            sizeReadable = formatSize(sizeBytes),
-                            sizeBytes = sizeBytes
-                        )
-                    }
-                }?.awaitAll()?.sortedByDescending {
-                    it.sizeBytes
-                } ?: emptyList()
-        }
-
-    private suspend fun loadJdks(): List<JdkInfo> = withContext(Dispatchers.IO) {
-        val jdks = mutableListOf<Deferred<JdkInfo>>()
+        val jdksDeferred = mutableListOf<Deferred<JdkItem>>()
         val userHome = System.getProperty("user.home")
         val os = System.getProperty("os.name").lowercase()
 
@@ -412,7 +888,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
         System.getenv("JAVA_HOME")?.let { javaHome ->
             val envJavaHome = File(javaHome)
             if (envJavaHome.exists()) {
-                jdks.add(async { readJdkInfo(envJavaHome) })
+                jdksDeferred.add(async { readJdkInfo(envJavaHome) })
             }
         }
 
@@ -447,85 +923,21 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             if (baseDir.exists() && baseDir.isDirectory) {
                 baseDir.listFiles()?.forEach { dir ->
                     if (dir.isDirectory) {
-                        jdks.add(async { readJdkInfo(dir) })
+                        jdksDeferred.add(async { readJdkInfo(dir) })
                     }
                 }
             }
         }
 
-        jdks.awaitAll().distinctBy { it.path }.sortedByDescending {
+        val jdks = jdksDeferred.awaitAll().distinctBy { it.path }.sortedByDescending {
             it.sizeBytes
         }
-    }
-
-    private suspend fun readJdkInfo(jdkDir: File): JdkInfo = withContext(Dispatchers.IO) {
-        val version = try {
-            val possibleReleaseFiles = listOf(
-                File(jdkDir, "release"),
-                File(jdkDir, "Contents/Home/release"),
-                File(jdkDir, "Home/release")
-            )
-
-            val releaseFile = possibleReleaseFiles.firstOrNull { it.exists() }
-                ?: jdkDir.walkTopDown()
-                    .maxDepth(4)
-                    .firstOrNull { it.isFile && it.name == "release" }
-
-            releaseFile?.useLines { lines ->
-                lines.firstOrNull { it.startsWith("JAVA_VERSION=") }
-                    ?.substringAfter("=")
-                    ?.replace("\"", "")
-            }
-        } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error reading JDK version from ${jdkDir.absolutePath}" }
-            null
-        }
-
-        val sizeBytes = Utils.calculateFolderSize(jdkDir)
+        val jdkSize = jdks.sumOf { it.sizeBytes }
+        val jdkSizeReadable = Utils.formatSize(jdkSize)
         JdkInfo(
-            path = jdkDir.absolutePath,
-            version = version,
-            sizeReadable = formatSize(sizeBytes),
-            sizeBytes = sizeBytes
+            sizeReadable = jdkSizeReadable,
+            totalSizeBytes = jdkSize,
+            jdkItems = jdks,
         )
-    }
-
-    override suspend fun getGradleCacheInfos(): List<GradleCacheInfo> =
-        withContext(Dispatchers.IO) {
-            AppLogger.i(TAG) { "Loading Gradle cache information" }
-            try {
-                val cachesDir = File(System.getProperty("user.home"), ".gradle/caches")
-                if (!cachesDir.exists()) return@withContext emptyList()
-
-                val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
-                cachesDir.listFiles()
-                    ?.filter { it.isDirectory && versionRegex.matches(it.name) }
-                    ?.map { versionDir ->
-                        async {
-                            val sizeBytes = Utils.calculateFolderSize(versionDir)
-                            GradleCacheInfo(
-                                version = versionDir.name,
-                                path = versionDir.absolutePath,
-                                sizeReadable = formatSize(sizeBytes),
-                                sizeBytes = sizeBytes
-                            )
-                        }
-                    }?.awaitAll()?.sortedByDescending {
-                        it.sizeBytes
-                    } ?: emptyList()
-            } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading Gradle cache information" }
-                emptyList()
-            }
-        }
-
-    override suspend fun getGradleModulesInfo(): GradleModulesInfo? = withContext(Dispatchers.IO) {
-        AppLogger.i(TAG) { "Loading Gradle modules information" }
-        try {
-            Utils.getGradleModulesInfo()
-        } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error loading Gradle modules information" }
-            null
-        }
     }
 }

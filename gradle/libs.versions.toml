@@ -1,6 +1,6 @@
 [versions]
 # Core Kotlin
-kotlin = "2.2.20"
+kotlin = "2.2.21"
 
 # Coroutines & Serialization & Datetime
 kotlinx-coroutines = "1.10.2"
@@ -8,20 +8,20 @@ kotlinx-serialization = "1.9.0"
 kotlinx-datetime = "0.7.1"
 
 # Compose Multiplatform
-composeMultiplatform = "1.8.2"
-composeHotReload = "1.0.0-beta04"
+composeMultiplatform = "1.9.0"
+composeHotReload = "1.0.0-rc02"
 
 # Androidx Core
-androidx-lifecycle = "2.9.1"
+androidx-lifecycle = "2.9.5"
 
 # Testing
 junit = "4.13.2"
 
 # Navigation
-androidx-navigation = "2.9.0-beta03"
+androidx-navigation = "2.9.1"
 
 # Material Design
-material3-adaptive = "1.1.2"
+material3-adaptive = "1.2.0"
 
 # DataStore
 datastore = "1.1.7"
@@ -30,10 +30,10 @@ datastore = "1.1.7"
 coil3 = "3.3.0"
 
 # Dependency Injection
-koin = "4.1.0"
+koin = "4.1.1"
 
 # Logging
-kermit = "2.0.6"
+kermit = "2.0.8"
 
 # File
 filekit = "0.11.0"
@@ -43,6 +43,10 @@ akuleshov7 = "0.7.1"
 
 # Semantic version
 github-z4kn4fein = "3.0.0"
+
+# Theme Changer
+jsystemthemedetector = "3.6"
+
 
 [libraries]
 # Testing
@@ -95,6 +99,8 @@ akuleshov7-ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "a
 
 # Semantic version
 github-z4kn4fein-semver = { module = "io.github.z4kn4fein:semver", version.ref = "github-z4kn4fein" }
+
+jsystemthemedetector = { module = "com.github.Dansoftowner:jSystemThemeDetector", version.ref = "jsystemthemedetector" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

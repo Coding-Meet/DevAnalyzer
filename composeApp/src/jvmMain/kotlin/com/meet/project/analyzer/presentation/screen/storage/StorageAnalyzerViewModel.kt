@@ -6,10 +6,14 @@ import com.meet.project.analyzer.core.utility.AppLogger
 import com.meet.project.analyzer.core.utility.Constant
 import com.meet.project.analyzer.core.utility.Utils
 import com.meet.project.analyzer.core.utility.Utils.tagName
-import com.meet.project.analyzer.data.models.storage.AvdInfo
-import com.meet.project.analyzer.data.models.storage.DevEnvironmentInfo
-import com.meet.project.analyzer.data.models.storage.GradleModulesInfo
-import com.meet.project.analyzer.data.models.storage.SdkInfo
+import com.meet.project.analyzer.data.models.storage.AndroidAvdInfo
+import com.meet.project.analyzer.data.models.storage.AndroidSdkInfo
+import com.meet.project.analyzer.data.models.storage.GradleInfo
+import com.meet.project.analyzer.data.models.storage.IdeDataInfo
+import com.meet.project.analyzer.data.models.storage.KonanInfo
+import com.meet.project.analyzer.data.models.storage.StorageAnalyzerInfo
+import com.meet.project.analyzer.data.models.storage.StorageBreakdownItem
+import com.meet.project.analyzer.data.models.storage.StorageBreakdownItemColor
 import com.meet.project.analyzer.data.repository.storage.StorageAnalyzerRepository
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
@@ -22,7 +26,7 @@ import kotlinx.serialization.json.Json
 import kotlin.time.measureTime
 
 class StorageAnalyzerViewModel(
-    private val repository: StorageAnalyzerRepository
+    private val storageAnalyzerRepository: StorageAnalyzerRepository
 ) : ViewModel() {
 
     private val TAG = tagName(javaClass = javaClass)
@@ -31,11 +35,6 @@ class StorageAnalyzerViewModel(
     val uiState: StateFlow<StorageAnalyzerUiState> = _uiState.asStateFlow()
 
     private var loadAllJob: Job? = null
-    private var loadSdkJob: Job? = null
-    private var loadAvdsJob: Job? = null
-    private var loadDevEnvJob: Job? = null
-    private var loadGradleCachesJob: Job? = null
-    private var loadGradleModulesJob: Job? = null
 
     init {
         handleIntent(StorageAnalyzerIntent.LoadAllData)
@@ -44,12 +43,7 @@ class StorageAnalyzerViewModel(
     fun handleIntent(intent: StorageAnalyzerIntent) {
         AppLogger.d(TAG) { "Handling intent: ${intent::class.simpleName}" }
         when (intent) {
-            is StorageAnalyzerIntent.LoadAllData -> dummyAllData() /*loadAllData()*/
-            is StorageAnalyzerIntent.LoadAvds -> loadAvds()
-            is StorageAnalyzerIntent.LoadSdkInfo -> loadSdkInfo()
-            is StorageAnalyzerIntent.LoadDevEnvironment -> loadDevEnvironment()
-            is StorageAnalyzerIntent.LoadGradleCaches -> loadGradleCaches()
-            is StorageAnalyzerIntent.LoadGradleModules -> loadGradleModules()
+            is StorageAnalyzerIntent.LoadAllData -> loadAllData() /*dummyAllData()*/
             is StorageAnalyzerIntent.ClearError -> clearError()
             is StorageAnalyzerIntent.RefreshData -> refreshData()
             is StorageAnalyzerIntent.SelectTab -> {
@@ -107,7 +101,11 @@ class StorageAnalyzerViewModel(
 
                 AppLogger.i(TAG) {
                     "All data loaded successfully. Total storage: ${
-                        Utils.formatSize(storageAnalyzerUiState.totalStorageBytes)
+                        storageAnalyzerUiState.storageAnalyzerInfo?.totalStorageBytes?.let {
+                            Utils.formatSize(
+                                it
+                            )
+                        }
                     }"
                 }
 
@@ -118,13 +116,7 @@ class StorageAnalyzerViewModel(
                         scanProgress = 1f,
                         scanStatus = "Scan completed successfully!",
                         error = null,
-                        avds = storageAnalyzerUiState.avds,
-                        sdkInfo = storageAnalyzerUiState.sdkInfo,
-                        devEnvironmentInfo = storageAnalyzerUiState.devEnvironmentInfo,
-                        gradleCaches = storageAnalyzerUiState.gradleCaches,
-                        gradleModulesInfo = storageAnalyzerUiState.gradleModulesInfo,
-                        totalStorageUsed = storageAnalyzerUiState.totalStorageUsed,
-                        totalStorageBytes = storageAnalyzerUiState.totalStorageBytes,
+                        storageAnalyzerInfo = storageAnalyzerUiState.storageAnalyzerInfo
                     )
                 }
             } catch (e: Exception) {
@@ -147,7 +139,8 @@ class StorageAnalyzerViewModel(
             it.copy(
                 isScanning = true,
                 scanProgress = 0f,
-                scanStatus = "Starting scan..."
+                scanStatus = "Starting scan...",
+                error = null
             )
         }
         loadAllJob?.cancel()
@@ -155,8 +148,13 @@ class StorageAnalyzerViewModel(
             try {
                 val measureTime = measureTime {
 
-                    _uiState.update { it.copy(scanStatus = "Loading AVDs...", scanProgress = 0.1f) }
-                    val avds = repository.getAvdInfoList()
+                    _uiState.update {
+                        it.copy(
+                            scanStatus = "Loading AVDs...",
+                            scanProgress = 0.1f
+                        )
+                    }
+                    val androidAvdInfo = storageAnalyzerRepository.analyzeAvdData()
 
                     _uiState.update {
                         it.copy(
@@ -164,17 +162,23 @@ class StorageAnalyzerViewModel(
                             scanProgress = 0.3f
                         )
                     }
-                    val sdkInfo = repository.getSdkInfo()
-
+                    val androidSdkInfo = storageAnalyzerRepository.analyzeAndroidEvnData()
 
                     _uiState.update {
                         it.copy(
-                            scanStatus = "Scanning Development Environment...",
+                            scanStatus = "Analyzing Kotlin/Native info...",
+                            scanProgress = 0.4f
+                        )
+                    }
+                    val konanInfo = storageAnalyzerRepository.analyzeKonanData()
+
+                    _uiState.update {
+                        it.copy(
+                            scanStatus = "Analyzing IDE info...",
                             scanProgress = 0.5f
                         )
                     }
-                    val devEnvironmentInfo = repository.getDevEnvironmentInfo()
-
+                    val ideDataInfo = storageAnalyzerRepository.analyzeIdeData()
 
                     _uiState.update {
                         it.copy(
@@ -182,33 +186,71 @@ class StorageAnalyzerViewModel(
                             scanProgress = 0.7f
                         )
                     }
-                    val gradleCaches = repository.getGradleCacheInfos()
-
-                    _uiState.update {
-                        it.copy(
-                            scanStatus = "Reading Gradle Modules...",
-                            scanProgress = 0.85f
-                        )
-                    }
-                    val gradleModulesInfo = repository.getGradleModulesInfo()
-
+                    val gradleInfo = storageAnalyzerRepository.analyzeGradleData()
 
                     val totalBytes = calculateTotalStorage(
-                        avds, sdkInfo, devEnvironmentInfo, gradleModulesInfo
+                        androidAvdInfo = androidAvdInfo,
+                        androidSdkInfo = androidSdkInfo,
+                        konanInfo = konanInfo,
+                        ideDataInfo = ideDataInfo,
+                        gradleInfo = gradleInfo
                     )
-
+                    val totalStorageUsed = Utils.formatSize(totalBytes)
+                    val storageBreakdownItemList = listOf(
+                        StorageBreakdownItem(
+                            name = "Gradle",
+                            sizeByte = gradleInfo.totalSizeBytes,
+                            sizeReadable = gradleInfo.sizeReadable,
+                            storageBreakdownItemColor = StorageBreakdownItemColor.GradleCache
+                        ),
+                        StorageBreakdownItem(
+                            name = "IDE",
+                            sizeByte = ideDataInfo.totalSizeBytes,
+                            sizeReadable = ideDataInfo.totalSizeReadable,
+                            storageBreakdownItemColor = StorageBreakdownItemColor.IdeCache
+                        ),
+                        StorageBreakdownItem(
+                            name = "Kotlin/Native",
+                            sizeByte = konanInfo.totalSizeBytes,
+                            sizeReadable = konanInfo.sizeReadable,
+                            storageBreakdownItemColor = StorageBreakdownItemColor.KotlinNativeInfo
+                        ),
+                        StorageBreakdownItem(
+                            name = "SDK",
+                            sizeByte = androidSdkInfo.totalSizeBytes,
+                            sizeReadable = androidSdkInfo.sizeReadable,
+                            storageBreakdownItemColor = StorageBreakdownItemColor.Sdk
+                        ),
+                        StorageBreakdownItem(
+                            name = "AVD",
+                            sizeByte = androidAvdInfo.totalSizeBytes,
+                            sizeReadable = androidAvdInfo.sizeReadable,
+                            storageBreakdownItemColor = StorageBreakdownItemColor.Avd
+                        ),
+                        StorageBreakdownItem(
+                            name = "Jdk",
+                            sizeByte = gradleInfo.jdkInfo.totalSizeBytes,
+                            sizeReadable = gradleInfo.jdkInfo.sizeReadable,
+                            storageBreakdownItemColor = StorageBreakdownItemColor.Jdk
+                        )
+                    ).sortedByDescending {
+                        it.sizeByte
+                    }
                     _uiState.update {
                         it.copy(
                             isScanning = false,
                             scanProgress = 1f,
                             scanStatus = "Scan completed successfully!",
-                            avds = avds,
-                            sdkInfo = sdkInfo,
-                            devEnvironmentInfo = devEnvironmentInfo,
-                            gradleCaches = gradleCaches,
-                            gradleModulesInfo = gradleModulesInfo,
-                            totalStorageUsed = Utils.formatSize(totalBytes),
-                            totalStorageBytes = totalBytes,
+                            storageAnalyzerInfo = StorageAnalyzerInfo(
+                                ideDataInfo = ideDataInfo,
+                                konanInfo = konanInfo,
+                                androidAvdInfo = androidAvdInfo,
+                                androidSdkInfo = androidSdkInfo,
+                                gradleInfo = gradleInfo,
+                                totalStorageUsed = totalStorageUsed,
+                                totalStorageBytes = totalBytes,
+                                storageBreakdownItemList = storageBreakdownItemList
+                            ),
                             error = null
                         )
                     }
@@ -240,188 +282,6 @@ class StorageAnalyzerViewModel(
         }
     }
 
-    private fun loadAvds() {
-        AppLogger.i(TAG) { "Loading AVDs" }
-        loadAvdsJob?.cancel()
-        loadAvdsJob = viewModelScope.launch {
-            try {
-                _uiState.update {
-                    it.copy(
-                        isScanning = true,
-                        scanProgress = 0f,
-                        scanStatus = "Scanning AVDs..."
-                    )
-                }
-                val avds = repository.getAvdInfoList()
-                _uiState.update {
-                    it.copy(
-                        avds = avds,
-                        isScanning = false,
-                        scanProgress = 1f,
-                        scanStatus = "AVDs loaded successfully!"
-                    )
-                }
-                AppLogger.i(TAG) { "Loaded ${avds.size} AVDs" }
-            } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading AVDs" }
-                _uiState.update {
-                    it.copy(
-                        isScanning = false,
-                        scanProgress = 0f,
-                        scanStatus = "",
-                        error = "Failed to load AVDs: ${e.message}"
-                    )
-                }
-            }
-        }
-    }
-
-    private fun loadSdkInfo() {
-        AppLogger.i(TAG) { "Loading SDK info" }
-        loadSdkJob?.cancel()
-        loadSdkJob = viewModelScope.launch {
-            try {
-                _uiState.update {
-                    it.copy(
-                        isScanning = true,
-                        scanProgress = 0f,
-                        scanStatus = "Scanning SDK info..."
-                    )
-                }
-                val sdkInfo = repository.getSdkInfo()
-                _uiState.update {
-                    it.copy(
-                        sdkInfo = sdkInfo,
-                        isScanning = false,
-                        scanProgress = 1f,
-                        scanStatus = "SDK info loaded successfully!"
-                    )
-                }
-                AppLogger.i(TAG) { "SDK info loaded: ${sdkInfo.sizeReadable}" }
-            } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading SDK info" }
-                _uiState.update {
-                    it.copy(
-                        isScanning = false,
-                        scanProgress = 0f,
-                        scanStatus = "",
-                        error = "Failed to load SDK info: ${e.message}"
-                    )
-                }
-            }
-        }
-    }
-
-    private fun loadDevEnvironment() {
-        AppLogger.i(TAG) { "Loading dev environment" }
-        loadDevEnvJob?.cancel()
-        loadDevEnvJob = viewModelScope.launch {
-            try {
-                _uiState.update {
-                    it.copy(
-                        isScanning = true,
-                        scanProgress = 0f,
-                        scanStatus = "Scanning dev environment..."
-                    )
-                }
-                val devEnv = repository.getDevEnvironmentInfo()
-                _uiState.update {
-                    it.copy(
-                        devEnvironmentInfo = devEnv,
-                        isScanning = false,
-                        scanProgress = 1f,
-                        scanStatus = "Dev environment loaded successfully!"
-                    )
-                }
-                AppLogger.i(TAG) { "Dev environment loaded" }
-            } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading dev environment" }
-                _uiState.update {
-                    it.copy(
-                        isScanning = false,
-                        scanProgress = 0f,
-                        scanStatus = "",
-                        error = "Failed to load dev environment: ${e.message}"
-                    )
-                }
-            }
-        }
-    }
-
-    private fun loadGradleCaches() {
-        AppLogger.i(TAG) { "Loading Gradle caches" }
-        loadGradleCachesJob?.cancel()
-        loadGradleCachesJob = viewModelScope.launch {
-            try {
-                _uiState.update {
-                    it.copy(
-                        isScanning = true,
-                        scanProgress = 0f,
-                        scanStatus = "Scanning Gradle caches..."
-                    )
-                }
-                val caches = repository.getGradleCacheInfos()
-                _uiState.update {
-                    it.copy(
-                        gradleCaches = caches,
-                        isScanning = false,
-                        scanProgress = 1f,
-                        scanStatus = "Gradle caches loaded successfully!"
-                    )
-                }
-                AppLogger.i(TAG) { "Loaded ${caches.size} Gradle caches" }
-            } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading Gradle caches" }
-                _uiState.update {
-                    it.copy(
-                        isScanning = false,
-                        scanProgress = 0f,
-                        scanStatus = "",
-                        error = "Failed to load Gradle caches: ${e.message}"
-                    )
-                }
-            }
-        }
-    }
-
-    private fun loadGradleModules() {
-        AppLogger.i(TAG) { "Loading Gradle modules" }
-        loadGradleModulesJob?.cancel()
-        loadGradleModulesJob = viewModelScope.launch {
-            try {
-                _uiState.update {
-                    it.copy(
-                        isScanning = true,
-                        scanProgress = 0f,
-                        scanStatus = "Scanning Gradle modules..."
-                    )
-                }
-                val modules = repository.getGradleModulesInfo()
-                _uiState.update {
-                    it.copy(
-                        gradleModulesInfo = modules,
-                        isScanning = false,
-                        scanProgress = 1f,
-                        scanStatus = "Gradle modules loaded successfully!"
-                    )
-                }
-                AppLogger.i(TAG) {
-                    "Gradle modules loaded: ${modules?.libraries?.size ?: 0} libraries"
-                }
-            } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading Gradle modules" }
-                _uiState.update {
-                    it.copy(
-                        isScanning = false,
-                        scanProgress = 0f,
-                        scanStatus = "",
-                        error = "Failed to load Gradle modules: ${e.message}"
-                    )
-                }
-            }
-        }
-    }
-
     private fun clearError() {
         AppLogger.d(TAG) { "Clearing error" }
         _uiState.update { it.copy(error = null) }
@@ -437,43 +297,26 @@ class StorageAnalyzerViewModel(
     }
 
     private fun calculateTotalStorage(
-        avds: List<AvdInfo>,
-        sdkInfo: SdkInfo,
-        devEnvironmentInfo: DevEnvironmentInfo?,
-        gradleModulesInfo: GradleModulesInfo?
+        androidAvdInfo: AndroidAvdInfo,
+        androidSdkInfo: AndroidSdkInfo,
+        konanInfo: KonanInfo,
+        ideDataInfo: IdeDataInfo,
+        gradleInfo: GradleInfo
     ): Long {
-        val avdStorage = avds.sumOf { it.sizeBytes }
-        val sdkStorage = sdkInfo.totalSizeBytes
-        val gradleCacheStorage = devEnvironmentInfo?.gradleCache?.sizeBytes ?: 0L
-        val ideaCacheStorage = devEnvironmentInfo?.ideaCache?.sizeBytes ?: 0L
-        val konanStorage = devEnvironmentInfo?.konanInfo?.sizeBytes ?: 0L
-        val skikoStorage = devEnvironmentInfo?.skikoInfo?.sizeBytes ?: 0L
-        val jdkStorage = devEnvironmentInfo?.jdks?.sumOf { it.sizeBytes } ?: 0L
-        val gradleModulesStorage = gradleModulesInfo?.sizeBytes ?: 0L
-
-        return avdStorage + sdkStorage + gradleCacheStorage + ideaCacheStorage +
-                konanStorage + skikoStorage + jdkStorage + gradleModulesStorage
+        val avdStorage = androidAvdInfo.totalSizeBytes
+        val sdkStorage = androidSdkInfo.totalSizeBytes
+        val konanStorage = konanInfo.totalSizeBytes
+        val ideStorage = ideDataInfo.totalSizeBytes
+        val gradleStorage = gradleInfo.totalSizeBytes
+        return avdStorage + sdkStorage + konanStorage + ideStorage + gradleStorage
     }
 
     private fun cancelAllJobs() {
         AppLogger.d(TAG) { "Cancelling all jobs" }
         loadAllJob?.cancel()
-        loadSdkJob?.cancel()
-        loadAvdsJob?.cancel()
-        loadDevEnvJob?.cancel()
-        loadGradleCachesJob?.cancel()
-        loadGradleModulesJob?.cancel()
-
         loadAllJob = null
-        loadSdkJob = null
-        loadAvdsJob = null
-        loadDevEnvJob = null
-        loadGradleCachesJob = null
-        loadGradleModulesJob = null
 
     }
-
-    // Clean up when ViewModel is destroyed
     override fun onCleared() {
         AppLogger.d(TAG) { "ViewModel cleared" }
         cancelAllJobs()

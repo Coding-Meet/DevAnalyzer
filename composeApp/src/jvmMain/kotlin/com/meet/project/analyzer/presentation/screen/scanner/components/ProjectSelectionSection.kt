@@ -24,7 +24,6 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -60,87 +59,82 @@ fun ProjectSelectionSection(
             animationSpec = tween(durationMillis = 250)
         )
     ) {
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            color = MaterialTheme.colorScheme.surfaceVariant,
-            shadowElevation = 2.dp
-        ) {
-            Column(
-                modifier = Modifier.padding(10.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                // Path input and buttons in one row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    CustomOutlinedTextField(
-                        value = uiState.selectedPath,
-                        onValueChange = { },
-                        onClear = onClearResults,
-                        modifier = Modifier.weight(1f),
-                        leadingIcon = Icons.Default.Folder,
-                        labelText = "Enter Project Path",
-                        readOnly = true,
-                        placeholder = { Text("Ex: /Users/meet/AndroidStudioProjects/AnyKotlinProject") },
-                    )
 
-                    Button(
-                        onClick = onBrowseClick,
-                        enabled = !uiState.isScanning,
-                        modifier = Modifier
-                            .height(56.dp)
-                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(10.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            // Path input and buttons in one row
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                CustomOutlinedTextField(
+                    value = uiState.selectedPath,
+                    onValueChange = { },
+                    onClear = onClearResults,
+                    modifier = Modifier.weight(1f),
+                    leadingIcon = Icons.Default.Folder,
+                    labelText = "Enter Project Path",
+                    readOnly = true,
+                    placeholder = { Text("Ex: /Users/meet/AndroidStudioProjects/AnyKotlinProject") },
+                )
+
+                Button(
+                    onClick = onBrowseClick,
+                    enabled = !uiState.isScanning,
+                    modifier = Modifier
+                        .height(56.dp)
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                ) {
+                    Icon(
+                        Icons.Default.FolderOpen,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Browse")
+                }
+
+                Button(
+                    onClick = onAnalyzeClick,
+                    enabled = uiState.selectedPath.isNotEmpty() && !uiState.isScanning,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    modifier = Modifier
+                        .height(56.dp)
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+
                     ) {
+                    if (uiState.isScanning) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(18.dp),
+                            strokeWidth = 2.dp,
+                        )
+                    } else {
                         Icon(
-                            Icons.Default.FolderOpen,
+                            Icons.Default.PlayArrow,
                             contentDescription = null,
                             modifier = Modifier.size(18.dp)
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Browse")
                     }
-
-                    Button(
-                        onClick = onAnalyzeClick,
-                        enabled = uiState.selectedPath.isNotEmpty() && !uiState.isScanning,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        modifier = Modifier
-                            .height(56.dp)
-                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-
-                        ) {
-                        if (uiState.isScanning) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(18.dp),
-                                strokeWidth = 2.dp,
-                            )
-                        } else {
-                            Icon(
-                                Icons.Default.PlayArrow,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(if (uiState.isScanning) "Analyzing..." else "Analyze")
-                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(if (uiState.isScanning) "Analyzing..." else "Analyze")
                 }
-
-                // Progress and status
-                ProgressStatusLayout(
-                    isScanning = uiState.isScanning,
-                    scanProgress = uiState.scanProgress,
-                    scanStatus = uiState.scanStatus
-                )
-
-                // Error display
-                ErrorLayout(error = uiState.error, onClearError = onClearError)
-
             }
+
+            // Progress and status
+            ProgressStatusLayout(
+                isScanning = uiState.isScanning,
+                scanProgress = uiState.scanProgress,
+                scanStatus = uiState.scanStatus
+            )
+
+            // Error display
+            ErrorLayout(error = uiState.error, onClearError = onClearError)
+
         }
     }
 }

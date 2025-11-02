@@ -8,7 +8,7 @@ data class ProjectFileInfo(
     val path: String,
     val relativePath: String,
     val type: FileType,
-    val size: String,
+    val sizeReadable: String,
     val sizeBytes: Long,
     val extension: String,
     val file: File,

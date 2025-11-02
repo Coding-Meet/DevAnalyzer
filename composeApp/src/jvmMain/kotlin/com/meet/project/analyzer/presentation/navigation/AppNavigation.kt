@@ -21,19 +21,23 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.meet.project.analyzer.presentation.navigation.navigation_bar.NavigationItem
 import com.meet.project.analyzer.presentation.navigation.navigation_bar.NavigationRailLayout
-import com.meet.project.analyzer.presentation.screen.dependencies.SystemDependencyScreen
+import com.meet.project.analyzer.presentation.screen.onboarding.OnboardingScreen
 import com.meet.project.analyzer.presentation.screen.scanner.ProjectScannerScreen
+import com.meet.project.analyzer.presentation.screen.splash.SplashScreen
 import com.meet.project.analyzer.presentation.screen.storage.StorageAnalyzerScreen
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(
+    isDarkMode: Boolean,
+    onThemeChange: () -> Unit,
+) {
     val navController = rememberNavController()
     val navBackStackEntry = navController.currentBackStackEntryAsState()
 
     val currentNavigationItem by remember(navBackStackEntry) {
         derivedStateOf {
             NavigationItem.entries.find { navigationItem ->
-                navBackStackEntry.value.isRouteInHierarchy(navigationItem.route::class)
+                navBackStackEntry.value.isRouteInHierarchy(navigationItem.appRoute::class)
             }
         }
     }
@@ -65,7 +69,7 @@ fun AppNavigation() {
                 NavigationRailLayout(
                     currentNavigationItem = currentNavigationItem,
                     onNavigate = {
-                        navController.navigate(it.route) {
+                        navController.navigate(it.appRoute) {
                             // Pop up to the start destination of the graph to
                             // avoid building up a large stack of destinations
                             // on the back stack as users select items
@@ -78,7 +82,9 @@ fun AppNavigation() {
                             // Restore state when re-selecting a previously selected item
                             restoreState = true
                         }
-                    }
+                    },
+                    isDarkTheme = isDarkMode,
+                    onThemeChange = onThemeChange,
                 )
             }
         },
@@ -86,20 +92,35 @@ fun AppNavigation() {
     ) {
         NavHost(
             navController = navController,
-            startDestination = AppRoute.ProjectScanner
+            startDestination = AppRoute.Splash
         ) {
-            composable<AppRoute.ProjectScanner> {
+            composable<AppRoute.Splash> {
+                SplashScreen(
+                    onSplashFinished = { appRoute ->
+                        navController.navigate(appRoute) {
+                            popUpTo(AppRoute.Splash) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
+            }
+            composable<AppRoute.Onboarding> {
+                OnboardingScreen(
+                    onComplete = {
+                        navController.navigate(AppRoute.ProjectAnalyzer) {
+                            popUpTo(AppRoute.Onboarding) {
+                                inclusive = true
+                            }
+                        }
+                    }
+                )
+            }
+            composable<AppRoute.ProjectAnalyzer> {
                 ProjectScannerScreen()
             }
-            composable<AppRoute.Dependencies> {
-                SystemDependencyScreen()
-//                MainApp()
-            }
-            composable<AppRoute.Storage> {
+            composable<AppRoute.StorageAnalyzer> {
                 StorageAnalyzerScreen()
-            }
-            composable<AppRoute.Settings> {
-
             }
         }
     }

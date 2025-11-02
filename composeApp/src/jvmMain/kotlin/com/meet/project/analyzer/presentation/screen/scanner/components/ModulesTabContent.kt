@@ -26,12 +26,13 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Plumbing
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -77,7 +78,7 @@ fun ModulesTabContent(
             ) { module ->
                 DetailedModuleCard(
                     moduleName = module.moduleName,
-                    size = module.size,
+                    sizeReadable = module.sizeReadable,
                     plugins = module.plugins,
                     fileName = module.type.fileName,
                     dependencies = module.dependencies,
@@ -87,7 +88,11 @@ fun ModulesTabContent(
 
             if (moduleBuildFileInfos.isEmpty()) {
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    EmptyStateCardLayout("No modules found")
+                    EmptyStateCardLayout(
+                        title = "Module",
+                        description = "No modules files found",
+                        icon = Icons.Default.Extension
+                    )
                 }
             }
         }
@@ -99,19 +104,18 @@ fun ModulesTabContent(
 @Composable
 fun DetailedModuleCard(
     moduleName: String,
-    size: String,
+    sizeReadable: String,
     fileName: String,
     plugins: List<Plugin>,
     dependencies: List<Dependency>,
     projectName: String,
 ) {
 
-    Card(
+    OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
+        colors = CardDefaults.outlinedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
@@ -132,7 +136,7 @@ fun DetailedModuleCard(
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        moduleName
+                        text = moduleName
                             .replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
@@ -148,7 +152,7 @@ fun DetailedModuleCard(
                     shape = MaterialTheme.shapes.medium
                 ) {
                     Text(
-                        size,
+                        text = sizeReadable,
                         style = MaterialTheme.typography.labelLarge,
                         fontWeight = FontWeight.Bold,
                         modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
@@ -434,6 +438,3 @@ fun ModuleRow(
         )
     }
 }
-
-
-

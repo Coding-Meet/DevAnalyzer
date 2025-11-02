@@ -32,6 +32,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.meet.project.analyzer.core.utility.DependencyColumn
+import com.meet.project.analyzer.core.utility.GradleLibrary
 import com.meet.project.analyzer.data.models.scanner.Dependency
 import com.meet.project.analyzer.presentation.components.CustomOutlinedTextField
 import com.meet.project.analyzer.presentation.components.EmptyStateCardLayout
@@ -151,9 +152,11 @@ fun DependenciesTabContent(
                 } else {
                     item {
                         EmptyStateCardLayout(
-                            message = if (searchQuery.isBlank()) "No dependencies found"
+                            title = "Dependencies",
+                            description = if (searchQuery.isBlank()) "No dependencies found"
                             else "No results for \"$searchQuery\"",
-                            modifier = Modifier.fillMaxWidth().padding(10.dp)
+                            icon = GradleLibrary.Libraries.icon,
+                            modifier = Modifier.padding(10.dp).fillMaxWidth()
                         )
                     }
                 }

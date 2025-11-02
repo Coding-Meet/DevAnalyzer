@@ -9,7 +9,7 @@ data class VersionCatalogFileInfo(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,
     val path: String,
-    val size: String,
+    val sizeReadable: String,
     val sizeBytes: Long,
     val content: String,
     val readLines: List<String>,

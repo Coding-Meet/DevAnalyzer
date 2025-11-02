@@ -34,10 +34,9 @@ fun CustomToolTip(
                         style = MaterialTheme.typography.bodySmall
                     )
                 },
-
-                caretSize = DpSize(32.dp, 16.dp),
+                caretSize = DpSize(16.dp, 8.dp),
                 colors = TooltipDefaults.richTooltipColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurface,
                     titleContentColor = MaterialTheme.colorScheme.primary,
                     actionContentColor = MaterialTheme.colorScheme.primary

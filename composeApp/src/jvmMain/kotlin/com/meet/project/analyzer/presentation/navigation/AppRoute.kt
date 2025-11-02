@@ -5,13 +5,16 @@ import kotlinx.serialization.Serializable
 sealed interface AppRoute {
 
     @Serializable
-    data object ProjectScanner : AppRoute
+    data object Splash : AppRoute
 
     @Serializable
-    data object Dependencies : AppRoute
+    data object Onboarding : AppRoute
 
     @Serializable
-    data object Storage : AppRoute
+    data object ProjectAnalyzer : AppRoute
+
+    @Serializable
+    data object StorageAnalyzer : AppRoute
 
     @Serializable
     data object Settings : AppRoute

@@ -7,6 +7,7 @@ import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInHorizontally
 import androidx.compose.animation.slideOutHorizontally
 import androidx.compose.animation.togetherWith
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Tab
@@ -20,6 +21,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import com.meet.project.analyzer.core.utility.TabItem
 import java.awt.Cursor
 
@@ -43,7 +45,7 @@ fun <EnumEntries : TabItem> TabLayout(
             ) {
                 Tab(
                     selected = isSelected,
-                    modifier = Modifier.pointerHoverIcon(
+                    modifier = Modifier.fillMaxSize().pointerHoverIcon(
                         PointerIcon(
                             Cursor.getPredefinedCursor(
                                 Cursor.HAND_CURSOR
@@ -60,6 +62,7 @@ fun <EnumEntries : TabItem> TabLayout(
                     text = {
                         Text(
                             tabItem.title,
+                            textAlign = TextAlign.Center,
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                         )
@@ -75,7 +78,7 @@ fun <S> TabSlideAnimation(
     selectedTabIndex: Int,
     previousTabIndex: Int,
     targetState: S,
-    content: @Composable() AnimatedContentScope.(targetState: S) -> Unit
+    content: @Composable AnimatedContentScope.(targetState: S) -> Unit
 ) {
     val direction by rememberSaveable(selectedTabIndex) {
         derivedStateOf {

@@ -546,7 +546,8 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             val gradleVersionLine = readLines.find { it.startsWith("distributionUrl") }
             if (gradleVersionLine == null) return null
 
-            val gradleVersion = gradleVersionLine.substringAfter("gradle-").substringBefore(".")
+            val gradleVersion =
+                gradleVersionLine.substringAfter("gradle-").substringBefore("-bin.zip")
             return gradleVersion
         }
 
@@ -668,14 +669,15 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             AppLogger.d(TAG) { "Finding version catalog" }
 
             // Find version catalogs
-            val versionCatalogFile = File(projectDir, "gradle/libs.versions.toml")
+            val versionCatalogFile =
+                File(projectDir, "gradle" + File.separator + "libs.versions.toml")
             if (!versionCatalogFile.exists()) return@withContext null
             val sizeBytes = versionCatalogFile.length()
 
             val versionCatalogFileInfo = VersionCatalogFileInfo(
                 name = versionCatalogFile.name,
                 path = versionCatalogFile.absolutePath,
-                size = Utils.formatSize(sizeBytes),
+                sizeReadable = Utils.formatSize(sizeBytes),
                 sizeBytes = sizeBytes,
                 content = versionCatalogFile.readText(),
                 readLines = versionCatalogFile.readLines(),
@@ -683,7 +685,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             )
             AppLogger.d(TAG) { "Found version catalog." }
             AppLogger.i(TAG) {
-                "Name: ${versionCatalogFileInfo.name} Path: ${versionCatalogFileInfo.path} Size: ${versionCatalogFileInfo.size} Size (bytes): ${versionCatalogFileInfo.sizeBytes} isContent: ${versionCatalogFileInfo.content.isNotEmpty()}"
+                "Name: ${versionCatalogFileInfo.name} Path: ${versionCatalogFileInfo.path} Size: ${versionCatalogFileInfo.sizeReadable} Size (bytes): ${versionCatalogFileInfo.sizeBytes} isContent: ${versionCatalogFileInfo.content.isNotEmpty()}"
             }
             versionCatalogFileInfo
         }
@@ -708,7 +710,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                         ModuleBuildFileInfo(
                             path = file.absolutePath,
                             type = buildFileType,
-                            size = Utils.formatSize(sizeBytes),
+                            sizeReadable = Utils.formatSize(sizeBytes),
                             sizeBytes = sizeBytes,
                             content = file.readText(),
                             readLines = file.readLines(),
@@ -724,7 +726,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
             AppLogger.d(TAG) { "Found ${buildFiles.size} build files" }
             buildFiles.forEach {
                 AppLogger.i(TAG) {
-                    "name: ${it.type.fileName} Path: ${it.path} Type: ${it.type} Size: ${it.size} Size (bytes): ${it.sizeBytes} isContent: ${it.content.isNotEmpty()} moduleName = ${it.moduleName} modulePath = ${it.modulePath}"
+                    "name: ${it.type.fileName} Path: ${it.path} Type: ${it.type} Size: ${it.sizeReadable} Size (bytes): ${it.sizeBytes} isContent: ${it.content.isNotEmpty()} moduleName = ${it.moduleName} modulePath = ${it.modulePath}"
                 }
             }
             buildFiles
@@ -813,7 +815,10 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
 
             // Find gradle wrapper properties file
             val gradleWrapperPropertiesFile =
-                File(projectDir, "gradle/wrapper/gradle-wrapper.properties")
+                File(
+                    projectDir,
+                    "gradle" + File.separator + "wrapper" + File.separator + "gradle-wrapper.properties"
+                )
             if (!gradleWrapperPropertiesFile.exists()) return@withContext null
 
             val sizeBytes = gradleWrapperPropertiesFile.length()
@@ -1117,7 +1122,7 @@ class ProjectScannerRepositoryImpl : ProjectScannerRepository {
                                     path = file.absolutePath,
                                     relativePath = relativePath,
                                     type = fileType,
-                                    size = Utils.formatSize(sizeBytes),
+                                    sizeReadable = Utils.formatSize(sizeBytes),
                                     sizeBytes = sizeBytes,
                                     extension = file.extension.lowercase(),
                                     content = file.readText(),

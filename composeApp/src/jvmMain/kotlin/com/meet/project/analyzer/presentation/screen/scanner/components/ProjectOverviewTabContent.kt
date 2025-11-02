@@ -25,11 +25,11 @@ import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -83,12 +83,11 @@ fun ProjectOverviewCard(
     moduleBuildFileInfos: List<ModuleBuildFileInfo>,
     projectFilesSize: Int
 ) {
-    Card(
+    OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
+        colors = CardDefaults.outlinedCardColors(
             containerColor = MaterialTheme.colorScheme.surface
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
