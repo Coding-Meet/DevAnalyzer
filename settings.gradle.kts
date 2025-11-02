@@ -1,4 +1,4 @@
-rootProject.name = "ProjectAnalyzer"
+rootProject.name = "DevAnalyzer"
 enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {

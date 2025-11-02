@@ -83,11 +83,11 @@ kotlin {
 
 compose.desktop {
     application {
-        mainClass = "com.meet.project.analyzer.MainKt"
+        mainClass = "com.meet.dev.analyzer.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.meet.project.analyzer"
+            packageName = "com.meet.dev.analyzer"
             packageVersion = "1.0.0"
         }
     }
