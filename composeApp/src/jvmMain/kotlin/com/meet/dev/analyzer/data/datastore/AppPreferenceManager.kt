@@ -1,6 +1,5 @@
 package com.meet.dev.analyzer.data.datastore
 
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPosition
@@ -10,18 +9,14 @@ import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import com.jthemedetecor.OsThemeDetector
-import com.meet.dev.analyzer.core.utility.AppLogger
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager.PreferencesKey.DARK_MODE_KEY
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager.PreferencesKey.ONBOARDING_DONE_KEY
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager.PreferencesKey.WINDOW_HEIGHT_KEY
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager.PreferencesKey.WINDOW_POSITION_X_KEY
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager.PreferencesKey.WINDOW_POSITION_Y_KEY
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager.PreferencesKey.WINDOW_WIDTH_KEY
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.withContext
 
 class AppPreferenceManager(private val dataStore: DataStore<Preferences>) {
@@ -45,46 +40,68 @@ class AppPreferenceManager(private val dataStore: DataStore<Preferences>) {
     val isOnboardingDone = dataStore.data.map { prefs ->
         prefs[ONBOARDING_DONE_KEY] ?: false
     }
-    val windowSize = dataStore.data.map { prefs ->
-        val dpSize = DpSize(
-            width = prefs[WINDOW_WIDTH_KEY]?.dp ?: defaultWindowSize.width,
-            height = prefs[WINDOW_HEIGHT_KEY]?.dp ?: defaultWindowSize.height
-        )
-        AppLogger.d("windowSize") {
-            "dpSize: $dpSize"
-        }
-        dpSize
-    }.stateIn(
-        scope = CoroutineScope(Dispatchers.Main),
-        started = SharingStarted.Eagerly,
-        initialValue = defaultWindowSize
-    )
-    val windowPosition = dataStore.data.map { prefs ->
-        val x = prefs[WINDOW_POSITION_X_KEY]?.dp
-        val y = prefs[WINDOW_POSITION_Y_KEY]?.dp
-        AppLogger.d("windowPosition") {
-            "x: $x, y: $y"
-        }
-
-        val position = if (x != null && y != null) {
-            WindowPosition(x, y)
-        } else {
-            WindowPosition.PlatformDefault
-        }
-        position
-    }.stateIn(
-        scope = CoroutineScope(Dispatchers.Main),
-        started = SharingStarted.Eagerly,
-        initialValue = WindowPosition(Alignment.Center)
-    )
-
-    val windowWidth = dataStore.data.map { prefs ->
-        prefs[WINDOW_WIDTH_KEY]?.dp ?: defaultWindowSize.width
-    }
-
-    val windowHeight = dataStore.data.map { prefs ->
-        prefs[WINDOW_HEIGHT_KEY]?.dp ?: defaultWindowSize.height
-    }
+//    val windowSize = dataStore.data.map { prefs ->
+//        val dpSize = DpSize(
+//            width = prefs[WINDOW_WIDTH_KEY]?.dp ?: defaultWindowSize.width,
+//            height = prefs[WINDOW_HEIGHT_KEY]?.dp ?: defaultWindowSize.height
+//        )
+//        AppLogger.d("windowSize") {
+//            "dpSize: $dpSize"
+//        }
+//        dpSize
+//    }.stateIn(
+//        scope = CoroutineScope(Dispatchers.Main),
+//        started = SharingStarted.Eagerly,
+//        initialValue = defaultWindowSize
+//    )
+//    val windowPosition = dataStore.data.map { prefs ->
+//        val x = prefs[WINDOW_POSITION_X_KEY]?.dp
+//        val y = prefs[WINDOW_POSITION_Y_KEY]?.dp
+//        AppLogger.d("windowPosition") {
+//            "x: $x, y: $y"
+//        }
+//
+//        val position = if (x != null && y != null) {
+//            WindowPosition(x, y)
+//        } else {
+//            WindowPosition.PlatformDefault
+//        }
+//        position
+//    }.stateIn(
+//        scope = CoroutineScope(Dispatchers.Main),
+//        started = SharingStarted.Eagerly,
+//        initialValue = WindowPosition(Alignment.Center)
+//    )
+//
+//    val windowWidth = dataStore.data.map { prefs ->
+//        prefs[WINDOW_WIDTH_KEY]?.dp ?: defaultWindowSize.width
+//    }.stateIn(
+//        scope = CoroutineScope(Dispatchers.Main),
+//        started = SharingStarted.Eagerly,
+//        initialValue = defaultWindowSize.width
+//    )
+//    val windowHeight = dataStore.data.map { prefs ->
+//        prefs[WINDOW_HEIGHT_KEY]?.dp ?: defaultWindowSize.height
+//    }.stateIn(
+//        scope = CoroutineScope(Dispatchers.Main),
+//        started = SharingStarted.Eagerly,
+//        initialValue = defaultWindowSize.height
+//    )
+//
+//    val windowPositionX = dataStore.data.map { prefs ->
+//        prefs[WINDOW_POSITION_X_KEY]?.dp
+//    }.stateIn(
+//        scope = CoroutineScope(Dispatchers.Main),
+//        started = SharingStarted.Eagerly,
+//        initialValue = null
+//    )
+//    val windowPositionY = dataStore.data.map { prefs ->
+//        prefs[WINDOW_POSITION_Y_KEY]?.dp
+//    }.stateIn(
+//        scope = CoroutineScope(Dispatchers.Main),
+//        started = SharingStarted.Eagerly,
+//        initialValue =null
+//    )
 
 
     suspend fun saveTheme(isDark: Boolean) =
@@ -116,15 +133,6 @@ class AppPreferenceManager(private val dataStore: DataStore<Preferences>) {
                 preferences[WINDOW_POSITION_Y_KEY] = position.y.value
             }
         }
-
-//    fun saveWindowWidthHeight(width: Float, height: Float) {
-//        CoroutineScope(Dispatchers.Main).launch {
-//            dataStore.edit { preferences ->
-//                preferences[WINDOW_WIDTH_KEY] = width
-//                preferences[WINDOW_HEIGHT_KEY] = height
-//            }
-//        }
-//    }
 }
 
 val defaultWindowSize = DpSize(width = 1024.dp, height = 768.dp)
