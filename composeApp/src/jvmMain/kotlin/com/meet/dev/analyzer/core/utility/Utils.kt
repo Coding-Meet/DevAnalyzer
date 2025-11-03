@@ -26,18 +26,20 @@ object Utils {
             try {
                 when {
                     os.contains("win") -> {
-                        // 🪟 Windows - PowerShell method
-                        val command = listOf(
-                            "powershell",
-                            "-Command",
-                            "(Get-ChildItem \"$path\" -Recurse | Measure-Object -Property Length -Sum).Sum"
-                        )
-                        val process = ProcessBuilder(command).start()
-                        val output = process.inputStream.bufferedReader().readText().trim()
-                        val bytes = output.toLongOrNull()
-                        if (bytes != null) {
-                            AppLogger.d(TAG) { "Windows PowerShell method worked: $bytes bytes" }
-                        }
+                        val bytes = file.walkTopDown().map { it.length() }.sum()
+
+//                        // 🪟 Windows - PowerShell method in cmd very slow in window
+//                        val command = listOf(
+//                            "powershell",
+//                            "-Command",
+//                            "(Get-ChildItem \"$path\" -Recurse -ErrorAction SilentlyContinue | Measure-Object -Property Length -Sum).Sum"
+//                        )
+//                        val process = ProcessBuilder(command).start()
+//                        val output = process.inputStream.bufferedReader().readText().trim()
+//                        val bytes = output.toLongOrNull()
+//                        if (bytes != null) {
+//                            AppLogger.d(TAG) { "Windows PowerShell method worked: $bytes bytes" }
+//                        }
                         bytes
                     }
 

@@ -12,9 +12,9 @@ jobs:
     strategy:
       matrix:
         include:
-          #          - os: macos-latest
-          #            format: macos
-          #            gradle_task: packageDistributionForCurrentOS
+          - os: macos-latest
+            format: macos
+            gradle_task: packageDistributionForCurrentOS
           - os: windows-latest
             format: windows
             gradle_task: packageDistributionForCurrentOS
@@ -48,7 +48,7 @@ jobs:
           name: build-${{ matrix.format }}
           path: |
             composeApp/build/compose/binaries/**/dmg/*
-            composeApp/build/compose/binaries/**/pkg/*
+            #            composeApp/build/compose/binaries/**/pkg/*
             composeApp/build/compose/binaries/**/deb/*
             composeApp/build/compose/binaries/**/msi/*
             composeApp/build/compose/jars/*.jar

@@ -9,7 +9,7 @@ import com.meet.dev.analyzer.data.models.storage.KonanInfo
 interface StorageAnalyzerRepository {
 
     suspend fun analyzeIdeData(): IdeDataInfo
-    suspend fun analyzeAndroidEvnData(): AndroidSdkInfo
+    suspend fun analyzeAndroidSdkData(): AndroidSdkInfo
     suspend fun analyzeAvdData(): AndroidAvdInfo
     suspend fun analyzeKonanData(): KonanInfo
     suspend fun analyzeGradleData(): GradleInfo

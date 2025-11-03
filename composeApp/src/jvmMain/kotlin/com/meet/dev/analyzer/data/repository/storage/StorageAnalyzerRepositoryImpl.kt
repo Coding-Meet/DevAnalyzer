@@ -74,7 +74,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             basePath: String
         ): List<IdeInstallation> {
             val dir = File(basePath)
-            if (!dir.exists() || !dir.isDirectory) return emptyList()
+            if (!dir.exists()) return emptyList()
 
             return dir.listFiles()
                 ?.filter { it.isDirectory && it.name.any { ch -> ch.isDigit() } }
@@ -396,7 +396,14 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
         AppLogger.i(TAG) { "Loading AVD information" }
         try {
             val home = System.getProperty("user.home")
-            val avdDir = File("$home/.android/avd")
+            val path = System.getenv("ANDROID_AVD_HOME")
+            val avdDir =
+                if (!path.isNullOrEmpty()) {
+                    File(path)
+                } else {
+                    File(home, ".android" + File.separator + "avd")
+                }
+            AppLogger.i(TAG) { "AVD directory: ${avdDir.absolutePath}" }
 
             val avdItemLists = async {
                 loadAvdInfos(avdDir)
@@ -422,26 +429,46 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
         val sizeBytes: Long,
     )
 
-    override suspend fun analyzeAndroidEvnData(): AndroidSdkInfo = withContext(Dispatchers.IO) {
+    override suspend fun analyzeAndroidSdkData(): AndroidSdkInfo = withContext(Dispatchers.IO) {
 
-        suspend fun findAndroidSdkPath(): String = withContext(Dispatchers.IO) {
+        suspend fun findAndroidSdkPath(): String? = withContext(Dispatchers.IO) {
             AppLogger.d(TAG) { "Finding Android SDK path" }
             val userHome = System.getProperty("user.home")
             val os = System.getProperty("os.name").lowercase()
 
             val possiblePaths = when {
-                os.contains("windows") -> "$userHome/Android/Sdk"
-                else -> "$userHome/Library/Android/sdk"
+                os.contains("windows") -> listOf(
+                    System.getenv("ANDROID_HOME"),
+                    System.getenv("ANDROID_SDK_ROOT"),
+                    "$userHome/Sdk"
+                )
+
+                else -> listOf(
+                    System.getenv("ANDROID_HOME"),
+                    System.getenv("ANDROID_SDK_ROOT"),
+                    "$userHome/Library/Android/sdk",
+                    "$userHome/Android/Sdk"
+                )
             }
 
-            System.getenv("ANDROID_HOME")
-                ?: System.getenv("ANDROID_SDK_ROOT")
-                ?: possiblePaths
+            // Check each path and return the first existing one
+            val sdkPath = possiblePaths
+                .filterNotNull()
+                .firstOrNull { File(it).exists() }
+
+            if (sdkPath != null) {
+                AppLogger.d(TAG) { "Android SDK found at: $sdkPath" }
+            } else {
+                AppLogger.e(TAG) { "Android SDK not found in expected locations." }
+            }
+
+            sdkPath
         }
 
-        suspend fun loadSdkItems(directory: File): List<SdkItem> = withContext(Dispatchers.IO) {
+
+        suspend fun loadSdkItems(directory: File?): List<SdkItem> = withContext(Dispatchers.IO) {
             try {
-                directory.listFiles()
+                directory?.listFiles()
                     ?.filter { !it.name.startsWith(".") }
                     ?.map { dir ->
                         async {
@@ -457,7 +484,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                         it.sizeBytes
                     } ?: emptyList()
             } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading SDK items from ${directory.absolutePath}" }
+                AppLogger.e(TAG, e) { "Error loading SDK items from ${directory?.absolutePath}" }
                 emptyList()
             }
         }
@@ -485,8 +512,12 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
         AppLogger.i(TAG) { "Loading SDK information" }
         try {
             val sdkRoot = findAndroidSdkPath()
+                ?: throw IllegalStateException("Android SDK path not found. Please ensure Android Studio or SDK is installed.")
 
             val sdkDir = File(sdkRoot)
+            if (!sdkDir.exists() || !sdkDir.isDirectory) {
+                throw IllegalStateException("Invalid SDK directory: $sdkRoot")
+            }
 
             val platformsDeferred = async {
                 loadSdkItems(File(sdkDir, "platforms"))
@@ -929,9 +960,10 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             }
         }
 
-        val jdks = jdksDeferred.awaitAll().distinctBy { it.path }.sortedByDescending {
-            it.sizeBytes
-        }
+        val jdks = jdksDeferred.awaitAll().distinctBy { it.name }.filter { it.name != null }
+            .sortedByDescending {
+                it.sizeBytes
+            }
         val jdkSize = jdks.sumOf { it.sizeBytes }
         val jdkSizeReadable = Utils.formatSize(jdkSize)
         JdkInfo(

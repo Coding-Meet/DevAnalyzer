@@ -162,7 +162,7 @@ class StorageAnalyzerViewModel(
                             scanProgress = 0.3f
                         )
                     }
-                    val androidSdkInfo = storageAnalyzerRepository.analyzeAndroidEvnData()
+                    val androidSdkInfo = storageAnalyzerRepository.analyzeAndroidSdkData()
 
                     _uiState.update {
                         it.copy(
