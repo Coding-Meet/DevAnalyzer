@@ -6,14 +6,13 @@
 
 ## 🪄 Overview
 
-**DevAnalyzer** is a cross-platform desktop application built with **Compose Multiplatform** and **Kotlin Multiplatform (KMP)**. It provides deep insights into your **Android/Kotlin projects** and **local development environment** through two major modules:
+**DevAnalyzer** is a cross-platform desktop application built with **Compose Multiplatform** and **Kotlin Multiplatform (KMP)**.
 
-- 🧩 **Project Analyzer** — Inspects project modules, Gradle configurations, plugins, dependencies and related project files.
-- 💾 **Storage Analyzer** — Inspects SDKs, IDEs, Gradle caches, and related storage usage on your machine.
+- 🧩 **Project Analyzer** — Examines project modules, Gradle configurations, applied plugins, dependencies, and related build files.
+- 💾 **Storage Analyzer** — Scans SDKs, IDE data, Gradle caches, and library directories to visualize overall storage usage.
 
-This tool helps developers **understand**, **analyze**, and **optimize** their development ecosystem — all from a single unified interface.
-
-This desktop-first tool runs seamlessly across platforms and can easily extend to Android, KMP, or backend Kotlin targets.
+Designed for modern developers, **DevAnalyzer** helps you **understand**, **analyze**, and **optimize** your entire development ecosystem — all from a single, unified interface.  
+Built as a **desktop-first tool**, it runs seamlessly across platforms and can be easily extended to **Android**, **KMP**, or **backend Kotlin** environments.
 
 ---
 
