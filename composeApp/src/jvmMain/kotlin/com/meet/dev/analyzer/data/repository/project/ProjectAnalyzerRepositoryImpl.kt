@@ -174,7 +174,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
 
         // alias-like without libs prefix → implementation(compose.components.uiToolingPreview)
         val unprefixedAliasDepRegex =
-            Regex("""(implementation|api|ksp|kapt|compileOnly|runtimeOnly|testImplementation|androidTestImplementation)\(([^)]+)\)""")
+            Regex("""(implementation|api|ksp|kapt|compileOnly|runtimeOnly|testImplementation|androidTestImplementation)\(\s*([a-zA-Z_][\w.]+)\s*\)""")
 
         val dependencies = arrayListOf<Dependency>()
 
@@ -309,8 +309,9 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 unprefixedAliasDepRegex.findAll(content).forEach { match ->
                     val path = match.groupValues[2] // e.g. compose.components.uiToolingPreview
                     // Skip ones already matched by libs.* to avoid duplicates
-                    if (!path.startsWith("libs.") && !path.startsWith("libs.bundles.")
-                        && !path.startsWith("projects.") && !path.startsWith("project.")
+                    if (!path.startsWith("libs.")
+                        && !path.startsWith("project")
+                        && !path.startsWith("files")
                     ) {
                         val alias =
                             path.replace('.', '-') // e.g. compose-components-uiToolingPreview
@@ -341,7 +342,8 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                             AppLogger.d(TAG) { "Found unprefixedAliasDependency: $dependency" }
                             dependencies.add(dependency)
                         } else {
-                            AppLogger.d(TAG) { "Library not found for unprefixed alias: $path" }
+//                            AppLogger.d(TAG) { "Library not found for unprefixed alias: $path" }
+                            AppLogger.d(TAG) { "Library not found for unprefixed alias: ${match.groupValues}" }
                             dependencies.add(
                                 Dependency(
                                     versionName = "",
@@ -536,6 +538,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             val projectName = projectNameLine.substringAfter("=").replace("\"", "").trim()
             return projectName
         }
+
         val rootModuleBuildFileInfo =
             moduleBuildFileInfos.find { it.moduleName == findProjectName() }
 
