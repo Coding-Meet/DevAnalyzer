@@ -37,7 +37,7 @@ backend Kotlin targets.
 
 ### 💾 Storage Analyzer
 
-- 💡Get total storage summaries by component (SDK, IDE, Gradle, Library, etc.).
+- 💡 Get total storage summaries by component (SDK, IDE, Gradle, Library, etc.).
 - 📊 Scan **SDK**, **NDK**, **CMake**, **Kotlin/Native**, **JDK** and **Extras** directories.
 - 📄 Analyze **IDE data** (Android Studio, IntelliJ) including logs, caches, and support files.
 - 🧠 Inspect **Gradle Daemons**, **Wrappers**, and **Cached Libraries**.
@@ -91,7 +91,7 @@ To fix this:
 4. Reopen the app — it will launch successfully.
 
 > macOS sometimes blocks unsigned apps for security reasons. Once allowed from Privacy & Security,
-the app will work normally.
+> the app will work normally.
 
 ### Linux (Ubuntu/Debian)
 
