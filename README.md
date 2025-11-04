@@ -7,9 +7,8 @@
 ## 🪄 Overview
 
 **DevAnalyzer** is a cross-platform desktop application built with **Compose Multiplatform** and *
-*Kotlin Multiplatform (KMP)**.  
-It provides deep insights into your **Android/Kotlin projects** and **local development environment
-** through two major modules:
+*Kotlin Multiplatform (KMP)**. It provides deep insights into your **Android/Kotlin projects** and *
+*local development environment** through two major modules:
 
 - 🧩 **Project Analyzer** — Inspects project modules, Gradle configurations, plugins, dependencies
   and related project files.
