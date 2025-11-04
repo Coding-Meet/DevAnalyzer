@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.core.utility.ProjectScreenTabs
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.dev.analyzer.presentation.components.TabLayout
@@ -43,8 +44,12 @@ import java.awt.Cursor
 import java.io.File
 
 @Composable
-fun ProjectAnalyzerScreen() {
-    val viewModel = koinViewModel<ProjectAnalyzerViewModel>()
+fun ProjectAnalyzerScreen(
+    parentEntry: NavBackStackEntry
+) {
+    val viewModel = koinViewModel<ProjectAnalyzerViewModel>(
+        viewModelStoreOwner = parentEntry
+    )
     val uiState by viewModel.uiState.collectAsState()
     val coroutineScope = rememberCoroutineScope()
 

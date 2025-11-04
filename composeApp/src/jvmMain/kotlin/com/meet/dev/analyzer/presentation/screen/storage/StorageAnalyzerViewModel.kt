@@ -42,6 +42,7 @@ class StorageAnalyzerViewModel(
     private var loadAllJob: Job? = null
 
     init {
+        AppLogger.d(TAG) { "ViewModel initialized" }
         handleIntent(StorageAnalyzerIntent.LoadAllData)
     }
 

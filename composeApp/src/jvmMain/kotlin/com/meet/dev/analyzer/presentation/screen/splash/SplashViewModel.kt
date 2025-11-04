@@ -44,7 +44,7 @@ class SplashViewModel(
             delay(2000)
             val isOnboardingDone = appUiState.value
             val appRoute =
-                if (isOnboardingDone) AppRoute.ProjectAnalyzer else AppRoute.Onboarding
+                if (isOnboardingDone) AppRoute.MainGraph else AppRoute.Onboarding
             _effect.emit(SplashEffect.OnSplashCompleted(appRoute))
         }
     }

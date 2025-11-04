@@ -14,10 +14,10 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.meet.dev.analyzer.presentation.navigation.navigation_bar.NavigationItem
 import com.meet.dev.analyzer.presentation.navigation.navigation_bar.NavigationRailLayout
@@ -57,29 +57,14 @@ fun AppNavigation(
             AnimatedVisibility(
                 visible = currentNavigationItem != null,
                 modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-                enter = slideInHorizontally(
-                    // Slide in from the left
-                    initialOffsetX = { fullWidth -> -fullWidth }
-                ),
-                exit = slideOutHorizontally(
-                    // Slide out to the right
-                    targetOffsetX = { fullWidth -> -fullWidth }
-                ),
+                enter = slideInHorizontally { -it },
+                exit = slideOutHorizontally { it },
             ) {
                 NavigationRailLayout(
                     currentNavigationItem = currentNavigationItem,
                     onNavigate = {
                         navController.navigate(it.appRoute) {
-                            // Pop up to the start destination of the graph to
-                            // avoid building up a large stack of destinations
-                            // on the back stack as users select items
-                            popUpTo(navController.graph.findStartDestination().id) {
-                                saveState = true
-                            }
-                            // Avoid multiple copies of the same destination when
-                            // re-selecting the same item
                             launchSingleTop = true
-                            // Restore state when re-selecting a previously selected item
                             restoreState = true
                         }
                     },
@@ -92,35 +77,48 @@ fun AppNavigation(
     ) {
         NavHost(
             navController = navController,
-            startDestination = AppRoute.Splash
+            startDestination = AppRoute.SplashGraph
         ) {
-            composable<AppRoute.Splash> {
-                SplashScreen(
-                    onSplashFinished = { appRoute ->
-                        navController.navigate(appRoute) {
-                            popUpTo(AppRoute.Splash) {
-                                inclusive = true
+            // Splash + Onboarding Graph
+            navigation<AppRoute.SplashGraph>(
+                startDestination = AppRoute.Splash
+            ) {
+                composable<AppRoute.Splash> {
+                    SplashScreen(
+                        onSplashFinished = { route ->
+                            navController.navigate(route) {
+                                popUpTo(AppRoute.SplashGraph) { inclusive = true }
                             }
                         }
-                    }
-                )
-            }
-            composable<AppRoute.Onboarding> {
-                OnboardingScreen(
-                    onComplete = {
-                        navController.navigate(AppRoute.ProjectAnalyzer) {
-                            popUpTo(AppRoute.Onboarding) {
-                                inclusive = true
+                    )
+                }
+                composable<AppRoute.Onboarding> {
+                    OnboardingScreen(
+                        onComplete = {
+                            navController.navigate(AppRoute.MainGraph) {
+                                popUpTo(AppRoute.SplashGraph) { inclusive = true }
                             }
                         }
+                    )
+                }
+            }
+
+            // Main Graph (tabs)
+            navigation<AppRoute.MainGraph>(
+                startDestination = AppRoute.ProjectAnalyzer
+            ) {
+                composable<AppRoute.ProjectAnalyzer> {
+                    val parentEntry = remember(navController) {
+                        navController.getBackStackEntry(AppRoute.MainGraph)
                     }
-                )
-            }
-            composable<AppRoute.ProjectAnalyzer> {
-                ProjectAnalyzerScreen()
-            }
-            composable<AppRoute.StorageAnalyzer> {
-                StorageAnalyzerScreen()
+                    ProjectAnalyzerScreen(parentEntry = parentEntry)
+                }
+                composable<AppRoute.StorageAnalyzer> {
+                    val parentEntry = remember(navController) {
+                        navController.getBackStackEntry(AppRoute.MainGraph)
+                    }
+                    StorageAnalyzerScreen(parentEntry = parentEntry)
+                }
             }
         }
     }

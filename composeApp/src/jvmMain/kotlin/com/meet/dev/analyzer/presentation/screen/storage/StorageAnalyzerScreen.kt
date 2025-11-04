@@ -27,6 +27,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.ClipEntry
 import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
+import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.core.utility.StorageAnalyzerTabs
 import com.meet.dev.analyzer.presentation.components.ErrorLayout
 import com.meet.dev.analyzer.presentation.components.ProgressStatusLayout
@@ -47,8 +48,12 @@ import java.awt.Cursor
 import java.awt.datatransfer.StringSelection
 
 @Composable
-fun StorageAnalyzerScreen() {
-    val viewModel = koinViewModel<StorageAnalyzerViewModel>()
+fun StorageAnalyzerScreen(
+    parentEntry: NavBackStackEntry,
+) {
+    val viewModel = koinViewModel<StorageAnalyzerViewModel>(
+        viewModelStoreOwner = parentEntry
+    )
     val uiState by viewModel.uiState.collectAsState()
 
 //    DataClassTOJson(

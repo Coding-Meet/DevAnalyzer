@@ -26,6 +26,10 @@ class ProjectAnalyzerViewModel(
     private val _uiState = MutableStateFlow(ProjectAnalyzerUiState())
     val uiState = _uiState.asStateFlow()
 
+    init {
+        AppLogger.d(TAG) { "ViewModel initialized" }
+    }
+
     fun handleIntent(intent: ProjectAnalyzerIntent) {
         when (intent) {
             is ProjectAnalyzerIntent.SelectProject -> {
