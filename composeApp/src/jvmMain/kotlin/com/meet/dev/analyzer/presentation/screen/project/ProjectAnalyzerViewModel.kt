@@ -5,10 +5,16 @@ import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.core.utility.AppLogger
 import com.meet.dev.analyzer.core.utility.Utils.tagName
 import com.meet.dev.analyzer.data.repository.project.ProjectAnalyzerRepository
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.io.IOException
 import java.io.File
 
 class ProjectAnalyzerViewModel(
@@ -57,40 +63,91 @@ class ProjectAnalyzerViewModel(
 
         AppLogger.i(TAG) { "Starting project analysis for: $currentPath" }
 
-        viewModelScope.launch {
+        viewModelScope.launch(Dispatchers.IO) {
             try {
                 _uiState.update {
                     it.copy(
                         isScanning = true,
                         error = null,
                         scanProgress = 0f,
-                        scanStatus = "Initializing scan..."
+                        scanStatus = "Initializing scan...",
+                        scanElapsedTime = "00:00"
                     )
                 }
 
+                val startTime = System.currentTimeMillis()
+
+                // Start elapsed time counter
+                val timerJob = launch {
+                    while (isActive) {
+                        val elapsedMillis = System.currentTimeMillis() - startTime
+                        val seconds = (elapsedMillis / 1000) % 60
+                        val minutes = (elapsedMillis / 1000) / 60
+                        val formatted = String.format("%02d:%02d", minutes, seconds)
+                        _uiState.update { it.copy(scanElapsedTime = formatted) }
+                        delay(1000)
+                    }
+                }
+
+                // 🧩 Main analysis logic
                 if (validateProject(currentPath)) {
                     val projectInfo = repository.analyzeProject(currentPath) { progress, status ->
                         AppLogger.d(TAG) { "Progress: $progress, Status: $status" }
                         _uiState.update {
                             it.copy(
-                                scanProgress = progress,
+                                scanProgress = progress.coerceIn(0f, 1f),
                                 scanStatus = status
                             )
                         }
                     }
 
+                    timerJob.cancelAndJoin()
+                    withContext(Dispatchers.Main) {
+                        _uiState.update {
+                            it.copy(
+                                isScanning = false,
+                                projectInfo = projectInfo,
+                                scanProgress = 1f,
+                                scanStatus = "Analysis complete"
+                            )
+                        }
+                    }
+
+                    // 🕓 Final elapsed log
+                    val totalMillis = System.currentTimeMillis() - startTime
+                    val totalSeconds = totalMillis / 1000
+                    val minutes = totalSeconds / 60
+                    val seconds = totalSeconds % 60
+                    AppLogger.i(TAG) { "Project analysis completed successfully in ${minutes}m ${seconds}s" }
+                } else {
                     _uiState.update {
                         it.copy(
                             isScanning = false,
-                            projectInfo = projectInfo,
-                            scanProgress = 1f,
-                            scanStatus = "Analysis complete"
+                            scanProgress = 0f,
+                            scanStatus = "",
+                            error = "Invalid project directory"
                         )
                     }
-
-                    AppLogger.i(TAG) { "Project analysis completed successfully" }
                 }
 
+            } catch (e: IOException) {
+                AppLogger.e(TAG, e) { "File read error" }
+                _uiState.update {
+                    it.copy(
+                        isScanning = false,
+                        scanStatus = "",
+                        error = "Failed to access some files"
+                    )
+                }
+            } catch (e: SecurityException) {
+                AppLogger.e(TAG, e) { "Permission denied" }
+                _uiState.update {
+                    it.copy(
+                        isScanning = false,
+                        scanStatus = "",
+                        error = "Permission denied for storage access"
+                    )
+                }
             } catch (e: Exception) {
                 AppLogger.e(TAG, e) { "Error analyzing project" }
                 _uiState.update {

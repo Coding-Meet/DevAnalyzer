@@ -1,10 +1,5 @@
 package com.meet.dev.analyzer.presentation.screen.storage
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -102,22 +97,13 @@ fun StorageAnalyzerContent(
             modifier = Modifier.fillMaxSize().padding(it)
         ) {
             // Progress and status
-            AnimatedVisibility(
-                visible = uiState.isScanning,
-                enter = fadeIn() + expandVertically(),
-                exit = fadeOut() + shrinkVertically()
-            ) {
-                Column(
-                    modifier = Modifier.padding(10.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    ProgressStatusLayout(
-                        isScanning = uiState.isScanning,
-                        scanProgress = uiState.scanProgress,
-                        scanStatus = uiState.scanStatus
-                    )
-                }
-            }
+            ProgressStatusLayout(
+                isScanning = uiState.isScanning,
+                scanProgress = uiState.scanProgress,
+                scanStatus = uiState.scanStatus,
+                scanElapsedTime = uiState.scanElapsedTime,
+                modifier = Modifier.padding(10.dp)
+            )
 
             // Error Layout
             if (uiState.error != null) {

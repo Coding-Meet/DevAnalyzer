@@ -34,14 +34,14 @@ import java.awt.Cursor
 
 @Composable
 fun SummaryExpandableSectionLayout(
-    type: ExpandableSection,
+    expandableSection: ExpandableSection,
     isExpanded: Boolean = true,
     onExpandChange: (() -> Unit)? = null,
     content: @Composable RowScope.(ExpandableSection) -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth().wrapContentHeight(),
-        colors = type.cardColors(),
+        colors = expandableSection.cardColors(),
     ) {
         Column(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 10.dp)
@@ -50,23 +50,23 @@ fun SummaryExpandableSectionLayout(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
-                    type.icon,
+                    expandableSection.icon,
                     contentDescription = null,
                     modifier = Modifier
                         .size(24.dp)
                 )
                 Spacer(Modifier.width(10.dp))
                 Text(
-                    text = type.title,
+                    text = expandableSection.title,
                     style = MaterialTheme.typography.headlineSmall,
                     fontWeight = FontWeight.Bold,
-                    color = type.titleColor(),
+                    color = expandableSection.titleColor(),
                 )
                 Spacer(Modifier.width(1.dp))
                 // Info
                 CustomToolTip(
-                    title = type.title,
-                    description = type.description
+                    title = expandableSection.title,
+                    description = expandableSection.description
                 ) {
                     IconButton(
                         onClick = {},
@@ -115,7 +115,7 @@ fun SummaryExpandableSectionLayout(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceEvenly,
                 content = {
-                    content(type)
+                    content(expandableSection)
                 }
             )
         }

@@ -13,5 +13,6 @@ data class StorageAnalyzerUiState(
     val storageAnalyzerInfo: StorageAnalyzerInfo? = null,
     val isScanning: Boolean = false,
     val scanProgress: Float = 0f,
+    val scanElapsedTime: String = "00:00",
     val scanStatus: String = "",
 )

@@ -148,7 +148,7 @@ fun JdkSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = KotlinNativeJdkSection.JdkVersions,
+        expandableSection = KotlinNativeJdkSection.JdkVersions,
         isExpanded = jdkListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -195,7 +195,7 @@ fun KotlinNativeSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = KotlinNativeJdkSection.KotlinNative,
+        expandableSection = KotlinNativeJdkSection.KotlinNative,
         isExpanded = kotlinNativeListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -242,7 +242,7 @@ fun LldbVersionsSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = KotlinNativeJdkSection.LldbVersions,
+        expandableSection = KotlinNativeJdkSection.LldbVersions,
         isExpanded = dependenciesListExpanded,
         onExpandChange = onExpandChange
     ) {

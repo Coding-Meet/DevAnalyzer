@@ -13,4 +13,5 @@ data class ProjectAnalyzerUiState(
     val isScanning: Boolean = false,
     val scanProgress: Float = 0f,
     val scanStatus: String = "",
+    val scanElapsedTime: String = "00:00",
 )

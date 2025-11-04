@@ -115,7 +115,7 @@ fun AvdSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = AvdSystemImageSection.AvdDevices,
+        expandableSection = AvdSystemImageSection.AvdDevices,
         isExpanded = avdListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -171,7 +171,7 @@ fun SystemImageSummaryCard(
     onExpandChange: () -> Unit
 ) {
     SummaryExpandableSectionLayout(
-        type = AvdSystemImageSection.SystemImages,
+        expandableSection = AvdSystemImageSection.SystemImages,
         isExpanded = sdkListExpanded,
         onExpandChange = onExpandChange
     ) {

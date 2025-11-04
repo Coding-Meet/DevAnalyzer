@@ -116,7 +116,7 @@ private fun QuickStatsCard(storageAnalyzerInfo: StorageAnalyzerInfo?) {
 @Composable
 private fun TotalStorageCard(storageAnalyzerInfo: StorageAnalyzerInfo?) {
     SummaryExpandableSectionLayout(
-        type = StorageSummarySection.TotalSummary,
+        expandableSection = StorageSummarySection.TotalSummary,
     ) {
         Text(
             text = storageAnalyzerInfo?.totalStorageUsed ?: "0 B",

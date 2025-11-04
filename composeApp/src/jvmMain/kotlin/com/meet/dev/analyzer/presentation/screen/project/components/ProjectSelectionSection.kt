@@ -129,7 +129,8 @@ fun ProjectSelectionSection(
             ProgressStatusLayout(
                 isScanning = uiState.isScanning,
                 scanProgress = uiState.scanProgress,
-                scanStatus = uiState.scanStatus
+                scanStatus = uiState.scanStatus,
+                scanElapsedTime = uiState.scanElapsedTime
             )
 
             // Error display

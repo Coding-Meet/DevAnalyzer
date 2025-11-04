@@ -248,7 +248,7 @@ fun PlatformSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = AndroidSdkSection.SdkPlatforms,
+        expandableSection = AndroidSdkSection.SdkPlatforms,
         isExpanded = platformListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -296,7 +296,7 @@ fun BuildToolSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = AndroidSdkSection.BuildTools,
+        expandableSection = AndroidSdkSection.BuildTools,
         isExpanded = buildToolListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -343,7 +343,7 @@ fun SourceSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = AndroidSdkSection.Sources,
+        expandableSection = AndroidSdkSection.Sources,
         isExpanded = sourcesListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -390,7 +390,7 @@ fun NdkSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = AndroidSdkSection.NdkVersions,
+        expandableSection = AndroidSdkSection.NdkVersions,
         isExpanded = ndkListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -437,7 +437,7 @@ fun CmakeSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = AndroidSdkSection.Cmake,
+        expandableSection = AndroidSdkSection.Cmake,
         isExpanded = cmakeListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -484,7 +484,7 @@ fun ExtrasSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = AndroidSdkSection.Extras,
+        expandableSection = AndroidSdkSection.Extras,
         isExpanded = extrasListExpanded,
         onExpandChange = onExpandChange
     ) {

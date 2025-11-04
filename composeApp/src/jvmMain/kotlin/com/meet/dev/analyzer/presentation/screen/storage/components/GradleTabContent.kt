@@ -180,7 +180,7 @@ fun GradleSummaryCard(
     gradleInfo: GradleInfo,
 ) {
     SummaryExpandableSectionLayout(
-        type = IdeDataSection.IdeSummary
+        expandableSection = IdeDataSection.IdeSummary
     ) {
         SummaryStatItem(
             label = GradleSection.GradleWrapper.totalLabel,
@@ -222,7 +222,7 @@ fun GradleWrapperSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = GradleSection.GradleWrapper,
+        expandableSection = GradleSection.GradleWrapper,
         isExpanded = gradleWrapperListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -269,7 +269,7 @@ fun DaemonSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = GradleSection.GradleDaemon,
+        expandableSection = GradleSection.GradleDaemon,
         isExpanded = gradleCacheListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -316,7 +316,7 @@ fun GradleCacheWrapperSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = GradleSection.GradleCaches,
+        expandableSection = GradleSection.GradleCaches,
         isExpanded = gradleCacheWrapperListExpanded,
         onExpandChange = onExpandChange
     ) {
@@ -363,7 +363,7 @@ fun OtherGradleFolderSummaryCard(
     onExpandChange: () -> Unit,
 ) {
     SummaryExpandableSectionLayout(
-        type = GradleSection.OtherGradle,
+        expandableSection = GradleSection.OtherGradle,
         isExpanded = otherGradleFolderListExpanded,
         onExpandChange = onExpandChange
     ) {

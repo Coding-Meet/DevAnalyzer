@@ -187,7 +187,7 @@ fun LibrariesTabContent(
 @Composable
 fun LibrariesSummaryCard(modules: GradleModulesInfo) {
     SummaryExpandableSectionLayout(
-        type = GradleLibrary.Libraries,
+        expandableSection = GradleLibrary.Libraries,
     ) {
         SummaryStatItem(
             label = "Total Group",

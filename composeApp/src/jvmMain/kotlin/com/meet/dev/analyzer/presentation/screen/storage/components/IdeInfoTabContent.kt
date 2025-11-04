@@ -171,7 +171,7 @@ fun IdeSummaryCard(
     ideDataInfo: IdeDataInfo,
 ) {
     SummaryExpandableSectionLayout(
-        type = IdeDataSection.IdeSummary
+        expandableSection = IdeDataSection.IdeSummary
     ) {
         SummaryStatItem(
             label = ideDataInfo.firstCategoryGroup.totalLabel,
@@ -238,7 +238,7 @@ fun IdeGroupSummaryCard(
     onExpandChange: () -> Unit
 ) {
     SummaryExpandableSectionLayout(
-        type = type,
+        expandableSection = type,
         isExpanded = isExpanded,
         onExpandChange = onExpandChange
     ) {

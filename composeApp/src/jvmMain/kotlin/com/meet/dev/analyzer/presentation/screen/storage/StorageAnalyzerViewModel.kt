@@ -15,13 +15,18 @@ import com.meet.dev.analyzer.data.models.storage.StorageAnalyzerInfo
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItem
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItemColor
 import com.meet.dev.analyzer.data.repository.storage.StorageAnalyzerRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.io.IOException
 import kotlinx.serialization.json.Json
 import kotlin.time.measureTime
 
@@ -140,12 +145,27 @@ class StorageAnalyzerViewModel(
                 isScanning = true,
                 scanProgress = 0f,
                 scanStatus = "Starting scan...",
+                scanElapsedTime = "00:00",
                 error = null
             )
         }
         loadAllJob?.cancel()
-        loadAllJob = viewModelScope.launch {
+        loadAllJob = viewModelScope.launch(Dispatchers.IO) {
             try {
+                val startTime = System.currentTimeMillis()
+
+                // Start elapsed time counter
+                val timerJob = launch {
+                    while (isActive) {
+                        val elapsedMillis = System.currentTimeMillis() - startTime
+                        val seconds = (elapsedMillis / 1000) % 60
+                        val minutes = (elapsedMillis / 1000) / 60
+                        val formatted = String.format("%02d:%02d", minutes, seconds)
+                        _uiState.update { it.copy(scanElapsedTime = formatted) }
+                        delay(1000)
+                    }
+                }
+
                 val measureTime = measureTime {
 
                     _uiState.update {
@@ -236,23 +256,27 @@ class StorageAnalyzerViewModel(
                     ).sortedByDescending {
                         it.sizeByte
                     }
-                    _uiState.update {
-                        it.copy(
-                            isScanning = false,
-                            scanProgress = 1f,
-                            scanStatus = "Scan completed successfully!",
-                            storageAnalyzerInfo = StorageAnalyzerInfo(
-                                ideDataInfo = ideDataInfo,
-                                konanInfo = konanInfo,
-                                androidAvdInfo = androidAvdInfo,
-                                androidSdkInfo = androidSdkInfo,
-                                gradleInfo = gradleInfo,
-                                totalStorageUsed = totalStorageUsed,
-                                totalStorageBytes = totalBytes,
-                                storageBreakdownItemList = storageBreakdownItemList
-                            ),
-                            error = null
-                        )
+                    timerJob.cancelAndJoin()
+
+                    withContext(Dispatchers.Main) {
+                        _uiState.update {
+                            it.copy(
+                                isScanning = false,
+                                scanProgress = 1f,
+                                scanStatus = "Scan completed successfully!",
+                                storageAnalyzerInfo = StorageAnalyzerInfo(
+                                    ideDataInfo = ideDataInfo,
+                                    konanInfo = konanInfo,
+                                    androidAvdInfo = androidAvdInfo,
+                                    androidSdkInfo = androidSdkInfo,
+                                    gradleInfo = gradleInfo,
+                                    totalStorageUsed = totalStorageUsed,
+                                    totalStorageBytes = totalBytes,
+                                    storageBreakdownItemList = storageBreakdownItemList
+                                ),
+                                error = null
+                            )
+                        }
                     }
 
                     AppLogger.i(TAG) {
@@ -269,6 +293,24 @@ class StorageAnalyzerViewModel(
                 val seconds = totalSeconds % 60
                 AppLogger.i(TAG) { "All data loaded in ${minutes}m ${seconds}s" }
 
+            } catch (e: IOException) {
+                AppLogger.e(TAG, e) { "File read error" }
+                _uiState.update {
+                    it.copy(
+                        isScanning = false,
+                        scanStatus = "",
+                        error = "Failed to access some files"
+                    )
+                }
+            } catch (e: SecurityException) {
+                AppLogger.e(TAG, e) { "Permission denied" }
+                _uiState.update {
+                    it.copy(
+                        isScanning = false,
+                        scanStatus = "",
+                        error = "Permission denied for storage access"
+                    )
+                }
             } catch (e: Exception) {
                 AppLogger.e(TAG, e) { "Error loading all data" }
                 _uiState.update {
@@ -317,6 +359,7 @@ class StorageAnalyzerViewModel(
         loadAllJob = null
 
     }
+
     override fun onCleared() {
         AppLogger.d(TAG) { "ViewModel cleared" }
         cancelAllJobs()
