@@ -20,7 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.core.utility.GradleSection
-import com.meet.dev.analyzer.core.utility.IdeDataSection
 import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.data.models.storage.CachesGradleWrapperInfo
 import com.meet.dev.analyzer.data.models.storage.CachesGradleWrapperItem
@@ -180,7 +179,7 @@ fun GradleSummaryCard(
     gradleInfo: GradleInfo,
 ) {
     SummaryExpandableSectionLayout(
-        expandableSection = IdeDataSection.IdeSummary
+        expandableSection = GradleSection.GradleSummary
     ) {
         SummaryStatItem(
             label = GradleSection.GradleWrapper.totalLabel,

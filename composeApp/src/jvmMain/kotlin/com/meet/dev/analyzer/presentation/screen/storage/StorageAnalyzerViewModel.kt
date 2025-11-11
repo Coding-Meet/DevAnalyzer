@@ -12,6 +12,7 @@ import com.meet.dev.analyzer.data.models.storage.GradleInfo
 import com.meet.dev.analyzer.data.models.storage.IdeDataInfo
 import com.meet.dev.analyzer.data.models.storage.KonanInfo
 import com.meet.dev.analyzer.data.models.storage.StorageAnalyzerInfo
+import com.meet.dev.analyzer.data.models.storage.StorageBreakdown
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItem
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItemColor
 import com.meet.dev.analyzer.data.repository.storage.StorageAnalyzerRepository
@@ -257,6 +258,24 @@ class StorageAnalyzerViewModel(
                     ).sortedByDescending {
                         it.sizeByte
                     }
+                    val storageBreakdownItemTotalSize = storageBreakdownItemList.sumOf {
+                        it.sizeByte
+                    }
+                    val storageBreakdownItemTotalSizeReadable =
+                        Utils.formatSize(storageBreakdownItemTotalSize)
+                    val storageBreakdown = StorageBreakdown(
+                        totalSizeByte = storageBreakdownItemTotalSize,
+                        totalSizeReadable = storageBreakdownItemTotalSizeReadable,
+                        storageBreakdownItemList = storageBreakdownItemList.map {
+                            val percentage =
+                                it.sizeByte.toFloat() / storageBreakdownItemTotalSize * 100
+                            val percentageReadable = String.format("%.2f", percentage)
+                            it.copy(
+                                percentage = percentage,
+                                percentageReadable = percentageReadable
+                            )
+                        },
+                    )
                     timerJob.cancelAndJoin()
 
                     withContext(Dispatchers.Main) {
@@ -273,6 +292,7 @@ class StorageAnalyzerViewModel(
                                     gradleInfo = gradleInfo,
                                     totalStorageUsed = totalStorageUsed,
                                     totalStorageBytes = totalBytes,
+                                    storageBreakdown = storageBreakdown,
                                     storageBreakdownItemList = storageBreakdownItemList
                                 ),
                                 error = null

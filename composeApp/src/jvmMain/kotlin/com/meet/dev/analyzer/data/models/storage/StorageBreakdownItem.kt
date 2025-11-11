@@ -12,10 +12,18 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import kotlinx.serialization.Serializable
 
 @Serializable
+data class StorageBreakdown(
+    val totalSizeByte: Long,
+    val totalSizeReadable: String,
+    val storageBreakdownItemList: List<StorageBreakdownItem>,
+)
+@Serializable
 data class StorageBreakdownItem(
     val name: String,
     val sizeByte: Long,
     val sizeReadable: String,
+    val percentage: Float = 0.0f,
+    val percentageReadable: String = "",
     val storageBreakdownItemColor: StorageBreakdownItemColor,
 )
 

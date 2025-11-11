@@ -12,5 +12,6 @@ data class StorageAnalyzerInfo(
     val androidSdkInfo: AndroidSdkInfo,
     val konanInfo: KonanInfo,
     val gradleInfo: GradleInfo,
+    val storageBreakdown: StorageBreakdown,
     val storageBreakdownItemList: List<StorageBreakdownItem>
 )

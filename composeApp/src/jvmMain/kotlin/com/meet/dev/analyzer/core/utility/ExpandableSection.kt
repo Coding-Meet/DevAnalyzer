@@ -295,6 +295,14 @@ enum class GradleSection(
     override val labelColor: @Composable () -> Color = { MaterialTheme.colorScheme.onSurfaceVariant },
     override val icon: ImageVector,
 ) : ExpandableSection {
+    GradleSummary(
+        title = "Gradle Summary",
+        description = "Displays a summary of total Gradle storage, including wrappers, daemons, caches, and other related folders.",
+        totalLabel = "Total Gradle",
+        messageTitle = "No Gradle Summary Data.",
+        messageDescription = "Gradle summary information is not available or not scanned yet.",
+        icon = Icons.Default.Build
+    ),
 
     GradleWrapper(
         title = "Gradle Wrapper",

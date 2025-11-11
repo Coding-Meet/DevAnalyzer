@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.core.utility.StorageSummarySection
 import com.meet.dev.analyzer.data.models.storage.StorageAnalyzerInfo
+import com.meet.dev.analyzer.data.models.storage.StorageBreakdown
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItem
 import com.meet.dev.analyzer.presentation.components.SummaryExpandableSectionLayout
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
@@ -75,7 +76,7 @@ fun OverviewTabContent(uiState: StorageAnalyzerUiState) {
             if (uiState.storageAnalyzerInfo != null) {
                 item {
                     StorageBreakdownCard(
-                        storageBreakdownItemList = uiState.storageAnalyzerInfo.storageBreakdownItemList
+                        storageBreakdown = uiState.storageAnalyzerInfo.storageBreakdown
                     )
                 }
             }
@@ -170,7 +171,7 @@ fun QuickStatCard(
 
 
 @Composable
-fun StorageBreakdownCard(storageBreakdownItemList: List<StorageBreakdownItem>) {
+fun StorageBreakdownCard(storageBreakdown: StorageBreakdown) {
     OutlinedCard(
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.large,
@@ -213,7 +214,7 @@ fun StorageBreakdownCard(storageBreakdownItemList: List<StorageBreakdownItem>) {
                         .wrapContentHeight()
                 ) {
                     PieChart(
-                        data = storageBreakdownItemList,
+                        storageBreakdown = storageBreakdown,
                         modifier = Modifier
                             .fillMaxSize()
                     )
@@ -225,11 +226,8 @@ fun StorageBreakdownCard(storageBreakdownItemList: List<StorageBreakdownItem>) {
                         .wrapContentHeight(),
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    storageBreakdownItemList.forEach { item ->
-                        ChartCard(
-                            item,
-                            percentage = item.sizeByte.toFloat() / storageBreakdownItemList.sumOf { it.sizeByte } * 100
-                        )
+                    storageBreakdown.storageBreakdownItemList.forEach { storageBreakdownItem ->
+                        ChartCard(storageBreakdownItem = storageBreakdownItem)
                     }
                 }
             }
@@ -239,17 +237,16 @@ fun StorageBreakdownCard(storageBreakdownItemList: List<StorageBreakdownItem>) {
 
 @Composable
 private fun ChartCard(
-    item: StorageBreakdownItem,
-    percentage: Float
+    storageBreakdownItem: StorageBreakdownItem,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
-            item.storageBreakdownItemColor.icon,
+            storageBreakdownItem.storageBreakdownItemColor.icon,
             contentDescription = null,
-            tint = item.storageBreakdownItemColor.color,
+            tint = storageBreakdownItem.storageBreakdownItemColor.color,
             modifier = Modifier.size(20.dp)
         )
         Column(
@@ -258,13 +255,13 @@ private fun ChartCard(
                 .padding(start = 12.dp)
         ) {
             Text(
-                item.name,
+                storageBreakdownItem.name,
                 style = MaterialTheme.typography.labelMedium,
                 fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
             Text(
-                String.format("%.2f", percentage).toDouble().toString() + "%",
+                storageBreakdownItem.percentageReadable,
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -275,7 +272,7 @@ private fun ChartCard(
             shape = MaterialTheme.shapes.small
         ) {
             Text(
-                item.sizeReadable,
+                storageBreakdownItem.sizeReadable,
                 modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
                 style = MaterialTheme.typography.bodySmall,
                 fontWeight = FontWeight.Bold
@@ -286,10 +283,10 @@ private fun ChartCard(
 
 @Composable
 fun PieChart(
-    data: List<StorageBreakdownItem>,
+    storageBreakdown: StorageBreakdown,
     modifier: Modifier = Modifier
 ) {
-    val total = data.sumOf { it.sizeByte }.toFloat()
+    val total = storageBreakdown.totalSizeByte.toFloat()
     if (total <= 0f) return
 
     Canvas(modifier = modifier.padding(16.dp)) {
@@ -298,7 +295,7 @@ fun PieChart(
 
         var startAngle = -90f
 
-        data.forEach { item ->
+        storageBreakdown.storageBreakdownItemList.forEach { item ->
             val sweepAngle = (item.sizeByte / total) * 360f
 
             drawArc(
