@@ -18,7 +18,6 @@ import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.ui.Alignment
@@ -28,6 +27,8 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meet.dev.analyzer.Res
 import com.meet.dev.analyzer.app_logo
 import com.meet.dev.analyzer.core.utility.ObserveAsEvents
@@ -41,7 +42,7 @@ fun SplashScreen(
     splashDurationMillis: Long = 2000,
 ) {
     val splashViewModel = koinViewModel<SplashViewModel>()
-    val uiState by splashViewModel.uiState.collectAsState()
+    val uiState by splashViewModel.uiState.collectAsStateWithLifecycle(minActiveState = Lifecycle.State.RESUMED)
     val startAnimation by rememberUpdatedState(uiState.startAnimation)
 
     splashViewModel.effect.ObserveAsEvents { splashEffect ->

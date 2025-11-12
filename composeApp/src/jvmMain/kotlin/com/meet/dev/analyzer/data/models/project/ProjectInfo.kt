@@ -13,13 +13,3 @@ data class ProjectInfo(
     val versionCatalog: VersionCatalog?,
     val projectFiles: List<ProjectFileInfo>,
 )
-
-//
-//enum class ProjectType {
-//    ANDROID,
-//    KOTLIN_MULTIPLATFORM,
-//    JAVA,
-//    COMPOSE_MULTIPLATFORM,
-//    SPRING_BOOT,
-//    UNKNOWN
-//}

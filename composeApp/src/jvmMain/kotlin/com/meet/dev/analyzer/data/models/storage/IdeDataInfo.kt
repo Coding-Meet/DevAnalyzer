@@ -1,11 +1,9 @@
 package com.meet.dev.analyzer.data.models.storage
 
 import com.meet.dev.analyzer.core.utility.ExpandableSection
-import kotlinx.serialization.Serializable
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@Serializable
 data class IdeDataInfo(
     val totalSizeReadable: String,
     val totalSizeBytes: Long,
@@ -15,7 +13,6 @@ data class IdeDataInfo(
     val thirdCategoryGroup: IdeGroup, // mac: SUPPORT| win: ROAMING
 )
 
-@Serializable
 data class IdeGroup(
     val sizeReadable: String,
     val totalSizeBytes: Long,
@@ -25,7 +22,6 @@ data class IdeGroup(
 )
 
 @OptIn(ExperimentalUuidApi::class)
-@Serializable
 data class IdeInstallation(
     val uniqueId: String = Uuid.random().toString(),
     val vendor: String,

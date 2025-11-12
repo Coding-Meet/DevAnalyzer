@@ -1,10 +1,8 @@
 package com.meet.dev.analyzer.data.models.storage
 
-import kotlinx.serialization.Serializable
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@Serializable
 data class AndroidAvdInfo(
     val avdItemList: List<AvdItem>,
     val sizeReadable: String,
@@ -12,7 +10,6 @@ data class AndroidAvdInfo(
 )
 
 @OptIn(ExperimentalUuidApi::class)
-@Serializable
 data class AvdItem(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,

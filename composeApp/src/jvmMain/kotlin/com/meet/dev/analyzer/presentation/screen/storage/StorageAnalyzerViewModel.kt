@@ -3,7 +3,6 @@ package com.meet.dev.analyzer.presentation.screen.storage
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.core.utility.AppLogger
-import com.meet.dev.analyzer.core.utility.Constant
 import com.meet.dev.analyzer.core.utility.Utils
 import com.meet.dev.analyzer.core.utility.Utils.tagName
 import com.meet.dev.analyzer.data.models.storage.AndroidAvdInfo
@@ -28,7 +27,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
-import kotlinx.serialization.json.Json
 import kotlin.time.measureTime
 
 class StorageAnalyzerViewModel(
@@ -59,81 +57,6 @@ class StorageAnalyzerViewModel(
                         previousTabIndex = intent.previousTabIndex,
                         selectedTabIndex = intent.currentTabIndex,
                         selectedTab = intent.storageAnalyzerTabs
-                    )
-                }
-            }
-        }
-    }
-
-    private fun dummyAllData() {
-        AppLogger.i(TAG) { "Loading all data" }
-        loadAllJob?.cancel()
-        loadAllJob = viewModelScope.launch {
-            try {
-                _uiState.update {
-                    it.copy(
-                        isScanning = true,
-                        scanProgress = 0f,
-                        scanStatus = "Starting scan...",
-                        error = null
-                    )
-                }
-
-                // Fake progress updates
-                val totalSteps = 10
-                for (i in 1..totalSteps) {
-                    delay(200) // simulate work
-                    val progress = i / totalSteps.toFloat()
-                    _uiState.update {
-                        it.copy(
-                            scanProgress = progress,
-                            scanStatus = when (i) {
-                                1 -> "Initializing..."
-                                3 -> "Fetching AVD info..."
-                                5 -> "Reading SDK info..."
-                                7 -> "Analyzing Gradle cache..."
-                                9 -> "Finalizing scan..."
-                                else -> "Scanning in progress..."
-                            }
-                        )
-                    }
-                }
-
-                // Load dummy data from JSON
-                val storageAnalyzerUiState =
-                    Json.decodeFromString(
-                        StorageAnalyzerUiState.serializer(),
-                        Constant.devStorageStr
-                    )
-
-                AppLogger.i(TAG) {
-                    "All data loaded successfully. Total storage: ${
-                        storageAnalyzerUiState.storageAnalyzerInfo?.totalStorageBytes?.let {
-                            Utils.formatSize(
-                                it
-                            )
-                        }
-                    }"
-                }
-
-                // Final update after "loading"
-                _uiState.update {
-                    it.copy(
-                        isScanning = false,
-                        scanProgress = 1f,
-                        scanStatus = "Scan completed successfully!",
-                        error = null,
-                        storageAnalyzerInfo = storageAnalyzerUiState.storageAnalyzerInfo
-                    )
-                }
-            } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading all data" }
-                _uiState.update {
-                    it.copy(
-                        isScanning = false,
-                        scanProgress = 0f,
-                        scanStatus = "",
-                        error = "Failed to load data: ${e.message}"
                     )
                 }
             }

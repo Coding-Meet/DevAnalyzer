@@ -6,6 +6,7 @@ sealed interface AppRoute {
 
     @Serializable
     data object SplashGraph : AppRoute
+
     @Serializable
     data object Splash : AppRoute
 

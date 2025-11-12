@@ -23,6 +23,7 @@ import com.meet.dev.analyzer.presentation.navigation.navigation_bar.NavigationIt
 import com.meet.dev.analyzer.presentation.navigation.navigation_bar.NavigationRailLayout
 import com.meet.dev.analyzer.presentation.screen.onboarding.OnboardingScreen
 import com.meet.dev.analyzer.presentation.screen.project.ProjectAnalyzerScreen
+import com.meet.dev.analyzer.presentation.screen.setting.SettingsScreen
 import com.meet.dev.analyzer.presentation.screen.splash.SplashScreen
 import com.meet.dev.analyzer.presentation.screen.storage.StorageAnalyzerScreen
 
@@ -32,12 +33,12 @@ fun AppNavigation(
     onThemeChange: () -> Unit,
 ) {
     val navController = rememberNavController()
-    val navBackStackEntry = navController.currentBackStackEntryAsState()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
 
     val currentNavigationItem by remember(navBackStackEntry) {
         derivedStateOf {
             NavigationItem.entries.find { navigationItem ->
-                navBackStackEntry.value.isRouteInHierarchy(navigationItem.appRoute::class)
+                navBackStackEntry.isRouteInHierarchy(navigationItem.appRoute::class)
             }
         }
     }
@@ -119,6 +120,13 @@ fun AppNavigation(
                     }
                     StorageAnalyzerScreen(parentEntry = parentEntry)
                 }
+                composable<AppRoute.Settings> {
+
+                    SettingsScreen() {
+
+                    }
+                }
+
             }
         }
     }

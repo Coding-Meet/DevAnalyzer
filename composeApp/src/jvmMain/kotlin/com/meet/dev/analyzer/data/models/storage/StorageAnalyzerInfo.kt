@@ -1,8 +1,6 @@
 package com.meet.dev.analyzer.data.models.storage
 
-import kotlinx.serialization.Serializable
 
-@Serializable
 data class StorageAnalyzerInfo(
     val totalStorageUsed: String = "0 B",
     val totalStorageBytes: Long = 0L,

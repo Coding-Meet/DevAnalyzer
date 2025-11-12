@@ -1,6 +1,5 @@
 package com.meet.dev.analyzer.presentation.screen.storage
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -9,23 +8,17 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.ui.platform.ClipEntry
-import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.core.utility.StorageAnalyzerTabs
@@ -41,11 +34,8 @@ import com.meet.dev.analyzer.presentation.screen.storage.components.IdeInfoTabCo
 import com.meet.dev.analyzer.presentation.screen.storage.components.KotlinNativeJdkTabContent
 import com.meet.dev.analyzer.presentation.screen.storage.components.LibrariesTabContent
 import com.meet.dev.analyzer.presentation.screen.storage.components.OverviewTabContent
-import kotlinx.coroutines.launch
-import kotlinx.serialization.json.Json
 import org.koin.compose.viewmodel.koinViewModel
 import java.awt.Cursor
-import java.awt.datatransfer.StringSelection
 
 @Composable
 fun StorageAnalyzerScreen(
@@ -56,9 +46,6 @@ fun StorageAnalyzerScreen(
     )
     val uiState by viewModel.uiState.collectAsState()
 
-//    DataClassTOJson(
-//        uiState
-//    )
     StorageAnalyzerContent(
         uiState = uiState,
         onEvent = viewModel::handleIntent,
@@ -192,35 +179,6 @@ fun StorageAnalyzerContent(
                     }
                 }
             }
-        }
-    }
-}
-
-@Composable
-private fun DataClassTOJson(
-    uiState: StorageAnalyzerUiState,
-) {
-    val clipBoardManager = LocalClipboard.current
-    val scope = rememberCoroutineScope()
-    Column(
-        modifier = Modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Button(
-            modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-            onClick = {
-                scope.launch {
-                    val uiStateJson =
-                        Json.encodeToString(StorageAnalyzerUiState.serializer(), uiState)
-                    clipBoardManager.setClipEntry(
-                        ClipEntry(
-                            StringSelection(uiStateJson)
-                        )
-                    )
-                }
-            }) {
-            Text("Copy")
         }
     }
 }

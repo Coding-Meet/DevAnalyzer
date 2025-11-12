@@ -9,15 +9,13 @@ import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import kotlinx.serialization.Serializable
 
-@Serializable
 data class StorageBreakdown(
     val totalSizeByte: Long,
     val totalSizeReadable: String,
     val storageBreakdownItemList: List<StorageBreakdownItem>,
 )
-@Serializable
+
 data class StorageBreakdownItem(
     val name: String,
     val sizeByte: Long,

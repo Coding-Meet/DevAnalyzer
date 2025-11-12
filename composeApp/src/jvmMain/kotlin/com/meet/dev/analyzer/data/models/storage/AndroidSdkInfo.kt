@@ -1,10 +1,8 @@
 package com.meet.dev.analyzer.data.models.storage
 
-import kotlinx.serialization.Serializable
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-@Serializable
 data class AndroidSdkInfo(
     val sdkPath: String,
     val sizeReadable: String,
@@ -19,7 +17,6 @@ data class AndroidSdkInfo(
     val extrasInfo: ExtrasInfo
 )
 
-@Serializable
 data class PlatformInfo(
     val sizeReadable: String,
     val totalSizeBytes: Long,
@@ -27,7 +24,6 @@ data class PlatformInfo(
 )
 
 @OptIn(ExperimentalUuidApi::class)
-@Serializable
 data class PlatformItem(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,
@@ -36,7 +32,6 @@ data class PlatformItem(
     val sizeBytes: Long,
 )
 
-@Serializable
 data class BuildToolInfo(
     val sizeReadable: String,
     val totalSizeBytes: Long,
@@ -44,7 +39,6 @@ data class BuildToolInfo(
 )
 
 @OptIn(ExperimentalUuidApi::class)
-@Serializable
 data class BuildToolItem(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,
@@ -53,7 +47,6 @@ data class BuildToolItem(
     val sizeBytes: Long,
 )
 
-@Serializable
 data class SystemImageInfo(
     val sizeReadable: String,
     val totalSizeBytes: Long,
@@ -61,7 +54,6 @@ data class SystemImageInfo(
 )
 
 @OptIn(ExperimentalUuidApi::class)
-@Serializable
 data class SystemImageInfoItem(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,
@@ -70,7 +62,7 @@ data class SystemImageInfoItem(
     val sizeBytes: Long,
 )
 
-@Serializable
+
 data class SourcesInfo(
     val sizeReadable: String,
     val totalSizeBytes: Long,
@@ -78,7 +70,6 @@ data class SourcesInfo(
 )
 
 @OptIn(ExperimentalUuidApi::class)
-@Serializable
 data class SourcesInfoItem(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,
@@ -87,7 +78,6 @@ data class SourcesInfoItem(
     val sizeBytes: Long,
 )
 
-@Serializable
 data class CmakeInfo(
     val sizeReadable: String,
     val totalSizeBytes: Long,
@@ -95,7 +85,6 @@ data class CmakeInfo(
 )
 
 @OptIn(ExperimentalUuidApi::class)
-@Serializable
 data class CmakeInfoItem(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,
@@ -104,7 +93,6 @@ data class CmakeInfoItem(
     val sizeBytes: Long,
 )
 
-@Serializable
 data class ExtrasInfo(
     val sizeReadable: String,
     val totalSizeBytes: Long,
@@ -112,7 +100,6 @@ data class ExtrasInfo(
 )
 
 @OptIn(ExperimentalUuidApi::class)
-@Serializable
 data class ExtrasInfoItem(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,
@@ -122,7 +109,6 @@ data class ExtrasInfoItem(
 )
 
 
-@Serializable
 data class NdkInfo(
     val sizeReadable: String,
     val totalSizeBytes: Long,
@@ -130,7 +116,6 @@ data class NdkInfo(
 )
 
 @OptIn(ExperimentalUuidApi::class)
-@Serializable
 data class NdkItem(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,
