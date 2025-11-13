@@ -23,7 +23,7 @@ import com.meet.dev.analyzer.presentation.navigation.navigation_bar.NavigationIt
 import com.meet.dev.analyzer.presentation.navigation.navigation_bar.NavigationRailLayout
 import com.meet.dev.analyzer.presentation.screen.onboarding.OnboardingScreen
 import com.meet.dev.analyzer.presentation.screen.project.ProjectAnalyzerScreen
-import com.meet.dev.analyzer.presentation.screen.setting.SettingsScreen
+//import com.meet.dev.analyzer.presentation.screen.setting.SettingsScreen
 import com.meet.dev.analyzer.presentation.screen.splash.SplashScreen
 import com.meet.dev.analyzer.presentation.screen.storage.StorageAnalyzerScreen
 
@@ -122,9 +122,9 @@ fun AppNavigation(
                 }
                 composable<AppRoute.Settings> {
 
-                    SettingsScreen() {
-
-                    }
+//                    SettingsScreen() {
+//
+//                    }
                 }
 
             }
