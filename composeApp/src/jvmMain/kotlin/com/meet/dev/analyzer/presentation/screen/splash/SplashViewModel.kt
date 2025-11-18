@@ -2,6 +2,8 @@ package com.meet.dev.analyzer.presentation.screen.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.meet.dev.analyzer.core.utility.AppLogger
+import com.meet.dev.analyzer.core.utility.Utils.tagName
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager
 import com.meet.dev.analyzer.presentation.navigation.AppRoute
 import kotlinx.coroutines.delay
@@ -17,6 +19,7 @@ import kotlinx.coroutines.launch
 class SplashViewModel(
     appPreferenceManager: AppPreferenceManager
 ) : ViewModel() {
+    private val tag = tagName(javaClass)
 
     private val appUiState = appPreferenceManager.isOnboardingDone.stateIn(
         scope = viewModelScope,
@@ -36,16 +39,20 @@ class SplashViewModel(
 
     private fun startAnimation() {
         viewModelScope.launch {
-            delay(100)
-
-            _uiState.update {
-                it.copy(startAnimation = true)
+            repeat(100) { number ->
+                delay(5)
+                _uiState.update {
+                    it.copy(progress = number / 100f)
+                }
             }
-            delay(2000)
+            _uiState.update {
+                it.copy(progress = 1f)
+            }
             val isOnboardingDone = appUiState.value
             val appRoute =
                 if (isOnboardingDone) AppRoute.MainGraph else AppRoute.Onboarding
             _effect.emit(SplashEffect.OnSplashCompleted(appRoute))
+            AppLogger.d(tag) { "startAnimation end $isOnboardingDone" }
         }
     }
 
