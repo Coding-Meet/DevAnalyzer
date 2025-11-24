@@ -4,6 +4,7 @@ import com.meet.dev.analyzer.core.utility.AppLogger
 import com.meet.dev.analyzer.core.utility.IdeDataSection
 import com.meet.dev.analyzer.core.utility.Utils
 import com.meet.dev.analyzer.core.utility.Utils.tagName
+import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import com.meet.dev.analyzer.data.models.storage.AndroidAvdInfo
 import com.meet.dev.analyzer.data.models.storage.AndroidSdkInfo
 import com.meet.dev.analyzer.data.models.storage.AvdItem
@@ -20,6 +21,7 @@ import com.meet.dev.analyzer.data.models.storage.DependenciesItem
 import com.meet.dev.analyzer.data.models.storage.ExtrasInfo
 import com.meet.dev.analyzer.data.models.storage.ExtrasInfoItem
 import com.meet.dev.analyzer.data.models.storage.GradleInfo
+import com.meet.dev.analyzer.data.models.storage.GradleModulesInfo
 import com.meet.dev.analyzer.data.models.storage.IdeDataInfo
 import com.meet.dev.analyzer.data.models.storage.IdeGroup
 import com.meet.dev.analyzer.data.models.storage.IdeInstallation
@@ -44,13 +46,16 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.Properties
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
-class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
+class StorageAnalyzerRepositoryImpl(
+    private val pathPreferenceManger: PathPreferenceManger
+) : StorageAnalyzerRepository {
 
     private val TAG = tagName(javaClass = javaClass)
 
@@ -74,8 +79,6 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             basePath: String
         ): List<IdeInstallation> {
             val dir = File(basePath)
-            if (!dir.exists()) return emptyList()
-
             return dir.listFiles()
                 ?.filter { it.isDirectory && it.name.any { ch -> ch.isDigit() } }
                 ?.mapNotNull { file ->
@@ -97,40 +100,47 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
                 } ?: emptyList()
         }
 
-        fun buildBasePaths(userHome: String, isWindows: Boolean): Map<String, Map<String, String>> {
+        suspend fun buildBasePaths(isWindows: Boolean): Map<String, Map<String, String>> {
+            val ideGoogle1 = pathPreferenceManger.ideGooglePath1.first()
+            val ideGoogle2 = pathPreferenceManger.ideGooglePath2.first()
+            val ideGoogle3 = pathPreferenceManger.ideGooglePath3.first()
+
+            val ideJetBrains1 = pathPreferenceManger.ideJetBrainsPath1.first()
+            val ideJetBrains2 = pathPreferenceManger.ideJetBrainsPath2.first()
+            val ideJetBrains3 = pathPreferenceManger.ideJetBrainsPath3.first()
+
             return if (isWindows) {
                 mapOf(
                     "Google" to mapOf(
-                        "PROGRAM_FILES" to "C:/Program Files/Android",
-                        "LOCAL" to "$userHome/AppData/Local/Google",
-                        "ROAMING" to "$userHome/AppData/Roaming/Google",
+                        "PROGRAM_FILES" to ideGoogle1,
+                        "LOCAL" to ideGoogle2,
+                        "ROAMING" to ideGoogle3,
                     ),
                     "JetBrains" to mapOf(
-                        "PROGRAM_FILES" to "C:/Program Files/JetBrains",
-                        "LOCAL" to "$userHome/AppData/Local/JetBrains",
-                        "ROAMING" to "$userHome/AppData/Roaming/JetBrains",
+                        "PROGRAM_FILES" to ideJetBrains1,
+                        "LOCAL" to ideJetBrains2,
+                        "ROAMING" to ideJetBrains3,
                     )
                 )
             } else { // macOS
                 mapOf(
                     "Google" to mapOf(
-                        "CACHES" to "$userHome/Library/Caches/Google",
-                        "LOGS" to "$userHome/Library/Logs/Google",
-                        "SUPPORT" to "$userHome/Library/Application Support/Google"
+                        "CACHES" to ideGoogle1,
+                        "LOGS" to ideGoogle2,
+                        "SUPPORT" to ideGoogle3
                     ),
                     "JetBrains" to mapOf(
-                        "CACHES" to "$userHome/Library/Caches/JetBrains",
-                        "LOGS" to "$userHome/Library/Logs/JetBrains",
-                        "SUPPORT" to "$userHome/Library/Application Support/JetBrains"
+                        "CACHES" to ideJetBrains1,
+                        "LOGS" to ideJetBrains2,
+                        "SUPPORT" to ideJetBrains3
                     )
                 )
             }
         }
         try {
-            val userHome = System.getProperty("user.home")
             val os = System.getProperty("os.name").lowercase()
             val isWindows = os.contains("windows")
-            val basePaths = buildBasePaths(userHome = userHome, isWindows = isWindows)
+            val basePaths = buildBasePaths(isWindows = isWindows)
 
             val allInstallations = buildList {
                 basePaths.forEach { (vendor, categories) ->
@@ -279,8 +289,27 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             }
         try {
             AppLogger.i(TAG) { "Analyzing Konan data" }
-            val konanRootDir = File(System.getProperty("user.home"), ".konan")
-
+            val konanFolderPath = pathPreferenceManger.konanFolderPath.first()
+            val konanRootDir = File(konanFolderPath)
+            if (!konanRootDir.exists()) {
+                return@withContext KonanInfo(
+                    rootPath = konanRootDir.absolutePath,
+                    sizeReadable = "0 B",
+                    totalSizeBytes = 0,
+                    kotlinNativeInfo = KotlinNativeInfo(
+                        name = "Kotlin/Native (.konan)",
+                        sizeBytes = 0,
+                        sizeReadable = "0 B",
+                        kotlinNativeItems = emptyList()
+                    ),
+                    dependenciesInfo = DependenciesInfo(
+                        name = "Dependencies (.konan)",
+                        sizeBytes = 0,
+                        sizeReadable = "0 B",
+                        dependenciesItems = emptyList()
+                    )
+                )
+            }
             val totalSizeBytes = Utils.calculateFolderSize(konanRootDir)
             val totalSizeReadable = Utils.formatSize(totalSizeBytes)
 
@@ -395,14 +424,10 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
         }
         AppLogger.i(TAG) { "Loading AVD information" }
         try {
-            val home = System.getProperty("user.home")
-            val path = System.getenv("ANDROID_AVD_HOME")
-            val avdDir =
-                if (!path.isNullOrEmpty()) {
-                    File(path)
-                } else {
-                    File(home, ".android" + File.separator + "avd")
-                }
+            val avdLocationPath = pathPreferenceManger.avdLocationPath.first()
+
+            val avdDir = File(avdLocationPath)
+
             AppLogger.i(TAG) { "AVD directory: ${avdDir.absolutePath}" }
 
             val avdItemLists = async {
@@ -416,7 +441,11 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             )
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error loading AVD information" }
-            throw e
+            return@withContext AndroidAvdInfo(
+                avdItemList = emptyList(),
+                totalSizeBytes = 0,
+                sizeReadable = "0 B"
+            )
         }
     }
 
@@ -430,41 +459,6 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
     )
 
     override suspend fun analyzeAndroidSdkData(): AndroidSdkInfo = withContext(Dispatchers.IO) {
-
-        suspend fun findAndroidSdkPath(): String? = withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Finding Android SDK path" }
-            val userHome = System.getProperty("user.home")
-            val os = System.getProperty("os.name").lowercase()
-
-            val possiblePaths = when {
-                os.contains("windows") -> listOf(
-                    System.getenv("ANDROID_HOME"),
-                    System.getenv("ANDROID_SDK_ROOT"),
-                    "$userHome/Sdk"
-                )
-
-                else -> listOf(
-                    System.getenv("ANDROID_HOME"),
-                    System.getenv("ANDROID_SDK_ROOT"),
-                    "$userHome/Library/Android/sdk",
-                    "$userHome/Android/Sdk"
-                )
-            }
-
-            // Check each path and return the first existing one
-            val sdkPath = possiblePaths
-                .filterNotNull()
-                .firstOrNull { File(it).exists() }
-
-            if (sdkPath != null) {
-                AppLogger.d(TAG) { "Android SDK found at: $sdkPath" }
-            } else {
-                AppLogger.e(TAG) { "Android SDK not found in expected locations." }
-            }
-
-            sdkPath
-        }
-
 
         suspend fun loadSdkItems(directory: File?): List<SdkItem> = withContext(Dispatchers.IO) {
             try {
@@ -510,13 +504,51 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
         }
 
         AppLogger.i(TAG) { "Loading SDK information" }
+        val emptyAndroidSdkInfo = AndroidSdkInfo(
+            sdkPath = "",
+            sizeReadable = "0 B",
+            totalSizeBytes = 0,
+            platformInfo = PlatformInfo(
+                platforms = emptyList(),
+                sizeReadable = "0 B",
+                totalSizeBytes = 0
+            ),
+            buildToolInfo = BuildToolInfo(
+                buildTools = emptyList(),
+                sizeReadable = "0 B",
+                totalSizeBytes = 0
+            ),
+            systemImageInfo = SystemImageInfo(
+                systemImages = emptyList(),
+                sizeReadable = "0 B",
+                totalSizeBytes = 0
+            ),
+            ndkInfo = NdkInfo(
+                ndkItems = emptyList(),
+                sizeReadable = "0 B",
+                totalSizeBytes = 0
+            ),
+            sourcesInfo = SourcesInfo(
+                sources = emptyList(),
+                sizeReadable = "0 B",
+                totalSizeBytes = 0
+            ),
+            cmakeInfo = CmakeInfo(
+                cmakeItems = emptyList(),
+                sizeReadable = "0 B",
+                totalSizeBytes = 0
+            ),
+            extrasInfo = ExtrasInfo(
+                extrasInfoItems = emptyList(),
+                sizeReadable = "0 B",
+                totalSizeBytes = 0
+            )
+        )
         try {
-            val sdkRoot = findAndroidSdkPath()
-                ?: throw IllegalStateException("Android SDK path not found. Please ensure Android Studio or SDK is installed.")
-
-            val sdkDir = File(sdkRoot)
+            val sdkLocationPath = pathPreferenceManger.sdkPath.first()
+            val sdkDir = File(sdkLocationPath)
             if (!sdkDir.exists() || !sdkDir.isDirectory) {
-                throw IllegalStateException("Invalid SDK directory: $sdkRoot")
+                return@withContext emptyAndroidSdkInfo
             }
 
             val platformsDeferred = async {
@@ -676,136 +708,178 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             )
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error loading SDK information" }
-            throw e
+            return@withContext emptyAndroidSdkInfo
         }
     }
 
     override suspend fun analyzeGradleData(): GradleInfo = withContext(Dispatchers.IO) {
+        suspend fun loadOtherFolder(gradleDir: File): List<OtherGradleFolderItem> =
+            withContext(Dispatchers.IO) {
+                val cachesDir = File(gradleDir, "caches")
+
+                val otherFolderList = listOf("transforms-3", "jars-9", "build-cache-1")
+                val cachesList = cachesDir.listFiles()
+                    ?.filter { it.isDirectory && otherFolderList.contains(it.name) }
+                    ?.map { distDir ->
+                        async {
+                            val sizeBytes = Utils.calculateFolderSize(distDir)
+                            OtherGradleFolderItem(
+                                version = distDir.name,
+                                path = distDir.absolutePath,
+                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeBytes = sizeBytes
+                            )
+                        }
+                    }?.awaitAll()?.sortedByDescending {
+                        it.sizeBytes
+                    } ?: emptyList()
+
+                val modulesDir = File(cachesDir, "modules-2")
+                val metadataList = modulesDir.listFiles()
+                    ?.filter { it.isDirectory && it.name != "files-2.1" }
+                    ?.map { metaDir ->
+                        async {
+                            val sizeBytes = Utils.calculateFolderSize(metaDir)
+                            OtherGradleFolderItem(
+                                version = metaDir.name,
+                                path = metaDir.absolutePath,
+                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeBytes = sizeBytes
+                            )
+                        }
+                    }?.awaitAll()?.sortedByDescending {
+                        it.sizeBytes
+                    } ?: emptyList()
+
+                val tempDir = File(gradleDir, ".tmp")
+                val temp = async {
+                    val sizeBytes = Utils.calculateFolderSize(tempDir)
+                    OtherGradleFolderItem(
+                        version = tempDir.name,
+                        path = tempDir.absolutePath,
+                        sizeReadable = Utils.formatSize(sizeBytes),
+                        sizeBytes = sizeBytes
+                    )
+                }.await()
+                cachesList + metadataList + temp
+            }
+
+        suspend fun loadCachesGradleWrapperInfos(gradleDir: File): List<CachesGradleWrapperItem> =
+            withContext(Dispatchers.IO) {
+                val wrapperDir = File(gradleDir, "caches")
+
+                val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
+                val ignoreDirs =
+                    listOf("modules-2", "transforms-3", "jars-9", "journal-1", "build-cache-1")
+
+                wrapperDir.listFiles()
+                    ?.filter { it.isDirectory && !ignoreDirs.contains(it.name) }
+                    ?.map { distDir ->
+                        async {
+                            val version = versionRegex.find(distDir.name)?.value ?: distDir.name
+                            val sizeBytes = Utils.calculateFolderSize(distDir)
+                            CachesGradleWrapperItem(
+                                version = version,
+                                path = distDir.absolutePath,
+                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeBytes = sizeBytes
+                            )
+                        }
+                    }?.awaitAll()?.sortedByDescending {
+                        it.sizeBytes
+                    } ?: emptyList()
+            }
+
+        suspend fun loadDaemonInfos(gradleDir: File): List<DaemonItem> =
+            withContext(Dispatchers.IO) {
+                val wrapperDir = File(gradleDir, "daemon")
+
+                val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
+                wrapperDir.listFiles()
+                    ?.filter { it.isDirectory }
+                    ?.map { distDir ->
+                        async {
+                            val version = versionRegex.find(distDir.name)?.value ?: distDir.name
+                            val sizeBytes = Utils.calculateFolderSize(distDir)
+                            DaemonItem(
+                                name = version,
+                                path = distDir.absolutePath,
+                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeBytes = sizeBytes
+                            )
+                        }
+                    }?.awaitAll()?.sortedByDescending {
+                        it.sizeBytes
+                    } ?: emptyList()
+            }
+
+        suspend fun loadGradleWrapperInfos(gradleDir: File): List<WrapperItem> =
+            withContext(Dispatchers.IO) {
+                val wrapperDir = File(gradleDir, "wrapper/dists")
+
+                val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
+                wrapperDir.listFiles()
+                    ?.filter { it.isDirectory }
+                    ?.map { distDir ->
+                        async {
+                            val version = versionRegex.find(distDir.name)?.value ?: distDir.name
+                            val sizeBytes = Utils.calculateFolderSize(distDir)
+                            WrapperItem(
+                                version = version,
+                                path = distDir.absolutePath,
+                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeBytes = sizeBytes
+                            )
+                        }
+                    }?.awaitAll()?.sortedByDescending {
+                        it.sizeBytes
+                    } ?: emptyList()
+            }
+
+        val emptyGradleInfo = GradleInfo(
+            sizeReadable = "0 B",
+            totalSizeBytes = 0,
+            cachesGradleWrapperInfo = CachesGradleWrapperInfo(
+                sizeReadable = "0 B",
+                totalSizeBytes = 0,
+                cachesGradleWrapperItems = emptyList()
+            ),
+            daemonInfo = DaemonInfo(
+                sizeReadable = "0 B",
+                totalSizeBytes = 0,
+                daemonItems = emptyList()
+            ),
+            wrapperInfo = WrapperInfo(
+                sizeReadable = "0 B",
+                totalSizeBytes = 0,
+                wrapperItems = emptyList()
+            ),
+            rootPath = "",
+            otherGradleFolderInfo = OtherGradleFolderInfo(
+                sizeReadable = "0 B",
+                totalSizeBytes = 0,
+                otherGradleFolderItems = emptyList()
+            ),
+            gradleModulesInfo = GradleModulesInfo(
+                path = "",
+                sizeBytes = 0,
+                sizeReadable = "0 B",
+                groupList = emptyList(),
+                libraries = emptyList()
+            ),
+            jdkInfo = JdkInfo(
+                sizeReadable = "0 B",
+                totalSizeBytes = 0,
+                jdkItems = emptyList()
+            )
+        )
         try {
-            suspend fun loadOtherFolder(gradleDir: File): List<OtherGradleFolderItem> =
-                withContext(Dispatchers.IO) {
-                    val cachesDir = File(gradleDir, "caches")
-
-                    val otherFolderList = listOf("transforms-3", "jars-9", "build-cache-1")
-                    val cachesList = cachesDir.listFiles()
-                        ?.filter { it.isDirectory && otherFolderList.contains(it.name) }
-                        ?.map { distDir ->
-                            async {
-                                val sizeBytes = Utils.calculateFolderSize(distDir)
-                                OtherGradleFolderItem(
-                                    version = distDir.name,
-                                    path = distDir.absolutePath,
-                                    sizeReadable = Utils.formatSize(sizeBytes),
-                                    sizeBytes = sizeBytes
-                                )
-                            }
-                        }?.awaitAll()?.sortedByDescending {
-                            it.sizeBytes
-                        } ?: emptyList()
-
-                    val modulesDir = File(cachesDir, "modules-2")
-                    val metadataList = modulesDir.listFiles()
-                        ?.filter { it.isDirectory && it.name != "files-2.1" }
-                        ?.map { metaDir ->
-                            async {
-                                val sizeBytes = Utils.calculateFolderSize(metaDir)
-                                OtherGradleFolderItem(
-                                    version = metaDir.name,
-                                    path = metaDir.absolutePath,
-                                    sizeReadable = Utils.formatSize(sizeBytes),
-                                    sizeBytes = sizeBytes
-                                )
-                            }
-                        }?.awaitAll()?.sortedByDescending {
-                            it.sizeBytes
-                        } ?: emptyList()
-
-                    val tempDir = File(gradleDir, ".tmp")
-                    val temp = async {
-                        val sizeBytes = Utils.calculateFolderSize(tempDir)
-                        OtherGradleFolderItem(
-                            version = tempDir.name,
-                            path = tempDir.absolutePath,
-                            sizeReadable = Utils.formatSize(sizeBytes),
-                            sizeBytes = sizeBytes
-                        )
-                    }.await()
-                    cachesList + metadataList + temp
-                }
-
-            suspend fun loadCachesGradleWrapperInfos(gradleDir: File): List<CachesGradleWrapperItem> =
-                withContext(Dispatchers.IO) {
-                    val wrapperDir = File(gradleDir, "caches")
-
-                    val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
-                    val ignoreDirs =
-                        listOf("modules-2", "transforms-3", "jars-9", "journal-1", "build-cache-1")
-
-                    wrapperDir.listFiles()
-                        ?.filter { it.isDirectory && !ignoreDirs.contains(it.name) }
-                        ?.map { distDir ->
-                            async {
-                                val version = versionRegex.find(distDir.name)?.value ?: distDir.name
-                                val sizeBytes = Utils.calculateFolderSize(distDir)
-                                CachesGradleWrapperItem(
-                                    version = version,
-                                    path = distDir.absolutePath,
-                                    sizeReadable = Utils.formatSize(sizeBytes),
-                                    sizeBytes = sizeBytes
-                                )
-                            }
-                        }?.awaitAll()?.sortedByDescending {
-                            it.sizeBytes
-                        } ?: emptyList()
-                }
-
-            suspend fun loadDaemonInfos(gradleDir: File): List<DaemonItem> =
-                withContext(Dispatchers.IO) {
-                    val wrapperDir = File(gradleDir, "daemon")
-
-                    val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
-                    wrapperDir.listFiles()
-                        ?.filter { it.isDirectory }
-                        ?.map { distDir ->
-                            async {
-                                val version = versionRegex.find(distDir.name)?.value ?: distDir.name
-                                val sizeBytes = Utils.calculateFolderSize(distDir)
-                                DaemonItem(
-                                    name = version,
-                                    path = distDir.absolutePath,
-                                    sizeReadable = Utils.formatSize(sizeBytes),
-                                    sizeBytes = sizeBytes
-                                )
-                            }
-                        }?.awaitAll()?.sortedByDescending {
-                            it.sizeBytes
-                        } ?: emptyList()
-                }
-
-            suspend fun loadGradleWrapperInfos(gradleDir: File): List<WrapperItem> =
-                withContext(Dispatchers.IO) {
-                    val wrapperDir = File(gradleDir, "wrapper/dists")
-
-                    val versionRegex = Regex("""\d+\.\d+(\.\d+)?""")
-                    wrapperDir.listFiles()
-                        ?.filter { it.isDirectory }
-                        ?.map { distDir ->
-                            async {
-                                val version = versionRegex.find(distDir.name)?.value ?: distDir.name
-                                val sizeBytes = Utils.calculateFolderSize(distDir)
-                                WrapperItem(
-                                    version = version,
-                                    path = distDir.absolutePath,
-                                    sizeReadable = Utils.formatSize(sizeBytes),
-                                    sizeBytes = sizeBytes
-                                )
-                            }
-                        }?.awaitAll()?.sortedByDescending {
-                            it.sizeBytes
-                        } ?: emptyList()
-                }
-
-            val gradleDir = File(System.getProperty("user.home"), ".gradle")
+            val gradleUserHomePath = pathPreferenceManger.gradleUserHomePath.first()
+            val gradleDir = File(gradleUserHomePath)
+            if (!gradleDir.exists()) {
+                // Return empty info if gradle dir doesn't exist
+                return@withContext emptyGradleInfo
+            }
             val jdkInfoDeferred = async { loadJdkInfo() }
             val wrapperItemDeferred = async { loadGradleWrapperInfos(gradleDir) }
             val daemonItemDeferred = async { loadDaemonInfos(gradleDir) }
@@ -872,7 +946,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             )
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error analyzing Gradle data" }
-            throw e
+            return@withContext emptyGradleInfo
         }
     }
 
@@ -904,7 +978,7 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
             val sizeBytes = Utils.calculateFolderSize(jdkDir)
             JdkItem(
                 path = jdkDir.absolutePath,
-                name = version,
+                name = version ?: "Unknown",
                 sizeReadable = Utils.formatSize(sizeBytes),
                 sizeBytes = sizeBytes,
             )
@@ -912,55 +986,37 @@ class StorageAnalyzerRepositoryImpl : StorageAnalyzerRepository {
 
 
         val jdksDeferred = mutableListOf<Deferred<JdkItem>>()
-        val userHome = System.getProperty("user.home")
-        val os = System.getProperty("os.name").lowercase()
+        val jdkPath1 = pathPreferenceManger.jdkPath1.first()
+        val jdkPath2 = pathPreferenceManger.jdkPath2.first()
+        val jdkPath3 = pathPreferenceManger.jdkPath3.first()
 
-        // Add JAVA_HOME if exists
-        System.getenv("JAVA_HOME")?.let { javaHome ->
-            val envJavaHome = File(javaHome)
-            if (envJavaHome.exists()) {
-                jdksDeferred.add(async { readJdkInfo(envJavaHome) })
+        val jdkDir1 = File(jdkPath1)
+
+        if (jdkDir1.exists() && jdkDir1.isDirectory) {
+            jdkDir1.listFiles()?.forEach { dir ->
+                if (dir.isDirectory) {
+                    jdksDeferred.add(async { readJdkInfo(dir) })
+                }
             }
         }
-
-        val possiblePaths = when {
-            os.contains("mac") -> listOf(
-                "$userHome/Library/Java/JavaVirtualMachines",
-                "/Library/Java/JavaVirtualMachines",
-                "$userHome/.gradle/jdks",
-                "$userHome/.sdkman/candidates/java",
-                "/usr/local/opt/openjdk",
-                "/opt/homebrew/opt/openjdk"
-            )
-
-            os.contains("windows") -> listOf(
-                "C:\\Program Files\\Java",
-                "C:\\Program Files\\Eclipse Adoptium",
-                "C:\\Program Files\\Android\\Android Studio\\jbr",
-                "$userHome\\.gradle\\jdks",
-                "$userHome\\.sdkman\\candidates\\java"
-            )
-
-            else -> listOf(
-                "/usr/lib/jvm",
-                "/usr/java",
-                "$userHome/.gradle/jdks",
-                "$userHome/.sdkman/candidates/java"
-            )
+        val jdkDir2 = File(jdkPath2)
+        if (jdkDir2.exists()) {
+            jdkDir2.listFiles()?.forEach { dir ->
+                if (dir.isDirectory) {
+                    jdksDeferred.add(async { readJdkInfo(dir) })
+                }
+            }
         }
-
-        possiblePaths.forEach { base ->
-            val baseDir = File(base)
-            if (baseDir.exists() && baseDir.isDirectory) {
-                baseDir.listFiles()?.forEach { dir ->
-                    if (dir.isDirectory) {
-                        jdksDeferred.add(async { readJdkInfo(dir) })
-                    }
+        val jdkDir3 = File(jdkPath3)
+        if (jdkDir3.exists()) {
+            jdkDir3.listFiles()?.forEach { dir ->
+                if (dir.isDirectory) {
+                    jdksDeferred.add(async { readJdkInfo(dir) })
                 }
             }
         }
 
-        val jdks = jdksDeferred.awaitAll().distinctBy { it.name }.filter { it.name != null }
+        val jdks = jdksDeferred.awaitAll().distinctBy { it.name }
             .sortedByDescending {
                 it.sizeBytes
             }

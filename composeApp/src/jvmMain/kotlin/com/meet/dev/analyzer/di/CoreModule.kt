@@ -4,6 +4,7 @@ import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager
+import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import java.io.File
@@ -19,5 +20,6 @@ val coreModule = module {
         }
     }
     singleOf(::AppPreferenceManager)
+    singleOf(::PathPreferenceManger)
 
 }

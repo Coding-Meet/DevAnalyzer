@@ -40,7 +40,7 @@ data class JdkInfo(
 @OptIn(ExperimentalUuidApi::class)
 data class JdkItem(
     val uniqueId: String = Uuid.random().toString(),
-    val name: String?,
+    val name: String,
     val path: String,
     val sizeReadable: String,
     val sizeBytes: Long,

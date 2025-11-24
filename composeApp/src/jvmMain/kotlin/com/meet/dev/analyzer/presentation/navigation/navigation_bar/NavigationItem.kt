@@ -2,8 +2,10 @@ package com.meet.dev.analyzer.presentation.navigation.navigation_bar
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.AccountTree
+import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.meet.dev.analyzer.presentation.navigation.AppRoute
@@ -29,11 +31,11 @@ enum class NavigationItem(
         unSelectedIcon = Icons.Outlined.Storage,
         description = "Analyze SDK, IDE, Gradle, and library storage usage."
     ),
-//    Settings(
-//        title ="Settings",
-//        route = AppRoute.Settings,
-//        selectedIcon = Icons.Filled.Settings,
-//        unSelectedIcon = Icons.Outlined.Settings,
-//        description = "Customize preferences and configuration options for analyzers."
-//    )
+    Settings(
+        title = "Settings",
+        appRoute = AppRoute.Settings,
+        selectedIcon = Icons.Filled.Settings,
+        unSelectedIcon = Icons.Outlined.Settings,
+        description = "Configure SDK, IDE, JDK, and tool paths, manage preferences, and control privacy options."
+    )
 }

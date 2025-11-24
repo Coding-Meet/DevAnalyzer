@@ -174,7 +174,7 @@ fun JdkDetailCard(jdkItem: JdkItem) {
         HeaderCardRow(
             icon = KotlinNativeJdkSection.JdkVersions.icon,
             sizeReadable = jdkItem.sizeReadable,
-            primaryText = jdkItem.name ?: "Unknown",
+            primaryText = jdkItem.name,
         )
 
         // Path
