@@ -1,5 +1,10 @@
 package com.meet.dev.analyzer.presentation.theme
 
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Typography
@@ -121,9 +126,28 @@ fun DevAnalyzerTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography(),
-        content = content
+    ) {
+        // this temporary code for UI not updating after StateFlow update when Compose Desktop window is inactive
+        RepaintHack()
+        content()
+    }
+}
+
+@Composable
+fun RepaintHack() {
+    val infiniteTransition = rememberInfiniteTransition(label = "repaint")
+    val s = infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000), // 1 second
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "dummy"
     )
 }
+
+
 
 //@Composable
 //fun CustomTypography() = Typography().run {
