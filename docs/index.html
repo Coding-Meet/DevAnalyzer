@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <title>DevAnalyzer - Deep Insights for Your Development Environment</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #0061A4;
+            --primary-light: #64B5F6;
+            --secondary: #00687A;
+            --secondary-light: #4FC3F7;
+            --background: #FCFCFF;
+            --surface: #F0F0F4;
+            --text: #1A1C1E;
+            --text-secondary: #42474E;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text);
+            background: var(--background);
+        }
+
+        /* Header */
+        header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        nav {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .nav-links {
+            display: flex;
+            gap: 2rem;
+            list-style: none;
+        }
+
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text);
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-links a:hover {
+            color: var(--primary);
+        }
+
+        .cta-button {
+            background: var(--primary);
+            color: white;
+            padding: 0.75rem 1.5rem;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(0, 97, 164, 0.3);
+        }
+
+        /* Hero Section */
+        .hero {
+            margin-top: 80px;
+            padding: 6rem 2rem;
+            text-align: center;
+            background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero h1 {
+            font-size: 3.5rem;
+            margin-bottom: 1.5rem;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .hero p {
+            font-size: 1.3rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .hero-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .primary-btn, .secondary-btn {
+            padding: 1rem 2rem;
+            border-radius: 10px;
+            text-decoration: none;
+            font-weight: 600;
+            font-size: 1.1rem;
+            transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .primary-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .primary-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 97, 164, 0.4);
+        }
+
+        .secondary-btn {
+            background: white;
+            color: var(--primary);
+            border: 2px solid var(--primary);
+        }
+
+        .secondary-btn:hover {
+            background: var(--primary);
+            color: white;
+        }
+
+        /* Features Section */
+        .features {
+            padding: 6rem 2rem;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 3rem;
+            color: var(--primary);
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 2rem;
+        }
+
+        .feature-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+        }
+
+        .feature-icon {
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .feature-card h3 {
+            font-size: 1.5rem;
+            margin-bottom: 1rem;
+            color: var(--primary);
+        }
+
+        .feature-card p {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+
+        .feature-list {
+            list-style: none;
+            margin-top: 1rem;
+        }
+
+        .feature-list li {
+            padding: 0.5rem 0;
+            padding-left: 1.5rem;
+            position: relative;
+            color: var(--text-secondary);
+        }
+
+        .feature-list li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+
+        /* Stats Section */
+        .stats {
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            color: white;
+            padding: 4rem 2rem;
+            text-align: center;
+        }
+
+        .stats-grid {
+            max-width: 1000px;
+            margin: 0 auto;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 3rem;
+        }
+
+        .stat-item h3 {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        /* Platforms Section */
+        .platforms {
+            padding: 6rem 2rem;
+            background: var(--surface);
+            text-align: center;
+        }
+
+        .platform-grid {
+            max-width: 800px;
+            margin: 3rem auto 0;
+            display: flex;
+            justify-content: center;
+            gap: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .platform-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            min-width: 150px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s;
+        }
+
+        .platform-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .platform-icon {
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        /* Developer Section */
+        .developer {
+            padding: 6rem 2rem;
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .developer-card {
+            background: white;
+            padding: 3rem;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+        }
+
+        .developer-avatar {
+            width: 120px;
+            height: 120px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            border-radius: 50%;
+            margin: 0 auto 1.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            color: white;
+        }
+
+        .developer-name {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--primary);
+        }
+
+        .developer-title {
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+        }
+
+        .social-links {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+
+        .social-link {
+            width: 50px;
+            height: 50px;
+            background: var(--surface);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            color: var(--primary);
+            font-size: 1.5rem;
+            transition: all 0.3s;
+        }
+
+        .social-link:hover {
+            background: var(--primary);
+            color: white;
+            transform: translateY(-3px);
+        }
+
+        /* Footer */
+        footer {
+            background: var(--text);
+            color: white;
+            padding: 3rem 2rem;
+            text-align: center;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 2rem;
+            justify-content: center;
+            margin-bottom: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .footer-links a {
+            color: white;
+            text-decoration: none;
+            opacity: 0.8;
+            transition: opacity 0.3s;
+        }
+
+        .footer-links a:hover {
+            opacity: 1;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2.5rem;
+            }
+
+            .hero p {
+                font-size: 1.1rem;
+            }
+
+            .nav-links {
+                display: none;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .fade-in-up {
+            animation: fadeInUp 0.8s ease-out;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<header>
+    <nav>
+        <div class="logo">
+            <div class="logo-icon">DA</div>
+            <span>DevAnalyzer</span>
+        </div>
+        <ul class="nav-links">
+            <li><a href="#features">Features</a></li>
+            <li><a href="#platforms">Platforms</a></li>
+            <li><a href="#developer">Developer</a></li>
+        </ul>
+        <a class="cta-button" href="https://github.com/Coding-Meet/DevAnalyzer/releases"
+           rel="noopener noreferrer" target="_blank">Download</a>
+    </nav>
+</header>
+
+<!-- Hero Section -->
+<section class="hero">
+    <div class="hero-content fade-in-up">
+        <h1>Deep Insights for Your Development Environment</h1>
+        <p>Analyze your entire development setup with powerful tools for project structure and
+            storage management</p>
+        <div class="hero-buttons">
+            <a class="primary-btn" href="https://github.com/Coding-Meet/DevAnalyzer/releases"
+               rel="noopener noreferrer" target="_blank">
+                <span>⬇</span> Download Now
+            </a>
+            <a class="secondary-btn" href="https://github.com/Coding-Meet/DevAnalyzer"
+               rel="noopener noreferrer" target="_blank">
+                <span>⭐</span> View on GitHub
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Features Section -->
+<section class="features" id="features">
+    <h2 class="section-title">Powerful Features</h2>
+    <div class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">🔍</div>
+            <h3>Project Analyzer</h3>
+            <p>Get comprehensive insights into your Kotlin and Android projects</p>
+            <ul class="feature-list">
+                <li>Module inspection & configuration</li>
+                <li>Plugin analysis across project</li>
+                <li>Dependency overview with versions</li>
+                <li>Direct build file access</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">💾</div>
+            <h3>Storage Analyzer</h3>
+            <p>Track and manage disk space used by your development tools</p>
+            <ul class="feature-list">
+                <li>Android SDK & platform tools tracking</li>
+                <li>Gradle cache & dependencies analysis</li>
+                <li>IDE data (JetBrains & Google)</li>
+                <li>JDK installations monitoring</li>
+                <li>Kotlin/Native & Konan analysis</li>
+                <li>AVD storage management</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📁</div>
+            <h3>Multi-Path Support</h3>
+            <p>Configure and analyze multiple locations simultaneously</p>
+            <ul class="feature-list">
+                <li>Multiple JDK paths support</li>
+                <li>JetBrains IDE locations</li>
+                <li>Google IDE locations</li>
+                <li>Custom path validation</li>
+                <li>Auto-detect common paths</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3>Real-Time Insights</h3>
+            <p>Watch your scan progress with detailed status updates</p>
+            <ul class="feature-list">
+                <li>Live progress tracking</li>
+                <li>Elapsed time display</li>
+                <li>Detailed status updates</li>
+                <li>Fast scanning engine</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">⚙️</div>
+            <h3>Flexible Configuration</h3>
+            <p>Customize your analysis experience</p>
+            <ul class="feature-list">
+                <li>Path validation & verification</li>
+                <li>Reset to defaults option</li>
+                <li>Easy path selection</li>
+                <li>Configurable scan locations</li>
+            </ul>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🚀</div>
+            <h3>Desktop Optimized</h3>
+            <p>Built with Compose Multiplatform for native performance</p>
+            <ul class="feature-list">
+                <li>Cross-platform support</li>
+                <li>Native performance</li>
+                <li>Modern UI design</li>
+                <li>Lightweight & fast</li>
+            </ul>
+        </div>
+    </div>
+</section>
+
+<!-- Platforms Section -->
+<section class="platforms" id="platforms">
+    <h2 class="section-title">Cross-Platform Support</h2>
+    <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
+        DevAnalyzer works seamlessly across Windows, macOS, and Linux
+    </p>
+    <div class="platform-grid">
+        <div class="platform-card">
+            <div class="platform-icon">🪟</div>
+            <h3>Windows</h3>
+        </div>
+        <div class="platform-card">
+            <div class="platform-icon">🍎</div>
+            <h3>macOS</h3>
+        </div>
+        <div class="platform-card">
+            <div class="platform-icon">🐧</div>
+            <h3>Linux</h3>
+        </div>
+    </div>
+</section>
+
+<!-- Developer Section -->
+<section class="developer" id="developer">
+    <h2 class="section-title">Meet the Developer</h2>
+    <div class="developer-card">
+        <div class="developer-avatar">M</div>
+        <h3 class="developer-name">Meet</h3>
+        <p class="developer-title">Full Stack Developer & Creator of DevAnalyzer</p>
+        <a href="https://www.codingmeet.com"
+           rel="noopener noreferrer" style="color: var(--primary); text-decoration: none; font-weight: 600;"
+           target="_blank">
+            🌐 codingmeet.com
+        </a>
+        <div class="social-links">
+            <a class="social-link" href="https://github.com/Coding-Meet" rel="noopener noreferrer"
+               target="_blank" title="GitHub">💻</a>
+            <a class="social-link" href="https://www.linkedin.com/in/coding-meet" rel="noopener noreferrer"
+               target="_blank" title="LinkedIn">💼</a>
+            <a class="social-link" href="https://www.instagram.com/codingmeet26/" rel="noopener noreferrer"
+               target="_blank" title="Instagram">📷</a>
+            <a class="social-link" href="https://www.youtube.com/@codingmeet26?si=_2Mu6ozuCdYuqihA"
+               rel="noopener noreferrer" target="_blank" title="YouTube">🎥</a>
+            <a class="social-link" href="https://www.x.com/CodingMeet" rel="noopener noreferrer"
+               target="_blank" title="Twitter">🐦</a>
+            <a class="social-link" href="mailto:meetb2602@gmail.com" title="Email">📧</a>
+            <a class="social-link" href="https://www.telegram.me/Meetb26" rel="noopener noreferrer"
+               target="_blank" title="Telegram">💬</a>
+        </div>
+        <div style="margin-top: 2rem;">
+            <a class="primary-btn" href="https://www.codingmeet.com/service" rel="noopener noreferrer"
+               target="_blank">
+                🤝 Hire Me
+            </a>
+        </div>
+    </div>
+</section>
+
+<!-- Footer -->
+<footer>
+    <div class="footer-links">
+        <a href="https://github.com/Coding-Meet/DevAnalyzer" rel="noopener noreferrer"
+           target="_blank">GitHub</a>
+        <a href="https://github.com/Coding-Meet/DevAnalyzer/issues/new?template=bug_report.md"
+           rel="noopener noreferrer" target="_blank">Report Bug</a>
+        <a href="https://github.com/Coding-Meet/DevAnalyzer/issues/new?template=feature_request.md"
+           rel="noopener noreferrer" target="_blank">Request Feature</a>
+        <a href="#developer">Developer</a>
+    </div>
+    <p style="opacity: 0.7; margin-top: 1rem;">
+        © 2024 DevAnalyzer. Built with ❤️ by Meet
+    </p>
+</footer>
+</body>
+</html>
