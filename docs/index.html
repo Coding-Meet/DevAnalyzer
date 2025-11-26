@@ -554,24 +554,49 @@
     </div>
 </section>
 
+<!-- Stats Section -->
+<section class="stats">
+    <div class="stats-grid">
+        <div class="stat-item">
+            <h3 id="github-stars">⭐</h3>
+            <p>GitHub Stars</p>
+        </div>
+        <div class="stat-item">
+            <h3 id="total-downloads">📥</h3>
+            <p>Total Downloads</p>
+        </div>
+        <div class="stat-item">
+            <h3>🌍</h3>
+            <p>Cross-Platform</p>
+        </div>
+    </div>
+</section>
+
 <!-- Platforms Section -->
 <section class="platforms" id="platforms">
-    <h2 class="section-title">Cross-Platform Support</h2>
-    <p style="color: var(--text-secondary); max-width: 600px; margin: 0 auto;">
-        DevAnalyzer works seamlessly across Windows, macOS, and Linux
+    <h2 class="section-title">Built with Compose Multiplatform</h2>
+    <p style="color: var(--text-secondary); max-width: 700px; margin: 0 auto 3rem; font-size: 1.1rem;">
+        One codebase, three platforms. Native performance and modern UI across all desktop operating
+        systems.
     </p>
     <div class="platform-grid">
         <div class="platform-card">
             <div class="platform-icon">🪟</div>
             <h3>Windows</h3>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Windows
+                10/11</p>
         </div>
         <div class="platform-card">
             <div class="platform-icon">🍎</div>
             <h3>macOS</h3>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Intel &
+                Apple Silicon</p>
         </div>
         <div class="platform-card">
             <div class="platform-icon">🐧</div>
             <h3>Linux</h3>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Ubuntu,
+                Debian, Fedora</p>
         </div>
     </div>
 </section>
@@ -582,7 +607,8 @@
     <div class="developer-card">
         <div class="developer-avatar">M</div>
         <h3 class="developer-name">Meet</h3>
-        <p class="developer-title">Full Stack Developer & Creator of DevAnalyzer</p>
+        <p class="developer-title">Android & iOS Native + Compose Multiplatform Developer (Mobile &
+            Desktop) | DM Me For Freelancing Project | Content Writer | Creator of DevAnalyzer</p>
         <a href="https://www.codingmeet.com"
            rel="noopener noreferrer" style="color: var(--primary); text-decoration: none; font-weight: 600;"
            target="_blank">
@@ -627,5 +653,164 @@
         © 2024 DevAnalyzer. Built with ❤️ by Meet
     </p>
 </footer>
+
+<script>
+    // GitHub Stats Fetcher with Local Storage Fallback
+    const GITHUB_API = {
+        REPO: 'https://api.github.com/repos/Coding-Meet/DevAnalyzer',
+        RELEASES: 'https://api.github.com/repos/Coding-Meet/DevAnalyzer/releases'
+    };
+
+    const STORAGE_KEYS = {
+        STARS: 'devanalyzer_stars',
+        DOWNLOADS: 'devanalyzer_downloads',
+        LAST_UPDATED: 'devanalyzer_last_updated'
+    };
+
+    // Default fallback values
+    const FALLBACK_VALUES = {
+        stars: '⭐',
+        downloads: '📥'
+    };
+
+    // Get stored data
+    function getStoredData() {
+        return {
+            stars: localStorage.getItem(STORAGE_KEYS.STARS) || FALLBACK_VALUES.stars,
+            downloads: localStorage.getItem(STORAGE_KEYS.DOWNLOADS) || FALLBACK_VALUES.downloads,
+            lastUpdated: localStorage.getItem(STORAGE_KEYS.LAST_UPDATED)
+        };
+    }
+
+    // Store data
+    function storeData(stars, downloads) {
+        localStorage.setItem(STORAGE_KEYS.STARS, stars);
+        localStorage.setItem(STORAGE_KEYS.DOWNLOADS, downloads);
+        localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, Date.now());
+    }
+
+    // Format number with K, M suffix
+    function formatNumber(num) {
+        if (num >= 1000000) {
+            return (num / 1000000).toFixed(1) + 'M';
+        }
+        if (num >= 1000) {
+            return (num / 1000).toFixed(1) + 'K';
+        }
+        return num.toString();
+    }
+
+    // Animate number counting
+    function animateNumber(element, target, suffix = '') {
+        const duration = 1000;
+        const start = 0;
+        const startTime = performance.now();
+
+        function update(currentTime) {
+            const elapsed = currentTime - startTime;
+            const progress = Math.min(elapsed / duration, 1);
+
+            const current = Math.floor(progress * target);
+            element.textContent = formatNumber(current) + suffix;
+
+            if (progress < 1) {
+                requestAnimationFrame(update);
+            } else {
+                element.textContent = formatNumber(target) + suffix;
+            }
+        }
+
+        requestAnimationFrame(update);
+    }
+
+    // Update UI
+    function updateUI(stars, downloads) {
+        const starsElement = document.getElementById('github-stars');
+        const downloadsElement = document.getElementById('total-downloads');
+
+        if (typeof stars === 'number') {
+            animateNumber(starsElement, stars, ' ⭐');
+        } else {
+            starsElement.textContent = stars;
+        }
+
+        if (typeof downloads === 'number') {
+            animateNumber(downloadsElement, downloads, ' 📥');
+        } else {
+            downloadsElement.textContent = downloads;
+        }
+    }
+
+    // Fetch GitHub stars
+    async function fetchGitHubStars() {
+        try {
+            const response = await fetch(GITHUB_API.REPO);
+            if (!response.ok) throw new Error('Failed to fetch stars');
+            const data = await response.json();
+            return data.stargazers_count || 0;
+        } catch (error) {
+            console.error('Error fetching GitHub stars:', error);
+            return null;
+        }
+    }
+
+    // Fetch total downloads from all releases
+    async function fetchTotalDownloads() {
+        try {
+            const response = await fetch(GITHUB_API.RELEASES);
+            if (!response.ok) throw new Error('Failed to fetch releases');
+            const releases = await response.json();
+
+            let totalDownloads = 0;
+            releases.forEach(release => {
+                if (release.assets && Array.isArray(release.assets)) {
+                    release.assets.forEach(asset => {
+                        totalDownloads += asset.download_count || 0;
+                    });
+                }
+            });
+
+            return totalDownloads;
+        } catch (error) {
+            console.error('Error fetching downloads:', error);
+            return null;
+        }
+    }
+
+    // Main fetch function
+    async function fetchGitHubStats() {
+        // Load stored data first
+        const stored = getStoredData();
+        updateUI(stored.stars, stored.downloads);
+
+        // Check if we should update (cache for 1 hour)
+        const now = Date.now();
+        const oneHour = 60 * 60 * 1000;
+        if (stored.lastUpdated && (now - stored.lastUpdated) < oneHour) {
+            return; // Use cached data
+        }
+
+        // Fetch fresh data
+        const [stars, downloads] = await Promise.all([
+            fetchGitHubStars(),
+            fetchTotalDownloads()
+        ]);
+
+        // Update UI with fresh data or keep stored values
+        const finalStars = stars !== null ? stars : stored.stars;
+        const finalDownloads = downloads !== null ? downloads : stored.downloads;
+
+        // Store new values if we got valid data
+        if (stars !== null && downloads !== null) {
+            storeData(stars, downloads);
+        }
+
+        // Update UI with animation
+        updateUI(finalStars, finalDownloads);
+    }
+
+    // Initialize on page load
+    document.addEventListener('DOMContentLoaded', fetchGitHubStats);
+</script>
 </body>
 </html>
