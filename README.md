@@ -1,6 +1,8 @@
 # 🧠 DevAnalyzer
 
-[![DevAnalyzer](screenshot/dev_analyzer.png)]()
+[![DevAnalyzer](screenshot/dev_analyzer.png)](https://youtu.be/1tJbMAHIy6M?si=R2iJRh2U-dAx6NPx)
+
+**🌐 [Visit Website](https://coding-meet.github.io/DevAnalyzer/)**
 
 ---
 
@@ -10,6 +12,8 @@
 
 - 🧩 **Project Analyzer** — Examines project modules, Gradle configurations, applied plugins, dependencies, and related build files.
 - 💾 **Storage Analyzer** — Scans SDKs, IDE data, Gradle caches, and library directories to visualize overall storage usage.
+- ⚙️ **Settings** — Configure custom paths for Android SDK, Gradle User Home, Kotlin Native, and IDE
+  locations.
 
 Designed for modern developers, **DevAnalyzer** helps you **understand**, **analyze**, and **optimize** your entire development ecosystem — all from a single, unified interface.  
 Built as a **desktop-first tool**, it runs seamlessly across platforms and can be easily extended to **Android**, **KMP**, or **backend Kotlin** environments.
@@ -33,6 +37,19 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 - 📊 Scan **SDK**, **NDK**, **CMake**, **Kotlin/Native**, **JDK** and **Extras** directories.
 - 📄 Analyze **IDE data** (Android Studio, IntelliJ) including logs, caches, and support files.
 - 🧠 Inspect **Gradle Daemons**, **Wrappers**, and **Cached Libraries**.
+- ⚡ Real-time progress tracking with elapsed time display.
+- 📁 Support for multiple JDK paths and IDE locations.
+
+### ⚙️ Settings
+
+- 🛠️ Configure custom paths for:
+    - Android SDK location
+    - Gradle User Home directory
+    - Kotlin Native cache
+    - Android Studio/IDE locations
+- ✅ Path validation and existence status indicators
+- 🔄 Reset to default paths option
+- 💾 Persistent storage using DataStore
 
 ---
 
