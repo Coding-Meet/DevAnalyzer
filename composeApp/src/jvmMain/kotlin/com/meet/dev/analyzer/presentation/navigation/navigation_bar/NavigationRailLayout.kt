@@ -1,6 +1,7 @@
 package com.meet.dev.analyzer.presentation.navigation.navigation_bar
 
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -32,7 +33,10 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.meet.dev.analyzer.Res
+import com.meet.dev.analyzer.app_logo
 import com.meet.dev.analyzer.presentation.components.CustomToolTip
+import org.jetbrains.compose.resources.painterResource
 import java.awt.Cursor
 
 @Composable
@@ -48,6 +52,16 @@ fun NavigationRailLayout(
             modifier = modifier.fillMaxHeight(),
             containerColor = MaterialTheme.colorScheme.surface,
         ) {
+            Spacer(Modifier.height(16.dp))
+
+            // App Logo
+            Image(
+                painter = painterResource(Res.drawable.app_logo),
+                contentDescription = "DevAnalyzer Logo",
+                modifier = Modifier
+                    .size(48.dp)
+            )
+
             Spacer(Modifier.weight(1f))
 
             NavigationItem.entries.forEach { navigationItem ->
