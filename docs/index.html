@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
@@ -137,7 +138,8 @@
             flex-wrap: wrap;
         }
 
-        .primary-btn, .secondary-btn {
+        .primary-btn,
+        .secondary-btn {
             padding: 1rem 2rem;
             border-radius: 10px;
             text-decoration: none;
@@ -365,12 +367,57 @@
             color: var(--primary);
             font-size: 1.5rem;
             transition: all 0.3s;
+            position: relative;
         }
 
         .social-link:hover {
             background: var(--primary);
             color: white;
             transform: translateY(-3px);
+        }
+
+        /* Tooltip styles */
+        .social-link::before {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: var(--text);
+            color: white;
+            padding: 0.5rem 0.75rem;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            white-space: nowrap;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 10;
+        }
+
+        .social-link::after {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-2px);
+            border: 6px solid transparent;
+            border-top-color: var(--text);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s, transform 0.3s;
+            z-index: 10;
+        }
+
+        .social-link:hover::before {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-12px);
+        }
+
+        .social-link:hover::after {
+            opacity: 1;
+            transform: translateX(-50%) translateY(-6px);
         }
 
         /* Footer */
@@ -425,6 +472,7 @@
                 opacity: 0;
                 transform: translateY(30px);
             }
+
             to {
                 opacity: 1;
                 transform: translateY(0);
@@ -436,6 +484,7 @@
         }
     </style>
 </head>
+
 <body>
 <!-- Header -->
 <header>
@@ -450,7 +499,8 @@
             <li><a href="#developer">Developer</a></li>
         </ul>
         <a class="cta-button" href="https://github.com/Coding-Meet/DevAnalyzer/releases"
-           rel="noopener noreferrer" target="_blank">Download</a>
+           rel="noopener noreferrer"
+           target="_blank">Download</a>
     </nav>
 </header>
 
@@ -466,7 +516,8 @@
                 <span>⬇</span> Download Now
             </a>
             <a class="secondary-btn" href="https://github.com/Coding-Meet/DevAnalyzer"
-               rel="noopener noreferrer" target="_blank">
+               rel="noopener noreferrer"
+               target="_blank">
                 <span>⭐</span> View on GitHub
             </a>
         </div>
@@ -558,11 +609,11 @@
 <section class="stats">
     <div class="stats-grid">
         <div class="stat-item">
-            <h3 id="github-stars">⭐</h3>
+            <h3 id="github-stars">Loading...</h3>
             <p>GitHub Stars</p>
         </div>
         <div class="stat-item">
-            <h3 id="total-downloads">📥</h3>
+            <h3 id="total-downloads">Loading...</h3>
             <p>Total Downloads</p>
         </div>
         <div class="stat-item">
@@ -595,8 +646,8 @@
         <div class="platform-card">
             <div class="platform-icon">🐧</div>
             <h3>Linux</h3>
-            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Ubuntu,
-                Debian, Fedora</p>
+            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Ubuntu
+                and Linux</p>
         </div>
     </div>
 </section>
@@ -609,28 +660,33 @@
         <h3 class="developer-name">Meet</h3>
         <p class="developer-title">Android & iOS Native + Compose Multiplatform Developer (Mobile &
             Desktop) | DM Me For Freelancing Project | Content Writer | Creator of DevAnalyzer</p>
-        <a href="https://www.codingmeet.com"
-           rel="noopener noreferrer" style="color: var(--primary); text-decoration: none; font-weight: 600;"
-           target="_blank">
+        <a href="https://www.codingmeet.com" rel="noopener noreferrer"
+           style="color: var(--primary); text-decoration: none; font-weight: 600;" target="_blank">
             🌐 codingmeet.com
         </a>
         <div class="social-links">
             <a class="social-link" href="https://github.com/Coding-Meet" rel="noopener noreferrer"
-               target="_blank" title="GitHub">💻</a>
-            <a class="social-link" href="https://www.linkedin.com/in/coding-meet" rel="noopener noreferrer"
+               target="_blank"
+               title="GitHub">💻</a>
+            <a class="social-link" href="https://www.linkedin.com/in/coding-meet"
+               rel="noopener noreferrer"
                target="_blank" title="LinkedIn">💼</a>
-            <a class="social-link" href="https://www.instagram.com/codingmeet26/" rel="noopener noreferrer"
+            <a class="social-link" href="https://www.instagram.com/codingmeet26/"
+               rel="noopener noreferrer"
                target="_blank" title="Instagram">📷</a>
             <a class="social-link" href="https://www.youtube.com/@codingmeet26?si=_2Mu6ozuCdYuqihA"
                rel="noopener noreferrer" target="_blank" title="YouTube">🎥</a>
             <a class="social-link" href="https://www.x.com/CodingMeet" rel="noopener noreferrer"
-               target="_blank" title="Twitter">🐦</a>
+               target="_blank"
+               title="Twitter">🐦</a>
             <a class="social-link" href="mailto:meetb2602@gmail.com" title="Email">📧</a>
             <a class="social-link" href="https://www.telegram.me/Meetb26" rel="noopener noreferrer"
-               target="_blank" title="Telegram">💬</a>
+               target="_blank"
+               title="Telegram">💬</a>
         </div>
         <div style="margin-top: 2rem;">
-            <a class="primary-btn" href="https://www.codingmeet.com/service" rel="noopener noreferrer"
+            <a class="primary-btn" href="https://www.codingmeet.com/service"
+               rel="noopener noreferrer"
                target="_blank">
                 🤝 Hire Me
             </a>
@@ -650,7 +706,8 @@
         <a href="#developer">Developer</a>
     </div>
     <p style="opacity: 0.7; margin-top: 1rem;">
-        © 2024 DevAnalyzer. Built with ❤️ by Meet
+        © 2025 DevAnalyzer<br>
+        Built with ❤️ by Meet
     </p>
 </footer>
 
@@ -669,23 +726,26 @@
 
     // Default fallback values
     const FALLBACK_VALUES = {
-        stars: '⭐',
-        downloads: '📥'
+        stars: 'Loading...',
+        downloads: 'Loading...'
     };
 
     // Get stored data
     function getStoredData() {
+        const storedStars = localStorage.getItem(STORAGE_KEYS.STARS);
+        const storedDownloads = localStorage.getItem(STORAGE_KEYS.DOWNLOADS);
+
         return {
-            stars: localStorage.getItem(STORAGE_KEYS.STARS) || FALLBACK_VALUES.stars,
-            downloads: localStorage.getItem(STORAGE_KEYS.DOWNLOADS) || FALLBACK_VALUES.downloads,
+            stars: storedStars ? parseInt(storedStars) : FALLBACK_VALUES.stars,
+            downloads: storedDownloads ? parseInt(storedDownloads) : FALLBACK_VALUES.downloads,
             lastUpdated: localStorage.getItem(STORAGE_KEYS.LAST_UPDATED)
         };
     }
 
     // Store data
     function storeData(stars, downloads) {
-        localStorage.setItem(STORAGE_KEYS.STARS, stars);
-        localStorage.setItem(STORAGE_KEYS.DOWNLOADS, downloads);
+        localStorage.setItem(STORAGE_KEYS.STARS, stars.toString());
+        localStorage.setItem(STORAGE_KEYS.DOWNLOADS, downloads.toString());
         localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, Date.now());
     }
 
@@ -701,7 +761,7 @@
     }
 
     // Animate number counting
-    function animateNumber(element, target, suffix = '') {
+    function animateNumber(element, target, emoji) {
         const duration = 1000;
         const start = 0;
         const startTime = performance.now();
@@ -711,12 +771,12 @@
             const progress = Math.min(elapsed / duration, 1);
 
             const current = Math.floor(progress * target);
-            element.textContent = formatNumber(current) + suffix;
+            element.textContent = formatNumber(current) + ' ' + emoji;
 
             if (progress < 1) {
                 requestAnimationFrame(update);
             } else {
-                element.textContent = formatNumber(target) + suffix;
+                element.textContent = formatNumber(target) + ' ' + emoji;
             }
         }
 
@@ -729,13 +789,13 @@
         const downloadsElement = document.getElementById('total-downloads');
 
         if (typeof stars === 'number') {
-            animateNumber(starsElement, stars, ' ⭐');
+            animateNumber(starsElement, stars, '⭐');
         } else {
             starsElement.textContent = stars;
         }
 
         if (typeof downloads === 'number') {
-            animateNumber(downloadsElement, downloads, ' 📥');
+            animateNumber(downloadsElement, downloads, '📥');
         } else {
             downloadsElement.textContent = downloads;
         }
@@ -813,4 +873,5 @@
     document.addEventListener('DOMContentLoaded', fetchGitHubStats);
 </script>
 </body>
+
 </html>
