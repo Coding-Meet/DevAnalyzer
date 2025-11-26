@@ -138,7 +138,7 @@ fun OnboardingPageContent(page: OnboardingPageData) {
         // Animated Icon
         AnimatedIcon(icon = page.icon)
 
-        Spacer(Modifier.height(48.dp))
+        Spacer(Modifier.height(24.dp))
 
         // Animated Title
         AnimatedVisibility(

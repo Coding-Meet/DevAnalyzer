@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -17,28 +18,33 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Memory
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
@@ -52,13 +58,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
+import com.meet.dev.analyzer.core.utility.AppLinks
+import com.meet.dev.analyzer.core.utility.AppLinks.socialLinks
 import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.core.utility.getDefaultAndroidSdkPath
 import com.meet.dev.analyzer.core.utility.getDefaultAvdLocationPath
@@ -110,7 +120,7 @@ fun SettingsScreenContent(
 
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(24.dp)
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 // Scan Locations Section
                 SettingsSection(title = "Scan Locations") {
@@ -512,33 +522,120 @@ fun SettingsScreenContent(
 
                 HorizontalDivider()
 
-                // About Section
-                SettingsSection(title = "About") {
-                    InfoSettingItem(
-                        label = "App Version",
-                        value = settingsUiState.appVersion,
-                        icon = Icons.Default.Info
+                // About App Section
+                SettingsSection(title = "About App") {
+                    LinkSettingItem(
+                        label = "Version",
+                        value = AppLinks.VERSION,
+                        icon = Icons.Default.Info,
+                        url = AppLinks.RELEASE_LINK
                     )
 
-                    Button(
-                        onClick = {
-                            onEvent(SettingsUiIntent.CheckForUpdates)
-                        },
-                        modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp),
-                        enabled = !settingsUiState.isCheckingUpdates
+                    LinkSettingItem(
+                        label = "Website",
+                        value = "devanalyzer.com",
+                        icon = Icons.Default.Language,
+                        url = AppLinks.WEBSITE
+                    )
+
+                    LinkSettingItem(
+                        label = "Project Repository",
+                        value = "View on GitHub",
+                        icon = Icons.Default.Code,
+                        url = AppLinks.GITHUB_PROJECT
+                    )
+                }
+
+                HorizontalDivider()
+
+                // Feedback Section
+                SettingsSection(title = "Feedback") {
+                    LinkSettingItem(
+                        label = "Report a Bug",
+                        value = "Help us improve",
+                        icon = Icons.Default.BugReport,
+                        url = AppLinks.REPORT_BUG
+                    )
+
+                    LinkSettingItem(
+                        label = "Request a Feature",
+                        value = "Share your ideas",
+                        icon = Icons.Default.Lightbulb,
+                        url = AppLinks.REQUEST_FEATURE
+                    )
+                }
+
+                HorizontalDivider()
+
+                // Developer Section
+                SettingsSection(title = "Developer") {
+                    LinkSettingItem(
+                        label = "Meet",
+                        value = "www.codingmeet.com",
+                        icon = Icons.Default.Person,
+                        url = AppLinks.PORTFOLIO
+                    )
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        )
                     ) {
-                        if (settingsUiState.isCheckingUpdates) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                strokeWidth = 2.dp,
-                                color = MaterialTheme.colorScheme.onPrimary
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            val uriHandler = LocalUriHandler.current
+
+                            // Social Links Title
+                            Text(
+                                text = "Connect with me",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
-                            Spacer(Modifier.width(8.dp))
-                            Text("Checking...")
-                        } else {
-                            Icon(Icons.Default.SystemUpdate, contentDescription = null)
-                            Spacer(Modifier.width(8.dp))
-                            Text("Check for Updates")
+
+                            // Social Links
+                            Row(
+                                modifier = Modifier.align(Alignment.CenterHorizontally),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                socialLinks.forEach { link ->
+                                    SocialLinkButton(
+                                        icon = link.icon,
+                                        label = link.label,
+                                        url = link.url
+                                    )
+                                }
+                            }
+
+                            HorizontalDivider()
+
+                            // Hire Me Button
+                            Button(
+                                onClick = { uriHandler.openUri(AppLinks.HIRE_ME) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                                    .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Handshake,
+                                    contentDescription = null
+                                )
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "Hire Me",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                     }
                 }
@@ -629,6 +726,94 @@ fun SettingsSection(
 }
 
 @Composable
+fun LinkSettingItem(
+    label: String,
+    value: String,
+    icon: ImageVector,
+    url: String,
+    modifier: Modifier = Modifier
+) {
+    val uriHandler = LocalUriHandler.current
+
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clip(CardDefaults.shape)
+            .clickable { uriHandler.openUri(url) }
+            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+        ),
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Spacer(Modifier.width(12.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = label,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = value,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                contentDescription = "Open link",
+                modifier = Modifier.size(20.dp),
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+@Composable
+fun SocialLinkButton(
+    icon: ImageVector,
+    label: String,
+    url: String
+) {
+    val uriHandler = LocalUriHandler.current
+
+    OutlinedButton(
+        onClick = { uriHandler.openUri(url) },
+        modifier = Modifier
+            .width(100.dp)
+            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 12.dp)
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = label,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = label,
+                style = MaterialTheme.typography.labelSmall,
+                maxLines = 1
+            )
+        }
+    }
+}
+
+@Composable
 fun PathSettingItem(
     label: String,
     path: String,
@@ -644,10 +829,11 @@ fun PathSettingItem(
         )
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier = Modifier.fillMaxWidth().padding(10.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 Icon(
                     imageVector = icon,
@@ -713,27 +899,23 @@ fun PathSettingItem(
             }
 
             Spacer(Modifier.height(8.dp))
-            StatusMessage(status = status)
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                Icon(
+                    imageVector = status.imageVector,
+                    contentDescription = status.message,
+                    tint = status.tint(),
+                    modifier = Modifier.size(14.dp)
+                )
+                Text(
+                    text = status.message,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = status.tint()
+                )
+            }
         }
-    }
-}
-
-
-@Composable
-fun StatusMessage(status: PathStatus) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
-        Icon(
-            imageVector = status.imageVector,
-            contentDescription = status.message,
-            tint = status.tint(),
-            modifier = Modifier.size(14.dp)
-        )
-        Text(
-            text = status.message, style = MaterialTheme.typography.bodySmall, color = status.tint()
-        )
     }
 }
 
@@ -775,41 +957,6 @@ fun SwitchSettingItem(
             Switch(
                 checked = checked, onCheckedChange = onCheckedChange
             )
-        }
-    }
-}
-
-@Composable
-fun InfoSettingItem(
-    label: String, value: String, icon: ImageVector
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(Modifier.width(12.dp))
-            Column {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-            }
         }
     }
 }
