@@ -2,7 +2,6 @@ package com.meet.dev.analyzer.presentation.screen.setting
 
 data class SettingsUiState(
     val crashReportingEnabled: Boolean = true,
-    val appVersion: String = "1.0.0",
     val isCheckingUpdates: Boolean = false,
     val updateAvailable: Boolean = false,
     val showPathPicker: PathPickerType? = null,
