@@ -31,33 +31,32 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup JDK 17
+      - name: Setup ARM JDK (default)
+        if: matrix.arch == 'arm'
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Grant execute permission for Gradlew
-        if: runner.os != 'Windows'
+      - name: Install Intel (x86_64) JDK manually
+        if: matrix.arch == 'intel'
+        run: |
+          curl -L -o intel-jdk.tar.gz https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.11+9/OpenJDK17U-jdk_x64_mac_hotspot_17.0.11_9.tar.gz
+          mkdir -p $HOME/intel-jdk
+          tar -xzf intel-jdk.tar.gz -C $HOME/intel-jdk --strip-components=1
+          echo "JAVA_HOME=$HOME/intel-jdk" >> $GITHUB_ENV
+
+      - name: Make gradlew executable
         run: chmod +x gradlew
 
       - name: Build native packages
         run: ./gradlew ${{ matrix.gradle_task }} packageUberJarForCurrentOS --stacktrace
 
-      - name: Check build output
-        run: ls -R composeApp/build || true
-
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.format }}
-          path: |
-            composeApp/build/compose/binaries/**/dmg/*
-            #            composeApp/build/compose/binaries/**/pkg/*
-            composeApp/build/compose/binaries/**/deb/*
-            composeApp/build/compose/binaries/**/msi/*
-  #            composeApp/build/compose/jars/*.jar
-  #            composeApp/build/compose/binaries/**/app/*
+          path: composeApp/build/compose/binaries/**/*
 
   release:
     name: Create GitHub Release
@@ -77,10 +76,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/build-macos/**/*.dmg
-            artifacts/build-macos/**/*.app
-            artifacts/build-macos/**/*.pkg
-            artifacts/build-macos/**/*.jar
+            artifacts/build-macos-arm/**/*.dmg
+            artifacts/build-macos-intel/**/*.dmg
+            artifacts/build-macos-arm/**/*.pkg
+            artifacts/build-macos-intel/**/*.pkg
             artifacts/build-windows/**/*.msi
             artifacts/build-windows/**/*.exe
             artifacts/build-windows/**/*.jar
