@@ -69,10 +69,11 @@ jobs:
 
       - name: Rename Windows MSI
         if: matrix.format == 'windows'
+        shell: pwsh
         run: |
-          FILE=$(find composeApp/build/compose/binaries -name "*.msi" -type f)
-          NEW="DevAnalyzer-${{ github.ref_name }}-windows-x64.msi"
-          mv "$FILE" "$(dirname "$FILE")/$NEW"
+          $file = Get-ChildItem -Recurse -Filter *.msi -Path "composeApp/build/compose/binaries" | Select-Object -First 1
+          $newName = "DevAnalyzer-${{ github.ref_name }}-windows-x64.msi"
+          Rename-Item -Path $file.FullName -NewName $newName
 
       - name: Rename Linux DEB
         if: matrix.format == 'linux'
