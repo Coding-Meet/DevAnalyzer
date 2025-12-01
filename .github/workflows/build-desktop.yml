@@ -12,17 +12,22 @@ jobs:
     strategy:
       matrix:
         include:
+          # macOS ARM (Apple Silicon)
           - os: macos-latest
             format: macos-arm
             gradle_task: packageReleaseDistributionForCurrentOS
-            arch: arm
-          - os: macos-latest
+
+          # macOS Intel (x64)
+          - os: macos-13
             format: macos-intel
             gradle_task: packageReleaseDistributionForCurrentOS
-            arch: intel
+
+          # Windows
           - os: windows-latest
             format: windows
             gradle_task: packageReleaseDistributionForCurrentOS
+
+          # Linux
           - os: ubuntu-latest
             format: linux
             gradle_task: packageReleaseDistributionForCurrentOS
@@ -31,22 +36,14 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup ARM JDK (default)
-        if: matrix.arch == 'arm'
+      - name: Setup JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Install Intel (x86_64) JDK manually
-        if: matrix.arch == 'intel'
-        run: |
-          curl -L -o intel-jdk.tar.gz https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.11+9/OpenJDK17U-jdk_x64_mac_hotspot_17.0.11_9.tar.gz
-          mkdir -p $HOME/intel-jdk
-          tar -xzf intel-jdk.tar.gz -C $HOME/intel-jdk --strip-components=1
-          echo "JAVA_HOME=$HOME/intel-jdk" >> $GITHUB_ENV
-
-      - name: Make gradlew executable
+      - name: Grant execute permission for Gradlew
+        if: runner.os != 'Windows'
         run: chmod +x gradlew
 
       - name: Build native packages
@@ -56,7 +53,13 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: build-${{ matrix.format }}
-          path: composeApp/build/compose/binaries/**/*
+          path: |
+            composeApp/build/compose/binaries/**/dmg/*
+            composeApp/build/compose/binaries/**/deb/*
+            composeApp/build/compose/binaries/**/msi/*
+  #            composeApp/build/compose/binaries/**/pkg/*
+  #            composeApp/build/compose/jars/*.jar
+  #            composeApp/build/compose/binaries/**/app/*
 
   release:
     name: Create GitHub Release
