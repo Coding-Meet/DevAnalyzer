@@ -7,6 +7,7 @@ import io.github.z4kn4fein.semver.VersionFormatException
 import io.github.z4kn4fein.semver.toVersion
 import java.awt.Desktop
 import java.io.File
+import java.util.Locale
 import kotlin.math.log10
 import kotlin.math.pow
 
@@ -84,6 +85,7 @@ object Utils {
         val base = 1000.0 // Decimal (1000): 6.33 GB Binary (1024): 5.90 GB
         val digitGroups = (log10(bytes.toDouble()) / log10(base)).toInt()
         return String.format(
+            Locale.US,
             "%.2f %s",
             bytes / base.pow(digitGroups.toDouble()),
             units[digitGroups]
