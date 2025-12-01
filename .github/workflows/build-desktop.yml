@@ -18,7 +18,7 @@ jobs:
             gradle_task: packageReleaseDistributionForCurrentOS
 
           # macOS Intel (x64)
-          - os: macos-13
+          - os: macos-15-intel
             format: macos-intel
             gradle_task: packageReleaseDistributionForCurrentOS
 
@@ -47,7 +47,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build native packages
-        run: ./gradlew ${{ matrix.gradle_task }} packageUberJarForCurrentOS --stacktrace
+        run: ./gradlew ${{ matrix.gradle_task }} --stacktrace
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -57,9 +57,6 @@ jobs:
             composeApp/build/compose/binaries/**/dmg/*
             composeApp/build/compose/binaries/**/deb/*
             composeApp/build/compose/binaries/**/msi/*
-  #            composeApp/build/compose/binaries/**/pkg/*
-  #            composeApp/build/compose/jars/*.jar
-  #            composeApp/build/compose/binaries/**/app/*
 
   release:
     name: Create GitHub Release
@@ -81,14 +78,8 @@ jobs:
           files: |
             artifacts/build-macos-arm/**/*.dmg
             artifacts/build-macos-intel/**/*.dmg
-            artifacts/build-macos-arm/**/*.pkg
-            artifacts/build-macos-intel/**/*.pkg
             artifacts/build-windows/**/*.msi
-            artifacts/build-windows/**/*.exe
-            artifacts/build-windows/**/*.jar
             artifacts/build-linux/**/*.deb
-            artifacts/build-linux/**/*.rpm
-            artifacts/build-linux/**/*.jar
           draft: true
           tag_name: ${{ github.ref_name }}
         env:
