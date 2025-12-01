@@ -51,7 +51,7 @@ jobs:
         run: chmod +x gradlew
 
       - name: Build native packages
-        run: ./gradlew ${{ matrix.gradle_task }} packageUberJarForCurrentOS --stacktrace
+        run: ./gradlew ${{ matrix.gradle_task }} --stacktrace
 
       - name: Rename macOS ARM DMG
         if: matrix.format == 'macos-arm'
