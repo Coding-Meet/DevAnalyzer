@@ -1,4 +1,5 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -99,7 +100,7 @@ compose {
                     TargetFormat.Deb                    // Linux
                 )
                 packageName = "DevAnalyzer"
-                packageVersion = "1.0.0"
+                packageVersion = customPackageVersion
                 includeAllModules = true
                 description = "Deep insights into your development environment."
                 vendor = "Meet"
@@ -133,3 +134,12 @@ compose {
         }
     }
 }
+
+val versionProps = Properties()
+val versionPropertiesFile = rootProject.file("version.properties")
+if (versionPropertiesFile.exists()) {
+    versionPropertiesFile.inputStream().use { versionProps.load(it) }
+} else {
+    throw GradleException("Root project version.properties not found! Please ensure it exists with the version number.")
+}
+val customPackageVersion: String = versionProps.getProperty("PACKAGE_VERSION")

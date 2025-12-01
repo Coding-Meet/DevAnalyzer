@@ -11,7 +11,7 @@ import androidx.compose.material.icons.filled.Work
 import androidx.compose.ui.graphics.vector.ImageVector
 
 object AppLinks {
-    const val VERSION = "1.0.0"
+    const val VERSION = "1.1.0"
     const val WEBSITE = "https://coding-meet.github.io/DevAnalyzer/"
     const val GITHUB_PROJECT =
         "https://www.github.com/Coding-Meet/DevAnalyzer"
