@@ -14,13 +14,13 @@ jobs:
         include:
           - os: macos-latest
             format: macos
-            gradle_task: packageDistributionForCurrentOS
+            gradle_task: packageReleaseDistributionForCurrentOS
           - os: windows-latest
             format: windows
-            gradle_task: packageDistributionForCurrentOS
+            gradle_task: packageReleaseDistributionForCurrentOS
           - os: ubuntu-latest
             format: linux
-            gradle_task: packageDistributionForCurrentOS
+            gradle_task: packageReleaseDistributionForCurrentOS
 
     steps:
       - name: Checkout code
@@ -51,7 +51,7 @@ jobs:
             #            composeApp/build/compose/binaries/**/pkg/*
             composeApp/build/compose/binaries/**/deb/*
             composeApp/build/compose/binaries/**/msi/*
-            composeApp/build/compose/jars/*.jar
+  #            composeApp/build/compose/jars/*.jar
   #            composeApp/build/compose/binaries/**/app/*
 
   release:
