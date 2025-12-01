@@ -13,8 +13,13 @@ jobs:
       matrix:
         include:
           - os: macos-latest
-            format: macos
+            format: macos-arm
             gradle_task: packageReleaseDistributionForCurrentOS
+            arch: arm
+          - os: macos-latest
+            format: macos-intel
+            gradle_task: packageReleaseDistributionForCurrentOS
+            arch: intel
           - os: windows-latest
             format: windows
             gradle_task: packageReleaseDistributionForCurrentOS
