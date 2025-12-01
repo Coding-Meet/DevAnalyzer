@@ -1,30 +1,23 @@
 package com.meet.dev.analyzer.presentation.screen.setting
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.OpenInNew
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.DataObject
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
@@ -34,7 +27,6 @@ import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -42,24 +34,13 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.platform.LocalUriHandler
@@ -69,7 +50,6 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.core.utility.AppLinks
 import com.meet.dev.analyzer.core.utility.AppLinks.socialLinks
-import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.core.utility.getDefaultAndroidSdkPath
 import com.meet.dev.analyzer.core.utility.getDefaultAvdLocationPath
 import com.meet.dev.analyzer.core.utility.getDefaultGoogleFolderPaths
@@ -79,12 +59,14 @@ import com.meet.dev.analyzer.core.utility.getDefaultJetbrainsFolderPaths
 import com.meet.dev.analyzer.core.utility.getDefaultKonanFolderPath
 import com.meet.dev.analyzer.presentation.components.TopAppBar
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
-import io.github.vinceglb.filekit.PlatformFile
-import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
-import io.github.vinceglb.filekit.path
-import kotlinx.coroutines.launch
+import com.meet.dev.analyzer.presentation.screen.setting.components.LinkSettingItem
+import com.meet.dev.analyzer.presentation.screen.setting.components.PathPickerDialog
+import com.meet.dev.analyzer.presentation.screen.setting.components.PathSettingItem
+import com.meet.dev.analyzer.presentation.screen.setting.components.SettingsSection
+import com.meet.dev.analyzer.presentation.screen.setting.components.SocialLinkButton
 import org.koin.compose.viewmodel.koinViewModel
 import java.awt.Cursor
+
 
 @Composable
 fun SettingsScreen(
@@ -508,19 +490,19 @@ fun SettingsScreenContent(
                 HorizontalDivider()
 
 
-                // Data & Privacy Section
-                SettingsSection(title = "Data & Privacy") {
-                    SwitchSettingItem(
-                        label = "Crash Reporting",
-                        description = "Automatically report crashes to improve stability",
-                        checked = settingsUiState.crashReportingEnabled,
-                        icon = Icons.Default.BugReport,
-                        onCheckedChange = {
-                            onEvent(SettingsUiIntent.ToggleCrashReporting(it))
-                        })
-                }
-
-                HorizontalDivider()
+//                Data & Privacy Section
+//                SettingsSection(title = "Data & Privacy") {
+//                    SwitchSettingItem(
+//                        label = "Crash Reporting",
+//                        description = "Automatically report crashes to improve stability",
+//                        checked = settingsUiState.crashReportingEnabled,
+//                        icon = Icons.Default.BugReport,
+//                        onCheckedChange = {
+//                            onEvent(SettingsUiIntent.ToggleCrashReporting(it))
+//                        })
+//                }
+//
+//               HorizontalDivider()
 
                 // About App Section
                 SettingsSection(title = "About App") {
@@ -533,7 +515,7 @@ fun SettingsScreenContent(
 
                     LinkSettingItem(
                         label = "Website",
-                        value = "devanalyzer.com",
+                        value = "https://coding-meet.github.io/DevAnalyzer/",
                         icon = Icons.Default.Language,
                         url = AppLinks.WEBSITE
                     )
@@ -706,329 +688,4 @@ fun SettingsScreenContent(
             })
     }
 
-}
-
-@Composable
-fun SettingsSection(
-    title: String, content: @Composable ColumnScope.() -> Unit
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.Bold,
-            color = MaterialTheme.colorScheme.primary
-        )
-        content()
-    }
-}
-
-@Composable
-fun LinkSettingItem(
-    label: String,
-    value: String,
-    icon: ImageVector,
-    url: String,
-    modifier: Modifier = Modifier
-) {
-    val uriHandler = LocalUriHandler.current
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clip(CardDefaults.shape)
-            .clickable { uriHandler.openUri(url) }
-            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        ),
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = value,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium,
-                    color = MaterialTheme.colorScheme.primary
-                )
-            }
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                contentDescription = "Open link",
-                modifier = Modifier.size(20.dp),
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }
-}
-
-@Composable
-fun SocialLinkButton(
-    icon: ImageVector,
-    label: String,
-    url: String
-) {
-    val uriHandler = LocalUriHandler.current
-
-    OutlinedButton(
-        onClick = { uriHandler.openUri(url) },
-        modifier = Modifier
-            .width(100.dp)
-            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-        contentPadding = PaddingValues(vertical = 8.dp, horizontal = 12.dp)
-    ) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(4.dp)
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = label,
-                modifier = Modifier.size(24.dp)
-            )
-            Text(
-                text = label,
-                style = MaterialTheme.typography.labelSmall,
-                maxLines = 1
-            )
-        }
-    }
-}
-
-@Composable
-fun PathSettingItem(
-    label: String,
-    path: String,
-    status: PathStatus,
-    icon: ImageVector,
-    onEditClick: (String) -> Unit,
-    onValidateClick: () -> Unit,
-    onResetDefaultClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
-            containerColor = status.containerColor()
-        )
-    ) {
-        Column(
-            modifier = Modifier.fillMaxWidth().padding(10.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Spacer(Modifier.width(12.dp))
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = label,
-                        style = MaterialTheme.typography.bodyMedium,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = path.ifEmpty { "Not set" },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = if (path.isNotBlank()) Modifier.clickable { path.openFile() }
-                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                        else Modifier)
-                }
-
-                // Reset Default
-                Button(
-                    onClick = onResetDefaultClick,
-                    modifier = Modifier.pointerHoverIcon(
-                        PointerIcon(
-                            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-                        )
-                    ),
-                ) {
-                    Text("Reset")
-                }
-
-                IconButton(
-                    onClick = if (status != PathStatus.VALID) onValidateClick else ({}),
-                    modifier = Modifier.pointerHoverIcon(
-                        PointerIcon(
-                            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-                        )
-                    ),
-                ) {
-                    Icon(
-                        imageVector = status.imageVector,
-                        contentDescription = status.message,
-                        tint = status.tint(),
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-
-                IconButton(
-                    onClick = {
-                        onEditClick(path)
-                    },
-                    modifier = Modifier.pointerHoverIcon(
-                        PointerIcon(
-                            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-                        )
-                    ),
-                ) {
-                    Icon(Icons.Default.Edit, contentDescription = "Edit")
-                }
-            }
-
-            Spacer(Modifier.height(8.dp))
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Icon(
-                    imageVector = status.imageVector,
-                    contentDescription = status.message,
-                    tint = status.tint(),
-                    modifier = Modifier.size(14.dp)
-                )
-                Text(
-                    text = status.message,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = status.tint()
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun SwitchSettingItem(
-    label: String,
-    description: String,
-    checked: Boolean,
-    icon: ImageVector,
-    onCheckedChange: (Boolean) -> Unit
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(), colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
-        )
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth().padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary
-            )
-            Spacer(Modifier.width(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = label,
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-            Switch(
-                checked = checked, onCheckedChange = onCheckedChange
-            )
-        }
-    }
-}
-
-@Composable
-fun PathPickerDialog(
-    type: PathPickerType,
-    currentPath: String,
-    onDismiss: () -> Unit,
-    onPathSelected: (String) -> Unit
-) {
-    var pathInput by remember { mutableStateOf(currentPath) }
-
-    val coroutineScope = rememberCoroutineScope()
-
-    val directoryPickerLauncher = rememberDirectoryPickerLauncher(
-        directory = PlatformFile(currentPath)
-    ) { directory ->
-        if (directory != null) {
-            coroutineScope.launch {
-                pathInput = directory.path
-            }
-        }
-    }
-
-    AlertDialog(onDismissRequest = onDismiss, title = {
-        Text(type.title)
-    }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                OutlinedTextField(
-                    value = pathInput,
-                    onValueChange = { pathInput = it },
-                    label = { Text("Path") },
-                    modifier = Modifier.weight(1f).padding(end = 8.dp),
-                    singleLine = true,
-                )
-                Button(
-                    onClick = { directoryPickerLauncher.launch() },
-                    modifier = Modifier.height(56.dp)
-                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-                ) {
-                    Icon(
-                        Icons.Default.FolderOpen,
-                        contentDescription = null,
-                        modifier = Modifier.size(18.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Choose")
-                }
-            }
-            Text(
-                text = "You can type manually or pick folder",
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        }
-    }, confirmButton = {
-        Button(
-            onClick = { onPathSelected(pathInput) },
-            enabled = pathInput.isNotBlank(),
-            modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-        ) {
-            Text("Confirm")
-        }
-    }, dismissButton = {
-        TextButton(
-            onClick = onDismiss,
-            modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-        ) {
-            Text("Cancel")
-        }
-    })
 }
