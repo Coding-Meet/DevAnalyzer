@@ -76,10 +76,10 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            artifacts/build-macos-arm/**/*.dmg
-            artifacts/build-macos-intel/**/*.dmg
-            artifacts/build-windows/**/*.msi
-            artifacts/build-linux/**/*.deb
+            artifacts/build-macos-arm/main-release/dmg/*.dmg
+            artifacts/build-macos-intel/main-release/dmg/*.dmg
+            artifacts/build-windows/main-release/msi/*.msi
+            artifacts/build-linux/main-release/deb/*.deb
           draft: true
           tag_name: ${{ github.ref_name }}
         env:
