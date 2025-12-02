@@ -55,7 +55,7 @@
         nav {
             max-width: 1200px;
             margin: 0 auto;
-            padding: 1.5rem 2rem;
+            padding: 0.5rem 1rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -116,8 +116,8 @@
 
         /* Hero Section */
         .hero {
-            margin-top: 80px;
-            padding: 4rem 2rem;
+            margin-top: 50px;
+            padding: 2rem 2rem;
             text-align: center;
             background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
         }
@@ -129,7 +129,7 @@
 
         .hero h1 {
             font-size: 3.5rem;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.3rem;
             background: linear-gradient(135deg, var(--primary), var(--secondary));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -139,7 +139,7 @@
         .hero p {
             font-size: 1.3rem;
             color: var(--text-secondary);
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .hero-buttons {
@@ -147,6 +147,36 @@
             gap: 1rem;
             justify-content: center;
             flex-wrap: wrap;
+            margin-bottom: 1.5rem;
+        }
+
+        .hero-video-container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 1rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .hero-video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            /* 16:9 aspect ratio */
+            height: 0;
+            overflow: hidden;
+            border-radius: 16px;
+            background: linear-gradient(135deg, var(--primary), var(--secondary));
+        }
+
+        .hero-video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            border-radius: 16px;
         }
 
         .primary-btn,
@@ -531,6 +561,15 @@
                target="_blank">
                 <span>⭐</span> View on GitHub
             </a>
+        </div>
+        <div class="hero-video-container">
+            <div class="hero-video-wrapper">
+                <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+                        allowfullscreen
+                        src="https://www.youtube.com/embed/c3t1SIKSBBk"
+                        title="DevAnalyzer - Complete Demo & Walkthrough">
+                </iframe>
+            </div>
         </div>
     </div>
 </section>
