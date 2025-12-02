@@ -1,6 +1,6 @@
 # 🧠 DevAnalyzer
 
-[![DevAnalyzer](screenshot/dev_analyzer.png)](https://youtu.be/1tJbMAHIy6M?si=R2iJRh2U-dAx6NPx)
+[![DevAnalyzer](screenshot/dev_analyzer.png)](https://youtu.be/c3t1SIKSBBk?si=o77BGpvB2zwoFZPs)
 
 **🌐 [Visit Website](https://coding-meet.github.io/DevAnalyzer/)**
 
