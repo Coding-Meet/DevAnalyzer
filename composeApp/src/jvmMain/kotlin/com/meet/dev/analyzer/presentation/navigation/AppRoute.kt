@@ -25,4 +25,7 @@ sealed interface AppRoute {
     @Serializable
     data object Settings : AppRoute
 
+    @Serializable
+    data object CleanBuild : AppRoute
+
 }

@@ -102,6 +102,14 @@ object Utils {
         }
     }
 
+    fun formatElapsedTime(startTime: Long): String {
+        val seconds = (System.currentTimeMillis() - startTime) / 1000
+        val min = seconds / 60
+        val sec = seconds % 60
+        return "%02d:%02d".format(Locale.US, min, sec)
+    }
+
+
     fun String.openFile() {
         val file = File(this)
         file.openFile()

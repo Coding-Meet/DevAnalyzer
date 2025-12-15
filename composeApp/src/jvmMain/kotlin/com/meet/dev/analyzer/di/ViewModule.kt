@@ -1,6 +1,7 @@
 package com.meet.dev.analyzer.di
 
 import com.meet.dev.analyzer.presentation.screen.app.AppViewModel
+import com.meet.dev.analyzer.presentation.screen.cleanbuild.CleanBuildViewModel
 import com.meet.dev.analyzer.presentation.screen.onboarding.OnboardingViewModel
 import com.meet.dev.analyzer.presentation.screen.project.ProjectAnalyzerViewModel
 import com.meet.dev.analyzer.presentation.screen.setting.SettingsViewModel
@@ -16,4 +17,5 @@ val viewModule = module {
     viewModelOf(::ProjectAnalyzerViewModel)
     viewModelOf(::StorageAnalyzerViewModel)
     viewModelOf(::SettingsViewModel)
+    viewModelOf(::CleanBuildViewModel)
 }

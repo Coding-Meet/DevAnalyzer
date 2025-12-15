@@ -2,9 +2,11 @@ package com.meet.dev.analyzer.presentation.navigation.navigation_bar
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.AccountTree
+import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -30,6 +32,13 @@ enum class NavigationItem(
         selectedIcon = Icons.Filled.Storage,
         unSelectedIcon = Icons.Outlined.Storage,
         description = "Analyze SDK, IDE, Gradle, and library storage usage."
+    ),
+    CleanBuild(
+        title = "Clean Build",
+        appRoute = AppRoute.CleanBuild,
+        selectedIcon = Icons.Filled.Delete,
+        unSelectedIcon = Icons.Outlined.Delete,
+        description = "Find and delete build folders to free up space."
     ),
     Settings(
         title = "Settings",
