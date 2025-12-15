@@ -21,6 +21,7 @@ import androidx.navigation.compose.navigation
 import androidx.navigation.compose.rememberNavController
 import com.meet.dev.analyzer.presentation.navigation.navigation_bar.NavigationItem
 import com.meet.dev.analyzer.presentation.navigation.navigation_bar.NavigationRailLayout
+import com.meet.dev.analyzer.presentation.screen.cleanbuild.CleanBuildScreen
 import com.meet.dev.analyzer.presentation.screen.onboarding.OnboardingScreen
 import com.meet.dev.analyzer.presentation.screen.project.ProjectAnalyzerScreen
 import com.meet.dev.analyzer.presentation.screen.setting.SettingsScreen
@@ -125,6 +126,14 @@ fun AppNavigation(
                         navController.getBackStackEntry(AppRoute.MainGraph)
                     }
                     SettingsScreen(
+                        parentEntry = parentEntry
+                    )
+                }
+                composable<AppRoute.CleanBuild> {
+                    val parentEntry = remember(navController) {
+                        navController.getBackStackEntry(AppRoute.MainGraph)
+                    }
+                    CleanBuildScreen(
                         parentEntry = parentEntry
                     )
                 }
