@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.core.utility.AppLogger
 import com.meet.dev.analyzer.core.utility.Utils
+import com.meet.dev.analyzer.core.utility.Utils.formatElapsedTime
 import com.meet.dev.analyzer.core.utility.Utils.tagName
 import com.meet.dev.analyzer.data.models.storage.AndroidAvdInfo
 import com.meet.dev.analyzer.data.models.storage.AndroidSdkInfo
@@ -82,10 +83,9 @@ class StorageAnalyzerViewModel(
                 // Start elapsed time counter
                 val timerJob = launch {
                     while (isActive) {
-                        val elapsedMillis = System.currentTimeMillis() - startTime
-                        val seconds = (elapsedMillis / 1000) % 60
-                        val minutes = (elapsedMillis / 1000) / 60
-                        val formatted = String.format("%02d:%02d", minutes, seconds)
+                        val formatted = formatElapsedTime(
+                            startTime = startTime
+                        )
                         _uiState.update { it.copy(scanElapsedTime = formatted) }
                         delay(1000)
                     }

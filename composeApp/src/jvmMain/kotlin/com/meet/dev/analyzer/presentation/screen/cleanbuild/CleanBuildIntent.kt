@@ -11,10 +11,8 @@ sealed interface CleanBuildIntent {
         val moduleIndex: Int,
         val isSelected: Boolean
     ) : CleanBuildIntent
-
     data class OnSelectAllInProject(val uniqueId: String, val isSelected: Boolean) :
         CleanBuildIntent
-
     data object OnSelectAllProjects : CleanBuildIntent
     data object OnDeselectAllProjects : CleanBuildIntent
     data object OnDeleteClicked : CleanBuildIntent
@@ -22,4 +20,5 @@ sealed interface CleanBuildIntent {
     data object OnConfirmDismissDialog : CleanBuildIntent
     data object OnResultDismissDialog : CleanBuildIntent
     data object OnClearError : CleanBuildIntent
+    data object OnToggleProjectSelection : CleanBuildIntent
 }

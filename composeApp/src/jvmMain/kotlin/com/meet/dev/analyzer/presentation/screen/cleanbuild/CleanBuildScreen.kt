@@ -29,6 +29,7 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
@@ -36,6 +37,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
@@ -49,22 +51,24 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -74,7 +78,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
-import com.meet.dev.analyzer.core.utility.Utils.formatSize
 import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.data.models.cleanbuild.ModuleBuild
 import com.meet.dev.analyzer.data.models.cleanbuild.ProjectBuildInfo
@@ -118,7 +121,7 @@ fun CleanBuildScreen(
         onBrowseClick = {
             directoryPickerLauncher.launch()
         },
-        onEvent = viewModel::handleIntent
+        onIntent = viewModel::handleIntent
     )
 }
 
@@ -126,23 +129,17 @@ fun CleanBuildScreen(
 fun CleanBuildScreenContent(
     uiState: CleanBuildUiState,
     onBrowseClick: () -> Unit,
-    onEvent: (CleanBuildIntent) -> Unit,
+    onIntent: (CleanBuildIntent) -> Unit,
 ) {
-    var isExpanded by rememberSaveable { mutableStateOf(true) }
-
     val scrollState = rememberLazyListState()
-
-    val totalSelectedCount = uiState.projectBuildInfoList.sumOf { it.selectedModules.size }
-    val totalSelectedSize = uiState.projectBuildInfoList.sumOf { it.selectedSize }
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = "Clean Build",
-                icon = Icons.Default.Delete,
+                icon = Icons.Default.CleaningServices,
                 actions = {
                     if (uiState.projectBuildInfoList.isNotEmpty()) {
-                        // un-expend/expend project selection visible or gone
                         IconButton(
                             modifier = Modifier.pointerHoverIcon(
                                 PointerIcon(
@@ -152,15 +149,14 @@ fun CleanBuildScreenContent(
                                 )
                             ),
                             onClick = {
-                                isExpanded = !isExpanded
-                            },
-                        ) {
+                                onIntent(CleanBuildIntent.OnToggleProjectSelection)
+                            }) {
                             Icon(
-                                imageVector = if (isExpanded)
+                                imageVector = if (uiState.isProjectSelectionExpanded)
                                     Icons.Default.KeyboardArrowUp
                                 else
                                     Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (isExpanded)
+                                contentDescription = if (uiState.isProjectSelectionExpanded)
                                     "Collapse"
                                 else
                                     "Expand"
@@ -171,46 +167,20 @@ fun CleanBuildScreenContent(
             )
         },
         floatingActionButton = {
-            AnimatedVisibility(
-                visible = uiState.projectBuildInfoList.isNotEmpty() && totalSelectedCount > 0,
-                enter = slideInVertically(initialOffsetY = { it }) + scaleIn(),
-                exit = slideOutVertically(targetOffsetY = { it }) + scaleOut()
+            val floatingVisible by remember(
+                uiState.projectBuildInfoList,
+                uiState.totalSelectedCount
             ) {
-                FloatingActionButton(
-                    modifier = Modifier.pointerHoverIcon(
-                        PointerIcon(
-                            Cursor.getPredefinedCursor(
-                                Cursor.HAND_CURSOR
-                            )
-                        )
-                    ),
-                    onClick = { onEvent(CleanBuildIntent.OnDeleteClicked) },
-                    containerColor = MaterialTheme.colorScheme.error,
-                    contentColor = MaterialTheme.colorScheme.onError
-                ) {
-                    Row(
-                        modifier = Modifier.padding(horizontal = 16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(
-                            8.dp,
-                            Alignment.CenterHorizontally
-                        )
-                    ) {
-                        Icon(Icons.Default.Delete, contentDescription = "Delete")
-                        Column {
-                            Text(
-                                "Delete ($totalSelectedCount)",
-                                style = MaterialTheme.typography.labelLarge,
-                                fontWeight = FontWeight.Bold
-                            )
-                            Text(
-                                formatSize(totalSelectedSize),
-                                style = MaterialTheme.typography.labelSmall
-                            )
-                        }
-                    }
+                derivedStateOf {
+                    uiState.projectBuildInfoList.isNotEmpty() && uiState.totalSelectedCount > 0
                 }
             }
+            DeleteFloatingActionButton(
+                visible = floatingVisible,
+                selectedCount = uiState.totalSelectedCount,
+                totalSelectedSizeReadable = uiState.totalSelectedSizeReadable,
+                onClick = { onIntent(CleanBuildIntent.OnDeleteClicked) }
+            )
         },
     ) { padding ->
         Column(
@@ -220,17 +190,22 @@ fun CleanBuildScreenContent(
         ) {
             // Project Selection Section
             ProjectsSelectionSection(
-                isExpanded = isExpanded,
-                uiState = uiState,
+                isExpanded = uiState.isProjectSelectionExpanded,
+                isAnalyzing = uiState.isAnalyzing,
+                selectedPath = uiState.selectedPath,
+                scanProgress = uiState.scanProgress,
+                scanStatus = uiState.scanStatus,
+                scanElapsedTime = uiState.scanElapsedTime,
+                error = uiState.error,
                 onClearResults = {
-                    onEvent(CleanBuildIntent.OnPathSelected(""))
+                    onIntent(CleanBuildIntent.OnClearError)
                 },
                 onBrowseClick = onBrowseClick,
                 onAnalyzeClick = {
-                    onEvent(CleanBuildIntent.OnAnalyzeProjects)
+                    onIntent(CleanBuildIntent.OnAnalyzeProjects)
                 },
                 onClearError = {
-                    onEvent(CleanBuildIntent.OnClearError)
+                    onIntent(CleanBuildIntent.OnClearError)
                 }
             )
 
@@ -239,7 +214,7 @@ fun CleanBuildScreenContent(
 
                 ActionsCard(
                     uiState = uiState,
-                    onEvent = onEvent,
+                    onEvent = onIntent,
                 )
 
                 BoxWithConstraints(modifier = Modifier.fillMaxSize()) {
@@ -254,15 +229,15 @@ fun CleanBuildScreenContent(
                         ),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        itemsIndexed(
+                        items(
                             uiState.projectBuildInfoList,
-                            key = { _, project -> project.uniqueId }
-                        ) { index, project ->
+                            key = { project -> project.uniqueId }
+                        ) { project ->
                             ProjectGroupItem(
                                 project = project,
                                 isExpanded = uiState.expandedProjects.contains(project.uniqueId),
                                 onExpandChange = { expanded ->
-                                    onEvent(
+                                    onIntent(
                                         CleanBuildIntent.OnExpandChange(
                                             project.uniqueId,
                                             expanded
@@ -270,7 +245,7 @@ fun CleanBuildScreenContent(
                                     )
                                 },
                                 onModuleSelectionChange = { moduleIndex, selected ->
-                                    onEvent(
+                                    onIntent(
                                         CleanBuildIntent.OnModuleSelectionChange(
                                             project.uniqueId,
                                             moduleIndex,
@@ -279,7 +254,7 @@ fun CleanBuildScreenContent(
                                     )
                                 },
                                 onSelectAll = { selectAll ->
-                                    onEvent(
+                                    onIntent(
                                         CleanBuildIntent.OnSelectAllInProject(
                                             project.uniqueId,
                                             selectAll
@@ -289,7 +264,6 @@ fun CleanBuildScreenContent(
                             )
                         }
                     }
-
                     VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
                 }
             } else {
@@ -306,22 +280,29 @@ fun CleanBuildScreenContent(
     // Confirmation Dialog
     if (uiState.showConfirmDialog) {
         ConfirmationDialog(
-            projects = uiState.projectBuildInfoList,
-            totalCount = totalSelectedCount,
-            totalSize = totalSelectedSize,
+            selectedProjects = uiState.selectedModule,
+            totalCount = uiState.totalSelectedCount,
+            totalSelectedSizeReadable = uiState.totalSelectedSizeReadable,
             onConfirm = {
-                onEvent(CleanBuildIntent.OnConfirmDelete)
+                onIntent(CleanBuildIntent.OnConfirmDelete)
             },
-            onDismiss = { onEvent(CleanBuildIntent.OnConfirmDismissDialog) }
+            onDismiss = { onIntent(CleanBuildIntent.OnConfirmDismissDialog) }
         )
     }
-
-    // Result Dialog
-    if (uiState.showResultDialog) {
-        ResultDialog(
-            result = uiState.deletionResult,
+    if (uiState.showDeletionProgressDialog) {
+        DeletionProgressDialog(
+            deletionProgressList = uiState.deletionProgressList,
+            isDeletionComplete = uiState.isDeletionComplete,
+            successCount = uiState.deletionSuccessCount,
+            failedCount = uiState.deletionFailedCount,
+            deletedSizeReadable = uiState.deletedSizeReadable,
+            totalSelectedCount = uiState.totalSelectedCount,
+            totalSelectedSizeReadable = uiState.totalSelectedSizeReadable,
+            deletionResult = uiState.deletionResult,
             onDismiss = {
-                onEvent(CleanBuildIntent.OnResultDismissDialog)
+                if (uiState.isDeletionComplete) {
+                    onIntent(CleanBuildIntent.OnResultDismissDialog)
+                }
             }
         )
     }
@@ -351,12 +332,12 @@ private fun ActionsCard(
             // Left side - Summary info
             Column {
                 Text(
-                    "Found ${uiState.projectBuildInfoList.size} project(s) with ${uiState.projectBuildInfoList.sumOf { it.modules.size }} build folder(s)",
+                    "Found ${uiState.projectBuildInfoList.size} project(s) with ${uiState.totalModule} build folder(s)",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
-                    "Total: ${formatSize(uiState.projectBuildInfoList.sumOf { it.totalSize })}",
+                    "Total: ${uiState.totalSizeFormatted}",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.primary
                 )
@@ -403,25 +384,19 @@ private fun ActionsCard(
                         )
                     ),
                     onClick = {
-                        val allSelected = uiState.projectBuildInfoList.all { project ->
-                            project.modules.all { it.isSelected }
-                        }
-                        if (allSelected) {
+                        if (uiState.allSelected) {
                             onEvent(CleanBuildIntent.OnDeselectAllProjects)
                         } else {
                             onEvent(CleanBuildIntent.OnSelectAllProjects)
                         }
                     }
                 ) {
-                    val allSelected = uiState.projectBuildInfoList.all { project ->
-                        project.modules.all { it.isSelected }
-                    }
                     Icon(
-                        if (allSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
+                        if (uiState.allSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
                         contentDescription = null
                     )
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(if (allSelected) "Deselect All" else "Select All")
+                    Text(if (uiState.allSelected) "Deselect All" else "Select All")
                 }
             }
         }
@@ -436,8 +411,6 @@ fun ProjectGroupItem(
     onModuleSelectionChange: (Int, Boolean) -> Unit,
     onSelectAll: (Boolean) -> Unit
 ) {
-    val allSelected = project.modules.all { it.isSelected }
-    val someSelected = project.modules.any { it.isSelected } && !allSelected
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -462,11 +435,11 @@ fun ProjectGroupItem(
             TriStateCheckbox(
                 modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
                 state = when {
-                    allSelected -> ToggleableState.On
-                    someSelected -> ToggleableState.Indeterminate
+                    project.allSelected -> ToggleableState.On
+                    project.someSelected -> ToggleableState.Indeterminate
                     else -> ToggleableState.Off
                 },
-                onClick = { onSelectAll(!allSelected) }
+                onClick = { onSelectAll(!project.allSelected) }
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -584,14 +557,53 @@ fun ModuleItem(
 }
 
 @Composable
+private fun DeleteFloatingActionButton(
+    visible: Boolean,
+    selectedCount: Int,
+    totalSelectedSizeReadable: String,
+    onClick: () -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(initialOffsetY = { it }) + scaleIn(),
+        exit = slideOutVertically(targetOffsetY = { it }) + scaleOut()
+    ) {
+        FloatingActionButton(
+            modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+            onClick = onClick,
+            containerColor = MaterialTheme.colorScheme.error,
+            contentColor = MaterialTheme.colorScheme.onError
+        ) {
+            Row(
+                modifier = Modifier.padding(horizontal = 16.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(Icons.Default.Delete, contentDescription = "Delete")
+                Column {
+                    Text(
+                        "Delete ($selectedCount)",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        totalSelectedSizeReadable,
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun ConfirmationDialog(
-    projects: List<ProjectBuildInfo>,
+    selectedProjects: List<ProjectBuildInfo>,
     totalCount: Int,
-    totalSize: Long,
+    totalSelectedSizeReadable: String,
     onConfirm: () -> Unit,
     onDismiss: () -> Unit
 ) {
-    val selectedProjects = projects.filter { it.selectedModules.isNotEmpty() }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -651,7 +663,7 @@ fun ConfirmationDialog(
                                 fontWeight = FontWeight.Bold
                             )
                             Text(
-                                formatSize(totalSize),
+                                totalSelectedSizeReadable,
                                 style = MaterialTheme.typography.titleMedium,
                                 fontWeight = FontWeight.Bold,
                                 color = MaterialTheme.colorScheme.primary
@@ -677,8 +689,8 @@ fun ConfirmationDialog(
                         columns = GridCells.Fixed(2),
                         modifier = Modifier.heightIn(max = 400.dp),
                         contentPadding = PaddingValues(
-                            top = 16.dp,
-                            bottom = 16.dp,
+                            top = 8.dp,
+                            bottom = 8.dp,
                             start = 4.dp,
                             end = 12.dp // scrollbar breathing space
                         ),
@@ -726,7 +738,7 @@ fun ConfirmationDialog(
                                             color = MaterialTheme.colorScheme.onSurfaceVariant
                                         )
                                         Text(
-                                            formatSize(project.selectedSize),
+                                            project.selectedSizeFormatted,
                                             style = MaterialTheme.typography.bodySmall,
                                             fontWeight = FontWeight.Bold,
                                             color = MaterialTheme.colorScheme.primary
@@ -767,7 +779,6 @@ fun ConfirmationDialog(
                     VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
 
                 }
-                Spacer(modifier = Modifier.height(8.dp))
             }
         },
         confirmButton = {
@@ -797,69 +808,277 @@ fun ConfirmationDialog(
 }
 
 @Composable
-fun ResultDialog(
-    result: String,
+private fun DeletionProgressDialog(
+    deletionProgressList: List<DeletionProgress>,
+    isDeletionComplete: Boolean,
+    successCount: Int,
+    failedCount: Int,
+    deletedSizeReadable: String,
+    totalSelectedCount: Int,
+    totalSelectedSizeReadable: String,
+    deletionResult: String,
     onDismiss: () -> Unit
 ) {
+    val scrollState = rememberLazyListState()
+
+    LaunchedEffect(deletionProgressList.size) {
+        if (deletionProgressList.isNotEmpty() && !isDeletionComplete) {
+            scrollState.animateScrollToItem(0)
+        }
+    }
     AlertDialog(
-        onDismissRequest = onDismiss,
-        modifier = Modifier.width(500.dp),
+        onDismissRequest = { if (isDeletionComplete) onDismiss() },
+        modifier = Modifier.width(700.dp),
         icon = {
-            Icon(
-                Icons.Default.CheckCircle,
-                contentDescription = null,
-                tint = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.size(64.dp)
-            )
+            if (isDeletionComplete) {
+                Icon(
+                    Icons.Default.CheckCircle,
+                    contentDescription = null,
+                    tint = if (failedCount > 0)
+                        MaterialTheme.colorScheme.error
+                    else
+                        MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(48.dp)
+                )
+            } else {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(48.dp)
+                )
+            }
         },
         title = {
             Text(
-                "Deletion Complete",
+                if (isDeletionComplete) "Deletion Complete" else "Deleting Build Folders...",
                 style = MaterialTheme.typography.headlineSmall,
                 fontWeight = FontWeight.Bold
             )
         },
         text = {
-            Card(
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer
-                )
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+            Column(modifier = Modifier.fillMaxWidth()) {
+                // Progress summary
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isDeletionComplete && failedCount == 0)
+                            MaterialTheme.colorScheme.primaryContainer
+                        else if (isDeletionComplete && failedCount > 0)
+                            MaterialTheme.colorScheme.errorContainer
+                        else
+                            MaterialTheme.colorScheme.surfaceVariant
+                    )
                 ) {
-                    Icon(
-                        Icons.Default.CheckCircle,
-                        contentDescription = null,
-                        tint = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.size(48.dp)
-                    )
-                    Text(
-                        result,
-                        style = MaterialTheme.typography.bodyLarge,
-                        textAlign = TextAlign.Center
-                    )
-                    Text(
-                        "Build folders have been successfully removed.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        textAlign = TextAlign.Center
-                    )
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Progress:",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Text(
+                                "${successCount + failedCount} / $totalSelectedCount",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        LinearProgressIndicator(
+                            progress = {
+                                if (deletionProgressList.isEmpty()) 0f
+                                else (successCount + failedCount).toFloat() / totalSelectedCount
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+
+                        // Size progress
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                "Deleted:",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Medium
+                            )
+                            Text(
+                                "$deletedSizeReadable / $totalSelectedSizeReadable",
+                                style = MaterialTheme.typography.bodyMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        HorizontalDivider()
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.primary,
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Text(
+                                    "Success: $successCount",
+                                    style = MaterialTheme.typography.bodySmall
+                                )
+                            }
+
+                            if (failedCount > 0) {
+                                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.error,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Text(
+                                        "Failed: $failedCount",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.error
+                                    )
+                                }
+                            }
+                        }
+
+                        // Show result message when complete
+                        if (isDeletionComplete && deletionResult.isNotEmpty()) {
+                            HorizontalDivider()
+                            Text(
+                                deletionResult,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = if (failedCount > 0)
+                                    MaterialTheme.colorScheme.error
+                                else
+                                    MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Progress list with scrollbar
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                    LazyColumn(
+                        state = scrollState,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(max = 400.dp),
+                        contentPadding = PaddingValues(
+                            end = 12.dp // scrollbar breathing space
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        itemsIndexed(
+                            items = deletionProgressList,
+                            key = { _, item -> item.moduleBuild.uniqueId }
+                        ) { _, progress ->
+                            DeletionProgressItem(progress = progress)
+                        }
+                    }
+                    VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
                 }
             }
         },
         confirmButton = {
-            Button(
-                onClick = onDismiss,
-                modifier = Modifier.fillMaxWidth()
-                    .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-            ) {
-                Text("Done", style = MaterialTheme.typography.bodyLarge)
+            if (isDeletionComplete) {
+                Button(
+                    onClick = onDismiss,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                ) {
+                    Text("Done", style = MaterialTheme.typography.bodyLarge)
+                }
+            }
+        },
+        dismissButton = null
+    )
+}
+
+@Composable
+private fun DeletionProgressItem(progress: DeletionProgress) {
+    val status = progress.status
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = status.containerColor()
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Status Icon
+            if (status.icon != null) {
+                Icon(
+                    imageVector = status.icon,
+                    contentDescription = status.statusText,
+                    tint = status.iconTint(),
+                    modifier = Modifier.size(24.dp)
+                )
+            } else {
+                CircularProgressIndicator(
+                    modifier = Modifier.size(24.dp),
+                    strokeWidth = 2.dp
+                )
+            }
+
+            // Project and Module info
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = if (progress.moduleBuild.projectName.isNullOrBlank()) "/ ${progress.moduleBuild.moduleName}" else
+                        "${progress.moduleBuild.projectName} / ${progress.moduleBuild.moduleName}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium
+                )
+                Text(
+                    text = progress.moduleBuild.path,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    modifier = if (progress.status == DeletionStatus.FAILED)
+                        Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                            .clickable {
+                                progress.moduleBuild.path.openFile()
+                            }
+                    else
+                        Modifier
+                )
+            }
+
+            // Status and size
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = status.statusText,
+                    style = MaterialTheme.typography.labelMedium,
+                    color = status.iconTint(),
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = progress.moduleBuild.sizeFormatted,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
         }
-    )
+    }
 }

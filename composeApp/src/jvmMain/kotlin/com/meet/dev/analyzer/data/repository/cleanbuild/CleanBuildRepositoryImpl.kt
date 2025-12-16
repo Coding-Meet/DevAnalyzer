@@ -10,6 +10,7 @@ import com.meet.dev.analyzer.data.models.project.BuildFileType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.random.Random
 
 class CleanBuildRepositoryImpl : CleanBuildRepository {
 
@@ -55,6 +56,7 @@ class CleanBuildRepositoryImpl : CleanBuildRepository {
                     modules.add(
                         ModuleBuild(
                             moduleName = projectDir.name,
+                            projectName = null,
                             path = rootBuildDir.absolutePath,
                             sizeBytes = size,
                             sizeFormatted = formatSize(size)
@@ -70,6 +72,7 @@ class CleanBuildRepositoryImpl : CleanBuildRepository {
                         modules.add(
                             ModuleBuild(
                                 moduleName = moduleDir.name,
+                                projectName = projectDir.name,
                                 path = buildDir.absolutePath,
                                 sizeBytes = size,
                                 sizeFormatted = formatSize(size)
@@ -105,16 +108,18 @@ class CleanBuildRepositoryImpl : CleanBuildRepository {
 
 
     override suspend fun deleteBuildFolder(path: String): Boolean {
-        return try {
-            val file = File(path)
-            if (file.exists() && file.isDirectory) {
-                file.deleteRecursively()
-            } else {
-                false
-            }
-        } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error deleting folder: $path" }
-            false
-        }
+//        delay(500)
+//        return try {
+//            val file = File(path)
+//            if (file.exists() && file.isDirectory) {
+//                file.deleteRecursively()
+//            } else {
+//                false
+//            }
+//        } catch (e: Exception) {
+//            AppLogger.e(TAG, e) { "Error deleting folder: $path" }
+//            false
+//        }
+        return Random.nextBoolean()
     }
 }
