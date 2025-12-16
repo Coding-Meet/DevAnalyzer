@@ -311,15 +311,20 @@ class CleanBuildViewModel(
         val hasAtLeastOneGradleProject = rootDir.listFiles()
             ?.filter { it.isDirectory }
             ?.any { projectDir ->
-                val hasBuildGradle = projectDir.walkTopDown()
+
+                // 1️⃣ Root-level build folder (fast check)
+                if (File(projectDir, "build").exists()) {
+                    return@any true
+                }
+
+                // 2️⃣ build.gradle(.kts) within depth = 3
+                projectDir.walkTopDown()
+                    .maxDepth(3)
                     .any { file ->
                         file.isFile && BuildFileType.entries.any {
                             file.name == it.fileName
                         }
                     }
-
-                val hasBuildFolder = File(projectDir, "build").exists()
-                hasBuildGradle || hasBuildFolder
             } ?: false
 
         if (!hasAtLeastOneGradleProject) {
@@ -336,7 +341,9 @@ class CleanBuildViewModel(
                 isAnalyzing = false,
                 error = message,
                 scanProgress = 0f,
-                scanStatus = ""
+                scanStatus = "",
+                projectBuildInfoList = emptyList(),
+                expandedProjects = emptySet(),
             )
         }
         AppLogger.e(TAG) { message }
