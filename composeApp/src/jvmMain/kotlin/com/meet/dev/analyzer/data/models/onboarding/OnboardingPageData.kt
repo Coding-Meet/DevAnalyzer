@@ -52,7 +52,6 @@ val onboardingPages = listOf(
             "Multi-project analysis",
             "Module-level build folder detection",
             "Selective deletion with preview",
-            "Real-time size calculation",
             "Batch delete operations",
             "Confirmation before deletion"
         )
