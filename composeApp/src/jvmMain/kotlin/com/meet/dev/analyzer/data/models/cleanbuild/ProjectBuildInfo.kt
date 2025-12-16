@@ -2,6 +2,7 @@
 
 package com.meet.dev.analyzer.data.models.cleanbuild
 
+import com.meet.dev.analyzer.core.utility.Utils.formatSize
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 
@@ -13,14 +14,18 @@ data class ProjectBuildInfo(
     val sizeBytes: Long,
     val sizeFormatted: String
 ) {
-    val totalSize: Long get() = modules.sumOf { it.sizeBytes }
-    val selectedModules: List<ModuleBuild> get() = modules.filter { it.isSelected }
-    val selectedSize: Long get() = selectedModules.sumOf { it.sizeBytes }
+    val allSelected = modules.all { it.isSelected }
+    val someSelected = modules.any { it.isSelected } && !allSelected
+
+    val selectedModules = modules.filter { it.isSelected }
+    val selectedSize = selectedModules.sumOf { it.sizeBytes }
+    val selectedSizeFormatted = formatSize(selectedSize)
 }
 
 data class ModuleBuild(
     val uniqueId: String = Uuid.random().toString(),
     val moduleName: String,
+    val projectName: String?,
     val path: String,
     val sizeBytes: Long,
     val sizeFormatted: String,

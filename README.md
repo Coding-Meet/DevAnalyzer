@@ -11,6 +11,8 @@
 **DevAnalyzer** is a cross-platform desktop application built with **Compose Multiplatform** and **Kotlin Multiplatform (KMP)**.
 
 - 🧩 **Project Analyzer** — Examines project modules, Gradle configurations, applied plugins, dependencies, and related build files.
+- 🧹 **Clean Build** — Scans Android Studio projects for build folders across all modules and enables
+  selective deletion to reclaim disk space.
 - 💾 **Storage Analyzer** — Scans SDKs, IDE data, Gradle caches, and library directories to visualize overall storage usage.
 - ⚙️ **Settings** — Configure custom paths for Android SDK, Gradle User Home, Kotlin Native, and IDE
   locations.
@@ -30,6 +32,17 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 - 🧱 Inspect project metadata such as Gradle Kotlin, AGP, Min SDK, Compile SDK, Target SDK and
   Multi-Module.
 - 🧾 Preview all **project and Gradle files** directly in the app.
+
+### 🧹 Clean Build
+
+- 🗂️ **Scan Android Studio projects** for build folders across all modules.
+- 📊 **Visual project grouping** with expandable/collapsible module lists.
+- 📏 **Real-time size calculation** for each module and total space usage.
+- ✅ **Selective deletion** with tri-state checkboxes (project-level and module-level).
+- 🎯 **Batch operations** - Select/Deselect all projects or individual modules.
+- ⚠️ **Confirmation dialog** with 2-column grid layout showing all selected items.
+- 🎨 **Floating action button** with smooth animations for quick delete access.
+- 💾 **Space recovery tracking** - See exactly how much space you'll free up.
 
 ### 💾 Storage Analyzer
 

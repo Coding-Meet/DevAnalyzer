@@ -2,11 +2,11 @@ package com.meet.dev.analyzer.presentation.navigation.navigation_bar
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
-import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material.icons.outlined.AccountTree
-import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Storage
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -36,9 +36,9 @@ enum class NavigationItem(
     CleanBuild(
         title = "Clean Build",
         appRoute = AppRoute.CleanBuild,
-        selectedIcon = Icons.Filled.Delete,
-        unSelectedIcon = Icons.Outlined.Delete,
-        description = "Find and delete build folders to free up space."
+        selectedIcon = Icons.Filled.CleaningServices,
+        unSelectedIcon = Icons.Outlined.CleaningServices,
+        description = "Scan and delete build folders from Android Studio projects to free up disk space."
     ),
     Settings(
         title = "Settings",

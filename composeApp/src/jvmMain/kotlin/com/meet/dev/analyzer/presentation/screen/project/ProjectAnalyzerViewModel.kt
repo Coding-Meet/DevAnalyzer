@@ -3,15 +3,15 @@ package com.meet.dev.analyzer.presentation.screen.project
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.core.utility.AppLogger
+import com.meet.dev.analyzer.core.utility.Utils.formatElapsedTime
 import com.meet.dev.analyzer.core.utility.Utils.tagName
+import com.meet.dev.analyzer.data.models.project.BuildFileType
+import com.meet.dev.analyzer.data.models.project.SettingsGradleFileType
 import com.meet.dev.analyzer.data.repository.project.ProjectAnalyzerRepository
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
@@ -78,20 +78,7 @@ class ProjectAnalyzerViewModel(
                         scanElapsedTime = "00:00"
                     )
                 }
-
                 val startTime = System.currentTimeMillis()
-
-                // Start elapsed time counter
-                val timerJob = launch {
-                    while (isActive) {
-                        val elapsedMillis = System.currentTimeMillis() - startTime
-                        val seconds = (elapsedMillis / 1000) % 60
-                        val minutes = (elapsedMillis / 1000) / 60
-                        val formatted = String.format("%02d:%02d", minutes, seconds)
-                        _uiState.update { it.copy(scanElapsedTime = formatted) }
-                        delay(1000)
-                    }
-                }
 
                 // 🧩 Main analysis logic
                 if (validateProject(currentPath)) {
@@ -100,12 +87,11 @@ class ProjectAnalyzerViewModel(
                         _uiState.update {
                             it.copy(
                                 scanProgress = progress.coerceIn(0f, 1f),
-                                scanStatus = status
+                                scanStatus = status,
+                                scanElapsedTime = formatElapsedTime(startTime)
                             )
                         }
                     }
-
-                    timerJob.cancelAndJoin()
                     withContext(Dispatchers.Main) {
                         _uiState.update {
                             it.copy(
@@ -118,22 +104,9 @@ class ProjectAnalyzerViewModel(
                     }
 
                     // 🕓 Final elapsed log
-                    val totalMillis = System.currentTimeMillis() - startTime
-                    val totalSeconds = totalMillis / 1000
-                    val minutes = totalSeconds / 60
-                    val seconds = totalSeconds % 60
-                    AppLogger.i(TAG) { "Project analysis completed successfully in ${minutes}m ${seconds}s" }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            isScanning = false,
-                            scanProgress = 0f,
-                            scanStatus = "",
-                            error = "Invalid project directory"
-                        )
-                    }
+                    val formatted = formatElapsedTime(startTime)
+                    AppLogger.i(TAG) { "Project analysis completed successfully in $formatted" }
                 }
-
             } catch (e: IOException) {
                 AppLogger.e(TAG, e) { "File read error" }
                 _uiState.update {
@@ -168,39 +141,36 @@ class ProjectAnalyzerViewModel(
 
     private fun validateProject(projectPath: String): Boolean {
         val projectDir = File(projectPath)
-        var isProjectValid = true
 
         // 1. Directory check
         if (!projectDir.exists() || !projectDir.isDirectory) {
             updateError("Project directory not found: $projectPath")
-            isProjectValid = false
+            return false
         }
 
-        // 2. Gradlew check
-        if (!File(projectDir, "gradlew").exists() && !File(projectDir, "gradlew.bat").exists()) {
-            updateError("Invalid project: gradlew/gradlew.bat not found")
-            isProjectValid = false
+        // 2. settings.gradle check
+        val isSettingsGradleFound = SettingsGradleFileType.entries.any {
+            File(projectDir, it.fileName).exists()
         }
-
-        // 3. settings.gradle check
-        if (!(File(projectDir, "settings.gradle").exists() ||
-                    File(projectDir, "settings.gradle.kts").exists())
-        ) {
+        if (!isSettingsGradleFound) {
             updateError("Invalid project: settings.gradle(.kts) not found")
-            isProjectValid = false
+            return false
         }
 
-        // 4. build.gradle(.kts) check
+        // 3. build.gradle(.kts) - at least ONE anywhere
         val buildFiles = projectDir.walkTopDown()
-            .maxDepth(2)
-            .filter { it.isFile && (it.name == "build.gradle" || it.name == "build.gradle.kts") }
+            .filter {
+                it.isFile && BuildFileType.entries.any { type ->
+                    it.name == type.fileName
+                }
+            }
             .toList()
 
         if (buildFiles.isEmpty()) {
             updateError("Invalid project: no build.gradle(.kts) found")
-            isProjectValid = false
+            return false
         }
-        return isProjectValid
+        return true
     }
 
     private fun updateError(message: String) {

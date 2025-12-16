@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Bolt
+import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.FolderOpen
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.ManageAccounts
@@ -40,6 +41,20 @@ val onboardingPages = listOf(
             "Plugin analysis across project",
             "Dependency overview with versions",
             "Direct build file access"
+        )
+    ),
+    OnboardingPageData(
+        icon = Icons.Default.CleaningServices,
+        title = "Clean Build",
+        subtitle = "Free Up Disk Space Instantly",
+        description = "Scan and delete build folders from all your Android Studio projects in one place",
+        features = listOf(
+            "Multi-project analysis",
+            "Module-level build folder detection",
+            "Selective deletion with preview",
+            "Real-time size calculation",
+            "Batch delete operations",
+            "Confirmation before deletion"
         )
     ),
     OnboardingPageData(
