@@ -34,13 +34,17 @@ import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.presentation.components.CustomOutlinedTextField
 import com.meet.dev.analyzer.presentation.components.ErrorLayout
 import com.meet.dev.analyzer.presentation.components.ProgressStatusLayout
-import com.meet.dev.analyzer.presentation.screen.cleanbuild.CleanBuildUiState
 import java.awt.Cursor
 
 @Composable
 fun ProjectsSelectionSection(
     isExpanded: Boolean,
-    uiState: CleanBuildUiState,
+    selectedPath: String,
+    isAnalyzing: Boolean,
+    scanProgress: Float,
+    scanStatus: String,
+    scanElapsedTime: String,
+    error: String?,
     onClearResults: () -> Unit,
     onBrowseClick: () -> Unit,
     onAnalyzeClick: () -> Unit,
@@ -71,7 +75,7 @@ fun ProjectsSelectionSection(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 CustomOutlinedTextField(
-                    value = uiState.selectedPath,
+                    value = selectedPath,
                     onValueChange = { },
                     onClear = onClearResults,
                     modifier = Modifier.weight(1f),
@@ -83,7 +87,7 @@ fun ProjectsSelectionSection(
 
                 Button(
                     onClick = onBrowseClick,
-                    enabled = !uiState.isAnalyzing,
+                    enabled = !isAnalyzing,
                     modifier = Modifier
                         .height(56.dp)
                         .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
@@ -99,7 +103,7 @@ fun ProjectsSelectionSection(
 
                 Button(
                     onClick = onAnalyzeClick,
-                    enabled = uiState.selectedPath.isNotEmpty() && !uiState.isAnalyzing,
+                    enabled = selectedPath.isNotEmpty() && !isAnalyzing,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = MaterialTheme.colorScheme.primary
                     ),
@@ -107,7 +111,7 @@ fun ProjectsSelectionSection(
                         .height(56.dp)
                         .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
                 ) {
-                    if (uiState.isAnalyzing) {
+                    if (isAnalyzing) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(18.dp),
                             strokeWidth = 2.dp,
@@ -120,20 +124,20 @@ fun ProjectsSelectionSection(
                         )
                     }
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text(if (uiState.isAnalyzing) "Analyzing..." else "Analyze")
+                    Text(if (isAnalyzing) "Analyzing..." else "Analyze")
                 }
             }
 
             // Progress and status
             ProgressStatusLayout(
-                isScanning = uiState.isAnalyzing,
-                scanProgress = uiState.scanProgress,
-                scanStatus = uiState.scanStatus,
-                scanElapsedTime = uiState.scanElapsedTime
+                isScanning = isAnalyzing,
+                scanProgress = scanProgress,
+                scanStatus = scanStatus,
+                scanElapsedTime = scanElapsedTime
             )
 
             // Error display
-            ErrorLayout(error = uiState.error, onClearError = onClearError)
+            ErrorLayout(error = error, onClearError = onClearError)
 
         }
     }
