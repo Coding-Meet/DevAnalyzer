@@ -10,7 +10,6 @@ import com.meet.dev.analyzer.data.models.project.BuildFileType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import kotlin.random.Random
 
 class CleanBuildRepositoryImpl : CleanBuildRepository {
 
@@ -108,18 +107,16 @@ class CleanBuildRepositoryImpl : CleanBuildRepository {
 
 
     override suspend fun deleteBuildFolder(path: String): Boolean {
-//        delay(500)
-//        return try {
-//            val file = File(path)
-//            if (file.exists() && file.isDirectory) {
-//                file.deleteRecursively()
-//            } else {
-//                false
-//            }
-//        } catch (e: Exception) {
-//            AppLogger.e(TAG, e) { "Error deleting folder: $path" }
-//            false
-//        }
-        return Random.nextBoolean()
+        return try {
+            val file = File(path)
+            if (file.exists() && file.isDirectory) {
+                file.deleteRecursively()
+            } else {
+                false
+            }
+        } catch (e: Exception) {
+            AppLogger.e(TAG, e) { "Error deleting folder: $path" }
+            false
+        }
     }
 }
