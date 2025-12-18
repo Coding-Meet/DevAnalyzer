@@ -119,15 +119,20 @@ compose {
                     iconFile.set(iconsRoot.resolve("app_logo.icns"))
                     minimumSystemVersion = "12.0"
                     bundleID = "com.meet.dev.analyzer"
-
+                    appCategory = "Productivity"
                 }
                 windows {
                     iconFile.set(iconsRoot.resolve("app_logo.ico"))
                     perUserInstall = true
+                    console = false
+                    dirChooser = true
+                    shortcut = true
+                    menu = true
                 }
                 linux {
                     iconFile.set(iconsRoot.resolve("app_logo.png"))
-
+                    shortcut = true
+                    appCategory = "Productivity"
                 }
 
             }

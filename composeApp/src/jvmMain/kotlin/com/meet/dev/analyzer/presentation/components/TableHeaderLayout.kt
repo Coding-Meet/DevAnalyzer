@@ -107,26 +107,20 @@ fun RowScope.TableHeaderCell(
                     modifier = Modifier.weight(1f)
                 )
 
-                Icon(
-                    imageVector = when {
-                        isSelected && sortAscending -> Icons.Filled.KeyboardArrowUp
-                        isSelected && !sortAscending -> Icons.Filled.KeyboardArrowDown
-                        else -> Icons.Filled.KeyboardArrowUp
-                    },
-                    contentDescription = when {
-                        isSelected -> if (sortAscending)
+                if (isSelected) {
+                    Icon(
+                        imageVector = if (sortAscending)
+                            Icons.Filled.KeyboardArrowUp
+                        else
+                            Icons.Filled.KeyboardArrowDown,
+                        contentDescription = if (sortAscending)
                             "Sorted ascending, click for descending"
-                        else "Sorted descending, click for ascending"
-
-                        else -> "Click to sort by $title"
-                    },
-                    modifier = Modifier.size(18.dp),
-                    tint = when {
-                        isSelected -> MaterialTheme.colorScheme.primary
-                        isHovered -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                        else -> MaterialTheme.colorScheme.onSurface.copy(alpha = 0.4f)
-                    }
-                )
+                        else
+                            "Sorted descending, click for ascending",
+                        modifier = Modifier.size(18.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
         }
     }
