@@ -1,8 +1,10 @@
 package com.meet.dev.analyzer.presentation.screen.setting.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -12,12 +14,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -47,7 +50,7 @@ fun PathSettingItem(
         )
     ) {
         Column(
-            modifier = Modifier.fillMaxWidth().padding(10.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 10.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -73,32 +76,57 @@ fun PathSettingItem(
                             .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
                         else Modifier)
                 }
-
-                // Reset Default
-                Button(
-                    onClick = onResetDefaultClick,
-                    modifier = Modifier.pointerHoverIcon(
-                        PointerIcon(
-                            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
+                // Validate
+                if (status != PathStatus.VALID) {
+                    OutlinedButton(
+                        onClick = onValidateClick,
+                        modifier = Modifier
+                            .height(36.dp)
+                            .pointerHoverIcon(
+                                PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+                            ),
+                        contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = status.tint()
+                        ),
+                        border = BorderStroke(
+                            1.dp,
+                            status.tint()
                         )
-                    ),
-                ) {
-                    Text("Reset")
+                    ) {
+                        Icon(
+                            imageVector = status.imageVector,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(Modifier.width(6.dp))
+                        Text(
+                            text = "Validate",
+                            style = MaterialTheme.typography.labelMedium
+                        )
+                    }
                 }
-
-                IconButton(
-                    onClick = if (status != PathStatus.VALID) onValidateClick else ({}),
-                    modifier = Modifier.pointerHoverIcon(
-                        PointerIcon(
-                            Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)
-                        )
+                Spacer(Modifier.width(12.dp))
+                // Reset
+                OutlinedButton(
+                    onClick = onResetDefaultClick,
+                    modifier = Modifier
+                        .height(36.dp)
+                        .pointerHoverIcon(
+                            PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+                        ),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary
                     ),
                 ) {
-                    Icon(
-                        imageVector = status.imageVector,
-                        contentDescription = status.message,
-                        tint = status.tint(),
-                        modifier = Modifier.size(24.dp)
+                    Text(
+                        text = "Reset",
+                        style = MaterialTheme.typography.labelMedium
                     )
                 }
 

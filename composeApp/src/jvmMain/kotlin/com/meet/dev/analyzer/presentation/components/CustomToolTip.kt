@@ -8,8 +8,6 @@ import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.unit.DpSize
-import androidx.compose.ui.unit.dp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,7 +32,7 @@ fun CustomToolTip(
                         style = MaterialTheme.typography.bodySmall
                     )
                 },
-                caretSize = DpSize(16.dp, 8.dp),
+//                caretSize = DpSize(16.dp, 8.dp),
                 colors = TooltipDefaults.richTooltipColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurface,

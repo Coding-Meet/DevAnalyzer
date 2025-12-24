@@ -261,7 +261,7 @@ private fun ChartCard(
                 maxLines = 1
             )
             Text(
-                storageBreakdownItem.percentageReadable,
+                storageBreakdownItem.percentageReadable + "%",
                 style = MaterialTheme.typography.labelSmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )

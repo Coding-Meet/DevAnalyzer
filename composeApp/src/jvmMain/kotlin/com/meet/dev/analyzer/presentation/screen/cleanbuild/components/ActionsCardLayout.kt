@@ -1,5 +1,6 @@
 package com.meet.dev.analyzer.presentation.screen.cleanbuild.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,6 +13,7 @@ import androidx.compose.material.icons.filled.CheckBox
 import androidx.compose.material.icons.filled.CheckBoxOutlineBlank
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -86,6 +88,14 @@ fun ActionsCardLayout(
                             )
                         )
                     ),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    ),
                 ) {
                     Icon(
                         if (uiState.expandedProjects.size == uiState.projectBuildInfoList.size) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
@@ -110,7 +120,15 @@ fun ActionsCardLayout(
                         } else {
                             onEvent(CleanBuildIntent.OnSelectAllProjects)
                         }
-                    }
+                    },
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary,
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    ),
+                    border = BorderStroke(
+                        width = 1.dp,
+                        color = MaterialTheme.colorScheme.primary
+                    ),
                 ) {
                     Icon(
                         if (uiState.allSelected) Icons.Default.CheckBox else Icons.Default.CheckBoxOutlineBlank,
