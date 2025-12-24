@@ -240,7 +240,7 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
     }
 
 
-    fun validateSdkPath(path: String): PathStatus {
+    private fun validateSdkPath(path: String): PathStatus {
         if (path.isBlank()) return PathStatus.INVALID
 
         val file = File(path)
@@ -250,16 +250,14 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
         // Check for SDK structure
         val hasPlatforms = File(file, "platforms").exists()
         val hasBuildTools = File(file, "build-tools").exists()
-        val hasPlatformTools = File(file, "platform-tools").exists()
 
         return when {
             hasPlatforms && hasBuildTools -> PathStatus.VALID
-            hasPlatformTools -> PathStatus.WARNING // Partial SDK
             else -> PathStatus.INVALID
         }
     }
 
-    fun validateGradlePath(path: String): PathStatus {
+    private fun validateGradlePath(path: String): PathStatus {
         if (path.isBlank()) return PathStatus.INVALID
 
         val file = File(path)
@@ -272,11 +270,11 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
 
         return when {
             hasCaches || hasWrapper -> PathStatus.VALID
-            else -> PathStatus.WARNING // Might be Gradle home but empty
+            else -> PathStatus.INVALID
         }
     }
 
-    fun validateAvdPath(path: String): PathStatus {
+    private fun validateAvdPath(path: String): PathStatus {
         if (path.isBlank()) return PathStatus.INVALID
 
         val file = File(path)
@@ -290,12 +288,12 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
 
         return when {
             hasIniFiles || hasAvdFolders -> PathStatus.VALID
-            else -> PathStatus.WARNING // Directory exists but might be empty
+            else -> PathStatus.INVALID
         }
     }
 
 
-    fun validateIdePath(path: String): PathStatus {
+    private fun validateIdePath(path: String): PathStatus {
         if (path.isBlank()) return PathStatus.INVALID
         val file = File(path)
         if (!file.exists()) return PathStatus.INVALID
@@ -308,12 +306,12 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
         } ?: false
         return when {
             hasJetBrains || hasGoogle -> PathStatus.VALID
-            file.listFiles()?.isNotEmpty() == true -> PathStatus.WARNING
+            file.listFiles()?.isNotEmpty() == true -> PathStatus.VALID
             else -> PathStatus.INVALID
         }
     }
 
-    fun validateAndroidPath(path: String): PathStatus {
+    private fun validateAndroidPath(path: String): PathStatus {
         if (path.isBlank()) return PathStatus.INVALID
 
         val file = File(path)
@@ -325,12 +323,11 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
 
         return when {
             hasAvd -> PathStatus.VALID
-            file.listFiles()?.isNotEmpty() == true -> PathStatus.WARNING
             else -> PathStatus.INVALID
         }
     }
 
-    fun validateKonanPath(path: String): PathStatus {
+    private fun validateKonanPath(path: String): PathStatus {
         if (path.isBlank()) return PathStatus.INVALID
 
         val file = File(path)
@@ -345,12 +342,11 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
 
         return when {
             hasDependencies || hasKotlinNative -> PathStatus.VALID
-            file.listFiles()?.isNotEmpty() == true -> PathStatus.WARNING
             else -> PathStatus.INVALID
         }
     }
 
-    fun validateJdkPath(path: String): PathStatus {
+    private fun validateJdkPath(path: String): PathStatus {
         if (path.isBlank()) return PathStatus.INVALID
         val file = File(path)
         if (!file.exists()) return PathStatus.INVALID
@@ -361,7 +357,7 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
         val hasContentsHome = File(file, "Contents/Home").exists()
         return when {
             (hasBin && hasLib) || hasRelease || hasContentsHome -> PathStatus.VALID
-            file.listFiles()?.isNotEmpty() == true -> PathStatus.WARNING
+            file.listFiles()?.isNotEmpty() == true -> PathStatus.VALID
             else -> PathStatus.INVALID
         }
     }
