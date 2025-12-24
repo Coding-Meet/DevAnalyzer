@@ -1,6 +1,6 @@
 [versions]
 # Core Kotlin
-kotlin = "2.2.21"
+kotlin = "2.3.0"
 
 # Coroutines & Serialization & Datetime
 kotlinx-coroutines = "1.10.2"
@@ -8,11 +8,11 @@ kotlinx-serialization = "1.9.0"
 kotlinx-datetime = "0.7.1"
 
 # Compose Multiplatform
-composeMultiplatform = "1.9.0"
-composeHotReload = "1.0.0-rc02"
+composeMultiplatform = "1.9.3"
+composeHotReload = "1.0.0"
 
 # Androidx Core
-androidx-lifecycle = "2.9.5"
+androidx-lifecycle = "2.9.6"
 
 # Testing
 junit = "4.13.2"
@@ -24,7 +24,7 @@ androidx-navigation = "2.9.1"
 material3-adaptive = "1.2.0"
 
 # DataStore
-datastore = "1.1.7"
+datastore = "1.2.0"
 
 # Image Loading
 coil3 = "3.3.0"
@@ -36,7 +36,7 @@ koin = "4.1.1"
 kermit = "2.0.8"
 
 # File
-filekit = "0.11.0"
+filekit = "0.12.0"
 
 # parse for toml
 akuleshov7 = "0.7.1"
