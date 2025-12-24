@@ -4,7 +4,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
@@ -72,12 +71,5 @@ enum class PathStatus(
         tint = { MaterialTheme.colorScheme.error },
         containerColor = { MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f) }
     ),
-    WARNING(
-        imageVector = Icons.Default.Warning,
-        message = "Path exists but may not contain expected files",
-        tint = { MaterialTheme.colorScheme.tertiary },
-        containerColor = { MaterialTheme.colorScheme.tertiaryContainer.copy(alpha = 0.3f) }
-    ),
-
 }
 
