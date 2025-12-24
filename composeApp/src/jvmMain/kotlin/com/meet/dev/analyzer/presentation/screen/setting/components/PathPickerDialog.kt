@@ -59,7 +59,20 @@ fun PathPickerDialog(
     AlertDialog(onDismissRequest = onDismiss, title = {
         Text(type.title)
     }, text = {
-        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            // Description
+            Text(
+                text = type.description,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+
+            // Expected Structure
+            Text(
+                text = type.expectedStructure,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.primary
+            )
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 OutlinedTextField(
