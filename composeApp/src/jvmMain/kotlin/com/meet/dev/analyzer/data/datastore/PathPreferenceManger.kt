@@ -55,7 +55,7 @@ class PathPreferenceManger(private val dataStore: DataStore<Preferences>) {
     val konanFolderPath = dataStore.data.map { prefs ->
         prefs[PreferencesKey.KONAN_FOLDER_PATH_KEY] ?: getDefaultKonanFolderPath()
     }
-    val defaultJdks = getDefaultJdkFolderPaths()
+    private val defaultJdks = getDefaultJdkFolderPaths()
     val jdkPath1 = dataStore.data.map { prefs ->
         prefs[PreferencesKey.JDK_PATH_1_KEY] ?: defaultJdks[0]
     }
@@ -66,7 +66,7 @@ class PathPreferenceManger(private val dataStore: DataStore<Preferences>) {
         prefs[PreferencesKey.JDK_PATH_3_KEY] ?: defaultJdks[2]
     }
 
-    val defaultJetbrainsIde = getDefaultJetbrainsFolderPaths()
+    private val defaultJetbrainsIde = getDefaultJetbrainsFolderPaths()
     val ideJetBrainsPath1 = dataStore.data.map { prefs ->
         prefs[PreferencesKey.IDE_JETBRAINS_1_KEY] ?: defaultJetbrainsIde[0]
     }
@@ -77,7 +77,7 @@ class PathPreferenceManger(private val dataStore: DataStore<Preferences>) {
         prefs[PreferencesKey.IDE_JETBRAINS_3_KEY] ?: defaultJetbrainsIde[2]
     }
 
-    val defaultGoogleIde = getDefaultGoogleFolderPaths()
+    private val defaultGoogleIde = getDefaultGoogleFolderPaths()
     val ideGooglePath1 = dataStore.data.map { prefs ->
         prefs[PreferencesKey.IDE_GOOGLE_1_KEY] ?: defaultGoogleIde[0]
     }

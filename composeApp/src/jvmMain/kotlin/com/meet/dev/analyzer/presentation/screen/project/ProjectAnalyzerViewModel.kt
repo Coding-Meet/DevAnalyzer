@@ -9,9 +9,12 @@ import com.meet.dev.analyzer.data.models.project.BuildFileType
 import com.meet.dev.analyzer.data.models.project.SettingsGradleFileType
 import com.meet.dev.analyzer.data.repository.project.ProjectAnalyzerRepository
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
@@ -78,20 +81,30 @@ class ProjectAnalyzerViewModel(
                         scanElapsedTime = "00:00"
                     )
                 }
-                val startTime = System.currentTimeMillis()
-
                 // 🧩 Main analysis logic
                 if (validateProject(currentPath)) {
+                    val startTime = System.currentTimeMillis()
+
+                    // Start elapsed time counter
+                    val timerJob = launch {
+                        while (isActive) {
+                            val formatted = formatElapsedTime(
+                                startTime = startTime
+                            )
+                            _uiState.update { it.copy(scanElapsedTime = formatted) }
+                            delay(1000)
+                        }
+                    }
                     val projectInfo = repository.analyzeProject(currentPath) { progress, status ->
                         AppLogger.d(TAG) { "Progress: $progress, Status: $status" }
                         _uiState.update {
                             it.copy(
                                 scanProgress = progress.coerceIn(0f, 1f),
-                                scanStatus = status,
-                                scanElapsedTime = formatElapsedTime(startTime)
+                                scanStatus = status
                             )
                         }
                     }
+                    timerJob.cancelAndJoin()
                     withContext(Dispatchers.Main) {
                         _uiState.update {
                             it.copy(
