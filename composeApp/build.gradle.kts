@@ -15,20 +15,20 @@ kotlin {
     sourceSets {
         commonMain.dependencies {
             // Compose Multiplatform - UI Framework
-            implementation(compose.runtime)                    // Compose runtime for state management
-            implementation(compose.foundation)                 // Foundation layouts and components
-            implementation(compose.ui)                        // Core UI components
-            implementation(compose.components.resources)       // Resource handling
-            implementation(compose.components.uiToolingPreview) // Preview support
+            implementation(libs.runtime)                    // Compose runtime for state management
+            implementation(libs.foundation)                 // Foundation layouts and components
+            implementation(libs.ui)                        // Core UI components
+            implementation(libs.components.resources)       // Resource handling
+            implementation(libs.ui.tooling.preview) // Preview support
 
             // Lifecycle - ViewModel and state management
             implementation(libs.androidx.lifecycle.viewmodel.compose)         // ViewModel for business logic
             implementation(libs.androidx.lifecycle.runtime.compose)   // Lifecycle-aware Compose
 
             // Material Design 3 - Enhanced design system
-            implementation(compose.material3)                  // Material3 design system
-            implementation(compose.material3AdaptiveNavigationSuite) // Material3 adaptive design suite
-            implementation(compose.materialIconsExtended) // Extended Material icons
+            implementation(libs.material3)                  // Material3 design system
+            implementation(libs.material3.adaptive.navigation.suite) // Material3 adaptive design suite
+            implementation(libs.material.icons.extended) // Extended Material icons
             implementation(libs.material3.adaptive)     // Material3 adaptive
 
             // Navigation - Type-safe screen navigation
@@ -128,6 +128,7 @@ compose {
                     dirChooser = true
                     shortcut = true
                     menu = true
+                    includeAllModules = true
                 }
                 linux {
                     iconFile.set(iconsRoot.resolve("app_logo.png"))
