@@ -47,11 +47,16 @@ fun getDefaultJetbrainsFolderPaths(): List<String> {
             "$userHome\\AppData\\Local\\JetBrains",
             "$userHome\\AppData\\Roaming\\JetBrains"
         )
-
-        else -> listOf(
+        os.contains("mac") -> listOf(
             "$userHome/Library/Caches/JetBrains",
             "$userHome/Library/Logs/JetBrains",
             "$userHome/Library/Application Support/JetBrains"
+        )
+
+        else -> listOf( // Linux / Unix
+            "$userHome/.cache/JetBrains",
+            "$userHome/.cache/JetBrains",
+            "$userHome/.config/JetBrains"
         )
     }
 }
@@ -66,10 +71,16 @@ fun getDefaultGoogleFolderPaths(): List<String> {
             "$userHome\\AppData\\Roaming\\Google"
         )
 
-        else -> listOf(
+        os.contains("mac") -> listOf(
             "$userHome/Library/Caches/Google",
             "$userHome/Library/Logs/Google",
             "$userHome/Library/Application Support/Google"
+        )
+
+        else -> listOf( // Linux / Unix
+            "$userHome/.cache/Google",
+            "$userHome/.cache/Google",
+            "$userHome/.config/Google"
         )
     }
 }

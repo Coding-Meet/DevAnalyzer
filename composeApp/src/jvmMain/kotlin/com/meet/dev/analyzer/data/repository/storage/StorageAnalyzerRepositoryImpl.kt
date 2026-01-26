@@ -76,26 +76,45 @@ class StorageAnalyzerRepositoryImpl(
         fun scanBase(
             vendor: String,
             category: String,
-            basePath: String
+            basePath: String,
+            isLinux: Boolean
         ): List<IdeInstallation> {
             val dir = File(basePath)
             return dir.listFiles()
                 ?.filter { it.isDirectory && it.name.any { ch -> ch.isDigit() } }
-                ?.mapNotNull { file ->
-                    val sizeBytes = Utils.calculateFolderSize(file)
-                    val sizeReadable = Utils.formatSize(sizeBytes)
-                    val info = extractIdeNameAndVersionByFirstDigit(file.name)
-                    val (ideName, version) = info
+                ?.mapNotNull { ideDir ->
+                    val targetDir = when {
+                        isLinux && category == "LOGS" ->
+                            File(ideDir, "log")
 
+                        else ->
+                            ideDir
+                    }
+
+                    if (!targetDir.exists()) return@mapNotNull null
+
+                    val sizeBytes = when {
+                        isLinux && category == "CACHES" ->
+                            ideDir.listFiles()
+                                ?.filter { it.name != "log" }
+                                ?.sumOf { Utils.calculateFolderSize(it) }
+                                ?: 0L
+
+                        else ->
+                            Utils.calculateFolderSize(targetDir)
+                    }
+
+                    val (ideName, version) =
+                        extractIdeNameAndVersionByFirstDigit(ideDir.name)
                     IdeInstallation(
-                        name = file.name,
+                        name = ideDir.name,
                         ideName = ideName,
                         version = version,
                         category = category,
-                        path = file.absolutePath,
+                        path = targetDir.absolutePath,
                         sizeBytes = sizeBytes,
-                        vendor = vendor,
-                        sizeReadable = sizeReadable
+                        sizeReadable = Utils.formatSize(sizeBytes),
+                        vendor = vendor
                     )
                 } ?: emptyList()
         }
@@ -140,12 +159,20 @@ class StorageAnalyzerRepositoryImpl(
         try {
             val os = System.getProperty("os.name").lowercase()
             val isWindows = os.contains("windows")
+            val isLinux = !os.contains("windows") && !os.contains("mac")
             val basePaths = buildBasePaths(isWindows = isWindows)
 
             val allInstallations = buildList {
                 basePaths.forEach { (vendor, categories) ->
                     categories.forEach { (category, path) ->
-                        addAll(scanBase(vendor, category, path))
+                        addAll(
+                            scanBase(
+                                vendor = vendor,
+                                category = category,
+                                basePath = path,
+                                isLinux = isLinux
+                            )
+                        )
                     }
                 }
             }
