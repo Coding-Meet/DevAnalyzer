@@ -73,6 +73,7 @@ data class CleanBuildUiState(
 data class DeletionProgress(
     val moduleBuild: ModuleBuild,
     val status: DeletionStatus,
+    val error: String? = null,
 )
 
 

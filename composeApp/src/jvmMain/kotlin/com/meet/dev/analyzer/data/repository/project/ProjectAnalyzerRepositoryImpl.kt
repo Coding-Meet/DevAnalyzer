@@ -73,8 +73,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 settingsGradleFileInfo = settingsGradleFileInfo,
                 gradleWrapperPropertiesFileInfo = gradleWrapperPropertiesFileInfo,
                 versionCatalog = versionCatalog,
-                moduleBuildFileInfos = moduleBuildFileInfos,
-                isMultiModule = moduleBuildFileInfos.size > 1
+                moduleBuildFileInfos = moduleBuildFileInfos
             )
 
         updateProgress(0.5f, "Analyzing plugins...")
@@ -525,8 +524,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
         settingsGradleFileInfo: SettingsGradleFileInfo?,
         gradleWrapperPropertiesFileInfo: GradleWrapperPropertiesFileInfo?,
         versionCatalog: VersionCatalog?,
-        moduleBuildFileInfos: List<ModuleBuildFileInfo>,
-        isMultiModule: Boolean
+        moduleBuildFileInfos: List<ModuleBuildFileInfo>
     ): ProjectOverviewInfo {
         AppLogger.d(TAG) { "Finding project info" }
 
@@ -637,6 +635,44 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
         }
 
+        fun extractNdkVersion(): String? {
+            val regex = Regex("""ndkVersion\s*=?\s*["']?(\d+\.\d+\.\d+)["']?""")
+            val subModuleBuildFileInfo =
+                moduleBuildFileInfos.find { regex.containsMatchIn(it.content) }
+            return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
+        }
+
+        fun extractCmakeVersion(): String? {
+            val regex = Regex("""version\s*=?\s*["']?(\d+\.\d+\.\d+)["']?""")
+            val subModuleBuildFileInfo =
+                moduleBuildFileInfos.find { regex.containsMatchIn(it.content) }
+            return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
+        }
+
+        fun getPlatforms(): List<String> {
+            val platforms = mutableSetOf<String>()
+
+            val androidRegex = Regex("""\bandroid(Target)?\s*([({])""")
+            val jvmRegex = Regex("""\bjvm\s*([({])""")
+            val jsRegex = Regex("""\bjs\s*([({])""")
+            val wasmRegex = Regex("""\bwasm(Js)?\s*([({])""")
+            val iosRegex = Regex("""\bios(Arm64|X64|SimulatorArm64)?\s*([({])""")
+            val serverRegex = Regex("""\bapplication\s*([({])""")
+
+            moduleBuildFileInfos.forEach { file ->
+                val content = file.content
+
+                if (androidRegex.containsMatchIn(content)) platforms.add("ANDROID")
+                if (jvmRegex.containsMatchIn(content)) platforms.add("JVM")
+                if (jsRegex.containsMatchIn(content)) platforms.add("JS")
+                if (wasmRegex.containsMatchIn(content)) platforms.add("WASM")
+                if (iosRegex.containsMatchIn(content)) platforms.add("IOS")
+                if (serverRegex.containsMatchIn(content)) platforms.add("SERVER")
+            }
+
+            return platforms.toList()
+        }
+
         val sizeBytes = Utils.calculateFolderSize(projectDir)
 
         val projectOverviewInfo = ProjectOverviewInfo(
@@ -644,13 +680,16 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             projectName = findProjectName(),
             sizeReadable = Utils.formatSize(sizeBytes),
             totalSizeBytes = sizeBytes,
-            isMultiModule = isMultiModule,
+            isMultiModule = moduleBuildFileInfos.size > 2,
             gradleVersion = findGradleVersion(),
             kotlinVersion = extractKotlinVersion(),
             androidGradlePluginVersion = extractAgpVersion(),
             targetSdkVersion = extractTargetSdk(),
             minSdkVersion = extractMinSdk(),
-            compileSdkVersion = extractCompileSdk()
+            compileSdkVersion = extractCompileSdk(),
+            ndkVersion = extractNdkVersion(),
+            cmakeVersion = extractCmakeVersion(),
+            platformList = getPlatforms()
         )
         AppLogger.d(TAG) { "Found project info." }
         AppLogger.i(TAG) {
@@ -661,6 +700,8 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 Gradle Version: ${projectOverviewInfo.gradleVersion} Kotlin Version: ${projectOverviewInfo.kotlinVersion}
                 isMultiModule: ${projectOverviewInfo.isMultiModule} Android Gradle Plugin Version: ${projectOverviewInfo.androidGradlePluginVersion}
                 Compile SDK Version: ${projectOverviewInfo.compileSdkVersion} Target SDK Version: ${projectOverviewInfo.targetSdkVersion} Min SDK Version: ${projectOverviewInfo.minSdkVersion}
+                Ndk Version: ${projectOverviewInfo.ndkVersion} CMake Version: ${projectOverviewInfo.cmakeVersion}
+                Platforms: ${projectOverviewInfo.platformList}
             """.trimIndent()
         }
         return projectOverviewInfo

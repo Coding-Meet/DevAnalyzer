@@ -301,6 +301,14 @@ private fun DeletionProgressItem(progress: DeletionProgress) {
                     else
                         Modifier
                 )
+                if (progress.error != null) {
+                    Text(
+                        text = "Error msg: " + progress.error,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error,
+                        maxLines = 1,
+                    )
+                }
             }
 
             // Status and size

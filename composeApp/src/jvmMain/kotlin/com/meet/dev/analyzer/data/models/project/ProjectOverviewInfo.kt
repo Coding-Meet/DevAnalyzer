@@ -11,5 +11,8 @@ data class ProjectOverviewInfo(
     val compileSdkVersion: String?,
     val targetSdkVersion: String?,
     val minSdkVersion: String?,
-    val isMultiModule: Boolean
+    val isMultiModule: Boolean,
+    val ndkVersion: String?,
+    val cmakeVersion: String?,
+    val platformList: List<String>,
 )
