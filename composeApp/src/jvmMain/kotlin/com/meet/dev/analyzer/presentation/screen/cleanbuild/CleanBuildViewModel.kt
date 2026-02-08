@@ -181,14 +181,16 @@ class CleanBuildViewModel(
                     }
 
                     // Perform deletion
-                    val success = repository.deleteBuildFolder(module.path)
-
+                    val (success, errorMessage) = repository.deleteBuildFolder(module.path)
                     // Update status to SUCCESS or FAILED
                     _uiState.update { state ->
                         state.copy(
                             deletionProgressList = state.deletionProgressList.map {
                                 if (it.moduleBuild.uniqueId == module.uniqueId) {
-                                    it.copy(status = if (success) DeletionStatus.SUCCESS else DeletionStatus.FAILED)
+                                    it.copy(
+                                        status = if (success) DeletionStatus.SUCCESS else DeletionStatus.FAILED,
+                                        error = errorMessage
+                                    )
                                 } else it
                             }
                         )

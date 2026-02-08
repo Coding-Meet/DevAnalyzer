@@ -47,6 +47,7 @@ fun getDefaultJetbrainsFolderPaths(): List<String> {
             "$userHome\\AppData\\Local\\JetBrains",
             "$userHome\\AppData\\Roaming\\JetBrains"
         )
+
         os.contains("mac") -> listOf(
             "$userHome/Library/Caches/JetBrains",
             "$userHome/Library/Logs/JetBrains",
@@ -89,33 +90,27 @@ fun getDefaultJdkFolderPaths(): List<String> {
     val userHome = System.getProperty("user.home")
     val os = System.getProperty("os.name").lowercase()
 
-    val defaultPaths = mutableListOf<String>()
-    when {
-        os.contains("mac") -> defaultPaths.addAll(
+    return when {
+        os.contains("mac") ->
             listOf(
                 "$userHome/Library/Java/JavaVirtualMachines",
                 "/Library/Java/JavaVirtualMachines",
                 "$userHome/.gradle/jdks",
             )
-        )
 
-        os.contains("windows") -> defaultPaths.addAll(
+        os.contains("windows") ->
             listOf(
                 "C:\\Program Files\\Java",
                 "C:\\Program Files\\Eclipse Adoptium",
                 "$userHome\\.gradle\\jdks"
             )
-        )
 
-        else -> defaultPaths.addAll(
+        else ->
             listOf(
                 "/usr/lib/jvm",
                 "$userHome/.gradle/jdks",
                 "$userHome/.sdkman/candidates/java"
             )
-        )
     }
-
-    return defaultPaths
 }
 

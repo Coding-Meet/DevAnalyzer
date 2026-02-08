@@ -106,17 +106,13 @@ class CleanBuildRepositoryImpl : CleanBuildRepository {
     }
 
 
-    override suspend fun deleteBuildFolder(path: String): Boolean {
+    override suspend fun deleteBuildFolder(path: String): Pair<Boolean, String?> {
         return try {
             val file = File(path)
-            if (file.exists() && file.isDirectory) {
-                file.deleteRecursively()
-            } else {
-                false
-            }
+            Pair(file.deleteRecursively(), null)
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error deleting folder: $path" }
-            false
+            Pair(false, e.message)
         }
     }
 }
