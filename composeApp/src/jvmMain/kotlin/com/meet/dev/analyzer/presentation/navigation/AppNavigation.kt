@@ -1,19 +1,14 @@
 package com.meet.dev.analyzer.presentation.navigation
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.slideInHorizontally
-import androidx.compose.animation.slideOutHorizontally
-import androidx.compose.foundation.background
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.adaptive.currentWindowAdaptiveInfo
-import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldDefaults
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldLayout
+import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteScaffoldValue
 import androidx.compose.material3.adaptive.navigationsuite.NavigationSuiteType
+import androidx.compose.material3.adaptive.navigationsuite.rememberNavigationSuiteScaffoldState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -43,39 +38,32 @@ fun AppNavigation(
             }
         }
     }
-
-    val currentWindowAdaptiveInfo = currentWindowAdaptiveInfo()
-    val layoutType by remember(currentNavigationItem, currentWindowAdaptiveInfo) {
-        derivedStateOf {
-            if (currentNavigationItem != null) {
-                NavigationSuiteScaffoldDefaults.calculateFromAdaptiveInfo(currentWindowAdaptiveInfo)
-            } else {
-                NavigationSuiteType.None
-            }
+    val navigationSuiteState = rememberNavigationSuiteScaffoldState(
+        initialValue = NavigationSuiteScaffoldValue.Hidden
+    )
+    LaunchedEffect(currentNavigationItem) {
+        if (currentNavigationItem != null) {
+            navigationSuiteState.show()
+        } else {
+            navigationSuiteState.hide()
         }
     }
     NavigationSuiteScaffoldLayout(
+        state = navigationSuiteState,
         navigationSuite = {
-            AnimatedVisibility(
-                visible = currentNavigationItem != null,
-                modifier = Modifier.background(MaterialTheme.colorScheme.surface),
-                enter = slideInHorizontally { -it },
-                exit = slideOutHorizontally { it },
-            ) {
-                NavigationRailLayout(
-                    currentNavigationItem = currentNavigationItem,
-                    onNavigate = {
-                        navController.navigate(it.appRoute) {
-                            launchSingleTop = true
-                            restoreState = true
-                        }
-                    },
-                    isDarkTheme = isDarkMode,
-                    onThemeChange = onThemeChange,
-                )
-            }
+            NavigationRailLayout(
+                currentNavigationItem = currentNavigationItem,
+                onNavigate = {
+                    navController.navigate(it.appRoute) {
+                        launchSingleTop = true
+                        restoreState = true
+                    }
+                },
+                isDarkTheme = isDarkMode,
+                onThemeChange = onThemeChange,
+            )
         },
-        layoutType = layoutType
+        layoutType = NavigationSuiteType.NavigationRail
     ) {
         NavHost(
             navController = navController,
@@ -137,7 +125,6 @@ fun AppNavigation(
                         parentEntry = parentEntry
                     )
                 }
-
             }
         }
     }
