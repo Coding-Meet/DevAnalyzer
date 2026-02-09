@@ -21,6 +21,11 @@ sealed interface SettingsUiIntent {
 
     data class ToggleCrashReporting(val enabled: Boolean) : SettingsUiIntent
 
+    data class ToggleLocalLogs(val enabled: Boolean) : SettingsUiIntent
+
+    data object UploadLatestLogToGitHub : SettingsUiIntent
+
+
     data object CheckForUpdates : SettingsUiIntent
     data class ShowPathPicker(val path: String, val type: PathPickerType?) : SettingsUiIntent
 }

@@ -19,14 +19,12 @@ object Utils {
 
         if (!file.exists()) return 0L
         if (file.isFile) return file.length()
-
-        val os = System.getProperty("os.name").lowercase()
         val path = file.path
 
         return if (isCommend) {
             try {
                 when {
-                    os.contains("win") -> {
+                    getDesktopOS().isWindows() -> {
                         val bytes = file.walkTopDown().map { it.length() }.sum()
 
 //                        // 🪟 Windows - PowerShell method in cmd very slow in window

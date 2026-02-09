@@ -2,6 +2,7 @@ package com.meet.dev.analyzer.presentation.screen.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.meet.dev.analyzer.data.datastore.AppPreferenceManager
 import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -11,9 +12,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.io.File
 
-class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) : ViewModel() {
+class SettingsViewModel(
+    private val pathPreferenceManger: PathPreferenceManger,
+    private val appPreferenceManager: AppPreferenceManager,
+) : ViewModel() {
 
     val pathSettingsState = combine(
         pathPreferenceManger.sdkPath,
@@ -119,6 +125,9 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
             is SettingsUiIntent.UpdateIdeGoogle3 -> updateIdeGoogle3(intent.path)
 
             is SettingsUiIntent.ToggleCrashReporting -> toggleCrashReporting(intent.enabled)
+            is SettingsUiIntent.ToggleLocalLogs -> toggleLocalLogs(intent.enabled)
+            is SettingsUiIntent.UploadLatestLogToGitHub -> uploadLatestLogToGitHub()
+
             is SettingsUiIntent.CheckForUpdates -> checkForUpdates()
             is SettingsUiIntent.ShowPathPicker -> showPathPicker(intent.path, intent.type)
         }
@@ -126,6 +135,25 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
 
     private val _uiState = MutableStateFlow(SettingsUiState())
     val uiState = _uiState.asStateFlow()
+
+    init {
+        viewModelScope.launch {
+            combine(
+                appPreferenceManager.crashReportingEnabled,
+                appPreferenceManager.isLocalLogsEnabled,
+            ) { crashReportingEnabled, localLogsEnabled ->
+                Pair(crashReportingEnabled, localLogsEnabled)
+            }.collect { (crashReportingEnabled, localLogsEnabled) ->
+                _uiState.update {
+                    it.copy(
+                        crashReportingEnabled = crashReportingEnabled,
+                        localLogsEnabled = localLogsEnabled
+                    )
+                }
+
+            }
+        }
+    }
 
 
     private fun updateAndroidSdkPath(path: String) {
@@ -214,8 +242,19 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
 
 
     private fun toggleCrashReporting(enabled: Boolean) {
-        _uiState.update { it.copy(crashReportingEnabled = enabled) }
+        viewModelScope.launch {
+            appPreferenceManager.saveCrashReportingEnabled(enabled)
+            _uiState.update { it.copy(crashReportingEnabled = enabled) }
+        }
     }
+
+    private fun toggleLocalLogs(enabled: Boolean) {
+        viewModelScope.launch {
+            appPreferenceManager.saveLocalLogsEnabled(enabled)
+            _uiState.update { it.copy(localLogsEnabled = enabled) }
+        }
+    }
+
 
     private fun checkForUpdates() {
         viewModelScope.launch {
@@ -237,6 +276,24 @@ class SettingsViewModel(private val pathPreferenceManger: PathPreferenceManger) 
                 showPathPicker = type
             )
         }
+    }
+
+    private fun uploadLatestLogToGitHub() {
+        fun getLatestLogFile(): File? {
+            val dir = File(System.getProperty("user.home"), ".dev_analyzer")
+
+            return dir.listFiles { f ->
+                f.extension == "log"
+            }?.maxByOrNull { it.lastModified() }
+        }
+
+        val file = getLatestLogFile() ?: return
+
+        val content = file.readText().trimIndent()
+
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(StringSelection(content), null)
+//        Desktop.getDesktop().browse(URI(REPORT_BUG))
     }
 
 

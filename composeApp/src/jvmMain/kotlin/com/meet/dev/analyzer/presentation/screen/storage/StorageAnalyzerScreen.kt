@@ -73,7 +73,8 @@ fun StorageAnalyzerContent(
                             )
                         ), onClick = {
                             onEvent(StorageAnalyzerIntent.RefreshData)
-                        }
+                        },
+                        enabled = !uiState.isScanning
                     ) {
                         Icon(
                             Icons.Default.Refresh,

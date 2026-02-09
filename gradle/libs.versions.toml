@@ -49,6 +49,9 @@ github-z4kn4fein = "3.0.0"
 # Theme Changer
 jsystemthemedetector = "3.6"
 
+# Crash Report
+sentry = "8.31.0"
+
 
 [libraries]
 components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
@@ -113,7 +116,12 @@ akuleshov7-ktoml-core = { module = "com.akuleshov7:ktoml-core", version.ref = "a
 # Semantic version
 github-z4kn4fein-semver = { module = "io.github.z4kn4fein:semver", version.ref = "github-z4kn4fein" }
 
+# Theme Detector
 jsystemthemedetector = { module = "com.github.Dansoftowner:jSystemThemeDetector", version.ref = "jsystemthemedetector" }
+
+# Crash Report
+sentry = { module = "io.sentry:sentry", version.ref = "sentry" }
+
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

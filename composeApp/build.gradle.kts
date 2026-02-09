@@ -1,5 +1,4 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -8,10 +7,26 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
 }
+apply(from = "../versioning.gradle.kts")
+
+group = "com.meet"
+
+val appVersionName: () -> String by extra
+val appVersionCode: () -> Int by extra
+
+java {
+    toolchain {
+        vendor = JvmVendorSpec.JETBRAINS
+        languageVersion = JavaLanguageVersion.of(21)
+    }
+}
 
 kotlin {
+    jvmToolchain {
+        vendor = JvmVendorSpec.JETBRAINS
+        languageVersion = JavaLanguageVersion.of(21)
+    }
     jvm()
-    jvmToolchain(17)
     sourceSets {
         commonMain.dependencies {
             // Compose Multiplatform - UI Framework
@@ -67,6 +82,9 @@ kotlin {
 
             // Theme Changer
             implementation(libs.jsystemthemedetector)
+
+            // Crash Report
+            api(libs.sentry)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
@@ -100,7 +118,7 @@ compose {
                     TargetFormat.Deb                    // Linux
                 )
                 packageName = "DevAnalyzer"
-                packageVersion = customPackageVersion
+                packageVersion = appVersionName()
                 includeAllModules = true
                 description = "Deep insights into your development environment."
                 vendor = "Meet"
@@ -140,12 +158,3 @@ compose {
         }
     }
 }
-
-val versionProps = Properties()
-val versionPropertiesFile = rootProject.file("version.properties")
-if (versionPropertiesFile.exists()) {
-    versionPropertiesFile.inputStream().use { versionProps.load(it) }
-} else {
-    throw GradleException("Root project version.properties not found! Please ensure it exists with the version number.")
-}
-val customPackageVersion: String = versionProps.getProperty("PACKAGE_VERSION")

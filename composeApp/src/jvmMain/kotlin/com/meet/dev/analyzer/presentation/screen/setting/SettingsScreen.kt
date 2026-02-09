@@ -16,8 +16,10 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
@@ -38,6 +40,8 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -49,6 +53,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.core.utility.AppLinks
 import com.meet.dev.analyzer.core.utility.AppLinks.socialLinks
+import com.meet.dev.analyzer.core.utility.CustomProperties
 import com.meet.dev.analyzer.core.utility.getDefaultAndroidSdkPath
 import com.meet.dev.analyzer.core.utility.getDefaultAvdLocationPath
 import com.meet.dev.analyzer.core.utility.getDefaultGoogleFolderPaths
@@ -63,6 +68,7 @@ import com.meet.dev.analyzer.presentation.screen.setting.components.PathPickerDi
 import com.meet.dev.analyzer.presentation.screen.setting.components.PathSettingItem
 import com.meet.dev.analyzer.presentation.screen.setting.components.SettingsSection
 import com.meet.dev.analyzer.presentation.screen.setting.components.SocialLinkButton
+import com.meet.dev.analyzer.presentation.screen.setting.components.SwitchSettingItem
 import org.koin.compose.viewmodel.koinViewModel
 import java.awt.Cursor
 
@@ -97,6 +103,11 @@ fun SettingsScreenContent(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
         ) {
             val scrollState = rememberScrollState()
+            val desktopConfig by rememberSaveable {
+                mutableStateOf(
+                    CustomProperties.createAppConfig(CustomProperties.loadProperties())
+                )
+            }
 
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(16.dp),
@@ -488,28 +499,39 @@ fun SettingsScreenContent(
                 HorizontalDivider()
 
 
-//                Data & Privacy Section
-//                SettingsSection(title = "Data & Privacy") {
-//                    SwitchSettingItem(
-//                        label = "Crash Reporting",
-//                        description = "Automatically report crashes to improve stability",
-//                        checked = settingsUiState.crashReportingEnabled,
-//                        icon = Icons.Default.BugReport,
-//                        onCheckedChange = {
-//                            onEvent(SettingsUiIntent.ToggleCrashReporting(it))
-//                        })
-//                }
-//
-//               HorizontalDivider()
+                // Diagnostics
+                SettingsSection(title = "Diagnostics") {
+                    SwitchSettingItem(
+                        label = "Crash Reporting",
+                        description = "Send anonymous crash reports to help improve the app",
+                        checked = settingsUiState.crashReportingEnabled,
+                        icon = Icons.Default.BugReport
+                    ) {
+                        onEvent(SettingsUiIntent.ToggleCrashReporting(it))
+                    }
+                    SwitchSettingItem(
+                        label = "Save Local Error Logs",
+                        description = "Store crash logs on this device for debugging",
+                        checked = settingsUiState.localLogsEnabled,
+                        icon = Icons.Default.Folder
+                    ) {
+                        onEvent(SettingsUiIntent.ToggleLocalLogs(it))
+                    }
+
+                }
+
+                HorizontalDivider()
 
                 // About App Section
                 SettingsSection(title = "About App") {
-                    LinkSettingItem(
-                        label = "Version",
-                        value = AppLinks.VERSION,
-                        icon = Icons.Default.Info,
-                        url = AppLinks.RELEASE_LINK
-                    )
+                    desktopConfig.version?.let { version ->
+                        LinkSettingItem(
+                            label = "Version",
+                            value = version,
+                            icon = Icons.Default.Info,
+                            url = AppLinks.RELEASE_LINK
+                        )
+                    }
 
                     LinkSettingItem(
                         label = "Website",
@@ -530,6 +552,17 @@ fun SettingsScreenContent(
 
                 // Feedback Section
                 SettingsSection(title = "Feedback") {
+                    LinkSettingItem(
+                        label = "Report Bug with Logs",
+                        value = "Copy crash log and open GitHub issue",
+                        icon = Icons.Default.CloudUpload,
+                        url = AppLinks.REPORT_BUG
+                    ) {
+                        onEvent(
+                            SettingsUiIntent.UploadLatestLogToGitHub
+                        )
+                    }
+
                     LinkSettingItem(
                         label = "Report a Bug",
                         value = "Help us improve",

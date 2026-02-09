@@ -16,14 +16,18 @@ class AppViewModel(
     val appUiState = combine(
         appPreferenceManager.isDarkMode,
         appPreferenceManager.isOnboardingDone,
-    ) { isDarkMode, isOnboardingDone ->
+        appPreferenceManager.crashReportingEnabled,
+        appPreferenceManager.isLocalLogsEnabled,
+    ) { isDarkMode, isOnboardingDone, crashReportingEnabled, isLocalLogsEnabled ->
         AppUiState(
             isDarkMode = isDarkMode,
             isOnboardingDone = isOnboardingDone,
+            crashReportingEnabled = crashReportingEnabled,
+            isLocalLogsEnabled = isLocalLogsEnabled,
         )
     }.stateIn(
         scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
+        started = SharingStarted.Eagerly,
         initialValue = AppUiState()
     )
 

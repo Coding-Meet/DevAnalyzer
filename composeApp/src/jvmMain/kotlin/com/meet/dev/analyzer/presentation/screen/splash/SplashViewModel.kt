@@ -52,7 +52,7 @@ class SplashViewModel(
             val appRoute =
                 if (isOnboardingDone) AppRoute.MainGraph else AppRoute.Onboarding
             _effect.emit(SplashEffect.OnSplashCompleted(appRoute))
-            AppLogger.d(tag) { "startAnimation end $isOnboardingDone" }
+            AppLogger.d(tag = tag) { "startAnimation end $isOnboardingDone" }
         }
     }
 

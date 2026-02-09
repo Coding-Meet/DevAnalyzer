@@ -42,7 +42,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
     override suspend fun analyzeProject(
         projectPath: String, updateProgress: (progress: Float, status: String) -> Unit
     ): ProjectInfo = withContext(Dispatchers.IO) {
-        AppLogger.i(TAG) { "Starting project analysis for: $projectPath" }
+        AppLogger.i(tag = TAG) { "Starting project analysis for: $projectPath" }
 
         val projectDir = File(projectPath)
 
@@ -138,14 +138,14 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
         artifactId: String?,
         gradleModulesInfo: GradleModulesInfo?
     ): GradleLibraryInfo? {
-        AppLogger.d(TAG) { "Finding available versions for: $groupId:$artifactId" }
+        AppLogger.d(tag = TAG) { "Finding available versions for: $groupId:$artifactId" }
         if (gradleModulesInfo == null) return null
         val lib = gradleModulesInfo.libraries.find {
             it.groupId == groupId && it.artifactId == artifactId
         }
-        AppLogger.d(TAG) { "Found $groupId:$artifactId ${lib?.versions?.size} available versions" }
+        AppLogger.d(tag = TAG) { "Found $groupId:$artifactId ${lib?.versions?.size} available versions" }
         lib?.versions?.forEach {
-            AppLogger.d(TAG) { "Available version: ${it.version} Size: ${it.sizeReadable}" }
+            AppLogger.d(tag = TAG) { "Available version: ${it.version} Size: ${it.sizeReadable}" }
         }
         return lib
     }
@@ -157,7 +157,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
     ): List<Dependency> {
 
 
-        AppLogger.d(TAG) { "Finding dependencies" }
+        AppLogger.d(tag = TAG) { "Finding dependencies" }
 
         // normal dependencies → implementation("group:artifact:version") , implementation "group:artifact:version" , implementation 'group:artifact:version'
         val normalDepRegex = Regex(
@@ -213,7 +213,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                             it.version == version
                         } == true
                     )
-                    AppLogger.d(TAG) { "Found normalDependency: $normalDependency" }
+                    AppLogger.d(tag = TAG) { "Found normalDependency: $normalDependency" }
                     dependencies.add(
                         normalDependency
                     )
@@ -251,12 +251,12 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                                     it.version == lib.version
                                 } == true
                             )
-                            AppLogger.d(TAG) { "Found versionCatalogDependency: $versionCatalogDependency" }
+                            AppLogger.d(tag = TAG) { "Found versionCatalogDependency: $versionCatalogDependency" }
                             dependencies.add(
                                 versionCatalogDependency
                             )
                         } else {
-                            AppLogger.d(TAG) { "Library not found in version catalog: $match" }
+                            AppLogger.d(tag = TAG) { "Library not found in version catalog: $match" }
                         }
                     }
                 }
@@ -296,10 +296,10 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                                     it.version == library.version
                                 } == true
                             )
-                            AppLogger.d(TAG) { "Found bundleDependency: $bundleDependency" }
+                            AppLogger.d(tag = TAG) { "Found bundleDependency: $bundleDependency" }
                             dependencies.add(bundleDependency)
                         } else {
-                            AppLogger.d(TAG) { "Library not found in bundle: $artifact" }
+                            AppLogger.d(tag = TAG) { "Library not found in bundle: $artifact" }
                         }
                     }
                 }
@@ -338,11 +338,11 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                                     it.version == lib.version
                                 } == true
                             )
-                            AppLogger.d(TAG) { "Found unprefixedAliasDependency: $dependency" }
+                            AppLogger.d(tag = TAG) { "Found unprefixedAliasDependency: $dependency" }
                             dependencies.add(dependency)
                         } else {
-//                            AppLogger.d(TAG) { "Library not found for unprefixed alias: $path" }
-                            AppLogger.d(TAG) { "Library not found for unprefixed alias: ${match.groupValues}" }
+//                            AppLogger.d(tag = TAG) { "Library not found for unprefixed alias: $path" }
+                            AppLogger.d(tag = TAG) { "Library not found for unprefixed alias: ${match.groupValues}" }
                             dependencies.add(
                                 Dependency(
                                     versionName = "",
@@ -369,9 +369,9 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             )
         }
 
-        AppLogger.d(TAG) { "Found ${dependencies.size} dependencies" }
+        AppLogger.d(tag = TAG) { "Found ${dependencies.size} dependencies" }
         dependencies.forEach {
-            AppLogger.i(TAG) { "Dependency name: ${it.name} id: ${it.id} version: ${it.version} module: ${it.module} type: ${it.configuration} isAvailable: ${it.isVersionSynced} availableGradleVersions: ${it.availableGradleVersions}" }
+            AppLogger.i(tag = TAG) { "Dependency name: ${it.name} id: ${it.id} version: ${it.version} module: ${it.module} type: ${it.configuration} isAvailable: ${it.isVersionSynced} availableGradleVersions: ${it.availableGradleVersions}" }
         }
 
         return dependencies
@@ -382,7 +382,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
         versionCatalog: VersionCatalog? = null,
         gradleModulesInfo: GradleModulesInfo?,
     ): List<Plugin> {
-        AppLogger.d(TAG) { "Finding plugins" }
+        AppLogger.d(tag = TAG) { "Finding plugins" }
 
         val plugins = arrayListOf<Plugin>()
 
@@ -429,7 +429,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                                     it.version == version
                                 } == true
                             )
-                            AppLogger.d(TAG) { "Found normalPlugin: $normalPlugin" }
+                            AppLogger.d(tag = TAG) { "Found normalPlugin: $normalPlugin" }
                             plugins.add(
                                 normalPlugin
                             )
@@ -460,7 +460,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                                     it.version == version
                                 } == true
                             )
-                            AppLogger.d(TAG) { "Found classPathPlugin: $classPathPlugin" }
+                            AppLogger.d(tag = TAG) { "Found classPathPlugin: $classPathPlugin" }
                             plugins.add(
                                 classPathPlugin
                             )
@@ -478,7 +478,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                             if (catalogPlugin != null) {
                                 val mainId = catalogPlugin.id + ".gradle.plugin"
                                 val groupId = catalogPlugin.id
-                                AppLogger.d(TAG) { "Found catalogPlugin: $catalogPlugin" }
+                                AppLogger.d(tag = TAG) { "Found catalogPlugin: $catalogPlugin" }
                                 val availableGradleVersions = findAvailableVersionsInGradleCache(
                                     groupId = groupId,
                                     artifactId = mainId,
@@ -496,7 +496,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                                     } == true,
                                     group = groupId,
                                 )
-                                AppLogger.d(TAG) { "Found versionCatalogPlugin: $versionCatalogPlugin" }
+                                AppLogger.d(tag = TAG) { "Found versionCatalogPlugin: $versionCatalogPlugin" }
                                 plugins.add(
                                     versionCatalogPlugin
                                 )
@@ -510,9 +510,9 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
         // modules
         moduleBuildFileInfos.forEach { extractPlugins(it.content, module = it.moduleName) }
 
-        AppLogger.d(TAG) { "Found ${plugins.size} plugins" }
+        AppLogger.d(tag = TAG) { "Found ${plugins.size} plugins" }
         plugins.forEach {
-            AppLogger.i(TAG) { "Plugin name: ${it.name} id: ${it.id} version: ${it.version} module: ${it.module}" }
+            AppLogger.i(tag = TAG) { "Plugin name: ${it.name} id: ${it.id} version: ${it.version} module: ${it.module}" }
         }
 
         return plugins
@@ -526,7 +526,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
         versionCatalog: VersionCatalog?,
         moduleBuildFileInfos: List<ModuleBuildFileInfo>
     ): ProjectOverviewInfo {
-        AppLogger.d(TAG) { "Finding project info" }
+        AppLogger.d(tag = TAG) { "Finding project info" }
 
         fun findProjectName(): String {
             if (settingsGradleFileInfo == null) return projectDir.name
@@ -691,8 +691,8 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             cmakeVersion = extractCmakeVersion(),
             platformList = getPlatforms()
         )
-        AppLogger.d(TAG) { "Found project info." }
-        AppLogger.i(TAG) {
+        AppLogger.d(tag = TAG) { "Found project info." }
+        AppLogger.i(tag = TAG) {
             """ 
                 Project Info:
                 Name: ${projectOverviewInfo.projectName} Path: ${projectOverviewInfo.projectPath}
@@ -710,7 +710,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
 
     private suspend fun findVersionCatalogFile(projectDir: File): VersionCatalogFileInfo? =
         withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Finding version catalog" }
+            AppLogger.d(tag = TAG) { "Finding version catalog" }
 
             // Find version catalogs
             val versionCatalogFile =
@@ -727,8 +727,8 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 readLines = versionCatalogFile.readLines(),
                 file = versionCatalogFile
             )
-            AppLogger.d(TAG) { "Found version catalog." }
-            AppLogger.i(TAG) {
+            AppLogger.d(tag = TAG) { "Found version catalog." }
+            AppLogger.i(tag = TAG) {
                 "Name: ${versionCatalogFileInfo.name} Path: ${versionCatalogFileInfo.path} Size: ${versionCatalogFileInfo.sizeReadable} Size (bytes): ${versionCatalogFileInfo.sizeBytes} isContent: ${versionCatalogFileInfo.content.isNotEmpty()}"
             }
             versionCatalogFileInfo
@@ -736,7 +736,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
 
     private suspend fun findModuleBuildFiles(projectDir: File): List<ModuleBuildFileInfo> =
         withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Finding build files" }
+            AppLogger.d(tag = TAG) { "Finding build files" }
 
             val moduleDirs = projectDir.walkTopDown()
                 .filter { it.isDirectory && !it.name.startsWith(".") }
@@ -767,9 +767,9 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             }
 
 
-            AppLogger.d(TAG) { "Found ${buildFiles.size} build files" }
+            AppLogger.d(tag = TAG) { "Found ${buildFiles.size} build files" }
             buildFiles.forEach {
-                AppLogger.i(TAG) {
+                AppLogger.i(tag = TAG) {
                     "name: ${it.type.fileName} Path: ${it.path} Type: ${it.type} Size: ${it.sizeReadable} Size (bytes): ${it.sizeBytes} isContent: ${it.content.isNotEmpty()} moduleName = ${it.moduleName} modulePath = ${it.modulePath}"
                 }
             }
@@ -778,7 +778,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
 
     private suspend fun findSettingsGradleFiles(projectDir: File): SettingsGradleFileInfo? =
         withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Finding settings gradle files" }
+            AppLogger.d(tag = TAG) { "Finding settings gradle files" }
 
             // Find settings gradle files
             val settingsGradleFileType =
@@ -802,8 +802,8 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 file = file
             )
 
-            AppLogger.d(TAG) { "Found settings.gradle files" }
-            AppLogger.i(TAG) {
+            AppLogger.d(tag = TAG) { "Found settings.gradle files" }
+            AppLogger.i(tag = TAG) {
                 """
                 Settings Gradle File:
                 Name: ${settingsGradleFileInfo.name}
@@ -819,7 +819,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
 
     private suspend fun findPropertiesFiles(projectDir: File): PropertiesFileInfo? =
         withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Finding properties files" }
+            AppLogger.d(tag = TAG) { "Finding properties files" }
             // Find properties files
             val propertiesFileType = PropertiesFileType.entries.find { propertiesFileType ->
                 val file = File(projectDir, propertiesFileType.fileName)
@@ -838,8 +838,8 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 readLines = file.readLines(),
                 file = file
             )
-            AppLogger.d(TAG) { "Found properties files" }
-            AppLogger.i(TAG) {
+            AppLogger.d(tag = TAG) { "Found properties files" }
+            AppLogger.i(tag = TAG) {
                 """
                 Properties File:
                 Name: ${propertiesFileInfo.name}
@@ -855,7 +855,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
 
     private suspend fun findGradleWrapperProFile(projectDir: File): GradleWrapperPropertiesFileInfo? =
         withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Finding gradle wrapper properties file" }
+            AppLogger.d(tag = TAG) { "Finding gradle wrapper properties file" }
 
             // Find gradle wrapper properties file
             val gradleWrapperPropertiesFile =
@@ -877,8 +877,8 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 file = gradleWrapperPropertiesFile,
             )
 
-            AppLogger.d(TAG) { "Found version catalog." }
-            AppLogger.i(TAG) {
+            AppLogger.d(tag = TAG) { "Found version catalog." }
+            AppLogger.i(tag = TAG) {
                 """
                 Gradle Wrapper Properties File:
                 Name: ${gradleWrapperPropertiesFileInfo.name}
@@ -1041,8 +1041,8 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 Bundle(name = k, artifacts = v)
             }
         )
-        AppLogger.d(TAG) { "Found version catalog." }
-        AppLogger.i(TAG) {
+        AppLogger.d(tag = TAG) { "Found version catalog." }
+        AppLogger.i(tag = TAG) {
             """
                 Version Catalog:
                 Versions: ${versionCatalog.versions.size}
@@ -1051,27 +1051,27 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 Bundles: ${versionCatalog.bundles.size}
             """.trimIndent()
         }
-        AppLogger.i(TAG) { "Version:" }
+        AppLogger.i(tag = TAG) { "Version:" }
         versionCatalog.versions.forEach {
-            AppLogger.i(TAG) {
+            AppLogger.i(tag = TAG) {
                 "Name: ${it.name} Version: ${it.version}"
             }
         }
-        AppLogger.i(TAG) { "Library:" }
+        AppLogger.i(tag = TAG) { "Library:" }
         versionCatalog.libraries.forEach {
-            AppLogger.i(TAG) {
+            AppLogger.i(tag = TAG) {
                 "Name: ${it.name} Group: ${it.group} LibName: ${it.libName} Version: ${it.version} id: ${it.id}"
             }
         }
-        AppLogger.i(TAG) { "Plugin:" }
+        AppLogger.i(tag = TAG) { "Plugin:" }
         versionCatalog.plugins.forEach {
-            AppLogger.i(TAG) {
+            AppLogger.i(tag = TAG) {
                 "Name: ${it.name} Id: ${it.id} Version: ${it.version} Module: ${it.module}"
             }
         }
-        AppLogger.i(TAG) { "Bundle:" }
+        AppLogger.i(tag = TAG) { "Bundle:" }
         versionCatalog.bundles.forEach {
-            AppLogger.i(TAG) {
+            AppLogger.i(tag = TAG) {
                 "Name: ${it.name} Artifacts: ${it.artifacts}"
             }
         }
@@ -1081,7 +1081,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
     @OptIn(ExperimentalUuidApi::class)
     private suspend fun findProjectFiles(projectDir: File): List<ProjectFileInfo> =
         withContext(Dispatchers.IO) {
-            AppLogger.d(TAG) { "Finding project files in: ${projectDir.absolutePath}" }
+            AppLogger.d(tag = TAG) { "Finding project files in: ${projectDir.absolutePath}" }
 
             val projectFiles = mutableListOf<ProjectFileInfo>()
             fun determineFileType(file: File): FileType {
@@ -1175,14 +1175,17 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                                 )
                             )
                         } catch (e: Exception) {
-                            AppLogger.e(TAG, e) { "Error processing file: ${file.absolutePath}" }
+                            AppLogger.e(
+                                tag = TAG,
+                                throwable = e
+                            ) { "Error processing file: ${file.absolutePath}" }
                         }
                     }
             } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error walking project directory" }
+                AppLogger.e(tag = TAG, throwable = e) { "Error walking project directory" }
             }
 
-            AppLogger.d(TAG) { "Found ${projectFiles.size} project files" }
+            AppLogger.d(tag = TAG) { "Found ${projectFiles.size} project files" }
             projectFiles.sortedBy { it.relativePath }
         }
 

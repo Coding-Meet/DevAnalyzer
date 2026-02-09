@@ -8,6 +8,9 @@
 
 -keep class androidx.datastore.*.** {*;}
 
+# Sentry
+-keep class io.sentry.** { *; }
+
 # Keep Ktor classes
 -keep class io.ktor.** { *; }
 -dontnote io.ktor.**

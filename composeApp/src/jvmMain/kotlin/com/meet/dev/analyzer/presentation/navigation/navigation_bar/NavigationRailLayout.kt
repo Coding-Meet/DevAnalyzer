@@ -47,12 +47,14 @@ fun NavigationRailLayout(
     isDarkTheme: Boolean,
     onThemeChange: () -> Unit
 ) {
-    Row {
+    Row(
+        modifier = modifier.fillMaxHeight(),
+    ) {
         NavigationRail(
             modifier = modifier.fillMaxHeight(),
             containerColor = MaterialTheme.colorScheme.surface,
         ) {
-            Spacer(Modifier.height(16.dp))
+            Spacer(Modifier.height(30.dp))
 
             // App Logo
             Image(

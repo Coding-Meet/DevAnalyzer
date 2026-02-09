@@ -29,10 +29,6 @@ class ProjectAnalyzerViewModel(
     private val _uiState = MutableStateFlow(ProjectAnalyzerUiState())
     val uiState = _uiState.asStateFlow()
 
-    init {
-        AppLogger.d(TAG) { "ViewModel initialized" }
-    }
-
     fun handleIntent(intent: ProjectAnalyzerIntent) {
         when (intent) {
             is ProjectAnalyzerIntent.SelectProject -> {
@@ -68,7 +64,7 @@ class ProjectAnalyzerViewModel(
             return
         }
 
-        AppLogger.i(TAG) { "Starting project analysis for: $currentPath" }
+        AppLogger.i(tag = TAG) { "Starting project analysis for: $currentPath" }
 
         viewModelScope.launch(Dispatchers.IO) {
             try {
@@ -96,7 +92,7 @@ class ProjectAnalyzerViewModel(
                         }
                     }
                     val projectInfo = repository.analyzeProject(currentPath) { progress, status ->
-                        AppLogger.d(TAG) { "Progress: $progress, Status: $status" }
+                        AppLogger.d(tag = TAG) { "Progress: $progress, Status: $status" }
                         _uiState.update {
                             it.copy(
                                 scanProgress = progress.coerceIn(0f, 1f),
@@ -118,10 +114,10 @@ class ProjectAnalyzerViewModel(
 
                     // 🕓 Final elapsed log
                     val formatted = formatElapsedTime(startTime)
-                    AppLogger.i(TAG) { "Project analysis completed successfully in $formatted" }
+                    AppLogger.i(tag = TAG) { "Project analysis completed successfully in $formatted" }
                 }
             } catch (e: IOException) {
-                AppLogger.e(TAG, e) { "File read error" }
+                AppLogger.e(tag = TAG, throwable = e) { "File read error" }
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -130,7 +126,7 @@ class ProjectAnalyzerViewModel(
                     )
                 }
             } catch (e: SecurityException) {
-                AppLogger.e(TAG, e) { "Permission denied" }
+                AppLogger.e(tag = TAG, throwable = e) { "Permission denied" }
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -139,7 +135,7 @@ class ProjectAnalyzerViewModel(
                     )
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error analyzing project" }
+                AppLogger.e(tag = TAG, throwable = e) { "Error analyzing project" }
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -195,18 +191,17 @@ class ProjectAnalyzerViewModel(
                 scanStatus = ""
             )
         }
-        AppLogger.e(TAG) { message }
     }
 
     private fun clearResults() {
-        AppLogger.d(TAG) { "Clearing scan results" }
+        AppLogger.d(tag = TAG) { "Clearing scan results" }
         _uiState.update {
             ProjectAnalyzerUiState()
         }
     }
 
     private fun clearError() {
-        AppLogger.d(TAG) { "Clearing error" }
+        AppLogger.d(tag = TAG) { "Clearing error" }
         _uiState.update {
             it.copy(error = null)
         }
@@ -214,7 +209,7 @@ class ProjectAnalyzerViewModel(
 
     // Clean up when ViewModel is destroyed
     override fun onCleared() {
-        AppLogger.d(TAG) { "ViewModel cleared" }
+        AppLogger.d(tag = TAG) { "ViewModel cleared" }
         super.onCleared()
     }
 

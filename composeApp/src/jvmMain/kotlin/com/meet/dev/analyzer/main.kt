@@ -1,11 +1,12 @@
 package com.meet.dev.analyzer
 
+import androidx.compose.material.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.snapshotFlow
-import androidx.compose.ui.Alignment
+import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
@@ -14,8 +15,10 @@ import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
-import com.meet.dev.analyzer.core.utility.AppLogger
-import com.meet.dev.analyzer.data.datastore.defaultWindowSize
+import com.meet.dev.analyzer.core.utility.CustomProperties
+import com.meet.dev.analyzer.core.utility.getDesktopOS
+import com.meet.dev.analyzer.core.utility.isMacOs
+import com.meet.dev.analyzer.data.datastore.AppPreferenceManager
 import com.meet.dev.analyzer.di.initKoin
 import com.meet.dev.analyzer.presentation.navigation.AppNavigation
 import com.meet.dev.analyzer.presentation.screen.app.AppUiIntent
@@ -23,43 +26,73 @@ import com.meet.dev.analyzer.presentation.screen.app.AppViewModel
 import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
 import io.github.vinceglb.filekit.FileKit
 import org.jetbrains.compose.resources.painterResource
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import java.awt.Color
 import java.awt.Dimension
 import java.awt.Toolkit
 
 fun main() {
-    initKoin()
+    val properties = CustomProperties.loadProperties()
+    val appConfig = CustomProperties.createAppConfig(properties)
+    initKoin(
+        appEnvironment = appConfig.appEnvironment,
+    ) {}
     FileKit.init(appId = "DevAnalyzer")
     System.setProperty("apple.awt.application.appearance", "system")
     application {
-//        val appPreferenceManager = koinInject<AppPreferenceManager>()
-//        val preferredWindowSize by appPreferenceManager.windowSize.collectAsState()
-//        val preferredWindowPosition by appPreferenceManager.windowPosition.collectAsState()
-//        val windowWidth by appPreferenceManager.windowWidth.collectAsState()
-//        val windowHeight by appPreferenceManager.windowHeight.collectAsState()
-//        val windowPositionX by appPreferenceManager.windowPositionX.collectAsState()
-//        val windowPositionY by appPreferenceManager.windowPositionY.collectAsState()
-//        val windowState = windowState(
-//            savedWidthDp = windowWidth,
-//            savedHeightDp = windowHeight,
-//            savedPositionX = windowPositionX,
-//            savedPositionY = windowPositionY
-//        )
-        val windowState = rememberWindowState(
-            size = defaultWindowSize,
-            position = WindowPosition(Alignment.Center), /// preferredWindowPosition it not work proper
+        val appPreferenceManager = koinInject<AppPreferenceManager>()
+        val windowWidth by appPreferenceManager.windowWidth.collectAsState()
+        val windowHeight by appPreferenceManager.windowHeight.collectAsState()
+        val windowPositionX by appPreferenceManager.windowPositionX.collectAsState()
+        val windowPositionY by appPreferenceManager.windowPositionY.collectAsState()
+        if (windowWidth == null || windowHeight == null) {
+            return@application
+        }
+        val windowState = windowState(
+            savedWidthDp = windowWidth!!,
+            savedHeightDp = windowHeight!!,
+            savedPositionX = windowPositionX,
+            savedPositionY = windowPositionY
         )
         Window(
             onCloseRequest = ::exitApplication,
             state = windowState,
-            title = "DevAnalyzer",
+            title = if (getDesktopOS().isMacOs()) {
+                ""
+            } else "DevAnalyzer",
             icon = painterResource(Res.drawable.app_logo)
         ) {
             window.minimumSize = Dimension(1024, 768)
             val appViewModel = koinViewModel<AppViewModel>()
             val appUiState by appViewModel.appUiState.collectAsState()
+            LaunchedEffect(appUiState.crashReportingEnabled) {
+                CustomProperties.setupCrashReporting(
+                    appConfig = appConfig,
+                    isCrashReportEnabled = appUiState.crashReportingEnabled
+                )
+            }
+            LaunchedEffect(appUiState.isLocalLogsEnabled) {
+                CustomProperties.setupLocalLogs(
+                    isLocalLogsEnabled = appUiState.isLocalLogsEnabled
+                )
+            }
 
-            DevAnalyzerTheme(appUiState.isDarkMode) {
+            DevAnalyzerTheme(darkTheme = appUiState.isDarkMode) {
+                val surfaceColor = MaterialTheme.colors.surface.toArgb()
+                val backgroundColor = Color(surfaceColor)
+
+                LaunchedEffect(appUiState.isDarkMode, window.rootPane) {
+                    window.background = backgroundColor
+                    window.contentPane.background = backgroundColor
+                    if (getDesktopOS().isMacOs()) {
+                        window.rootPane.background = backgroundColor
+                        with(window.rootPane) {
+                            putClientProperty("apple.awt.transparentTitleBar", true)
+                            putClientProperty("apple.awt.fullWindowContent", true)
+                        }
+                    }
+                }
                 AppNavigation(
                     isDarkMode = appUiState.isDarkMode,
                     onThemeChange = {
@@ -70,9 +103,6 @@ fun main() {
                 LaunchedEffect(windowState) {
                     snapshotFlow { windowState.position }
                         .collect { position ->
-                            AppLogger.d("window_position") {
-                                "window position changed to $position"
-                            }
                             appViewModel.saveWindowPosition(
                                 position = position
                             )
@@ -81,12 +111,9 @@ fun main() {
                 LaunchedEffect(windowState) {
                     snapshotFlow { windowState.size }
                         .collect { size ->
-                            AppLogger.d("window_size") {
-                                "window size changed to $size"
-                            }
                             appViewModel.saveWindowWidthHeight(
-                                width = windowState.size.width.value,
-                                height = windowState.size.height.value,
+                                width = size.width.value,
+                                height = size.height.value,
                             )
                         }
                 }

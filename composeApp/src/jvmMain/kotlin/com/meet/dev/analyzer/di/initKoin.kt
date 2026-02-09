@@ -1,18 +1,21 @@
 package com.meet.dev.analyzer.di
 
-
-import com.meet.dev.analyzer.core.utility.AppLogger
+import com.meet.dev.analyzer.core.utility.AppEnvironment
 import org.koin.core.context.startKoin
 import org.koin.dsl.KoinAppDeclaration
 
-fun initKoin(appDeclaration: KoinAppDeclaration = {}) =
+fun initKoin(
+    appEnvironment: AppEnvironment,
+    appDeclaration: KoinAppDeclaration = {}
+) =
     startKoin {
-        AppLogger.d(tag = "Koin", message = { "🔥 Initializing Koin" })
         appDeclaration()
         modules(
             coreModule,
+            getLoggingModule(
+                appEnvironment = appEnvironment,
+            ),
             repositoryModule,
             viewModule
         )
-        AppLogger.d(tag = "Koin", message = { "🔥 Koin initialized" })
     }

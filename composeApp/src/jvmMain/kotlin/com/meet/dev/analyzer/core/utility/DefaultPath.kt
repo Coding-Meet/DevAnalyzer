@@ -3,15 +3,14 @@ package com.meet.dev.analyzer.core.utility
 
 fun getDefaultAndroidSdkPath(): String {
     val userHome = System.getProperty("user.home")
-    val os = System.getProperty("os.name").lowercase()
-    return when {
-        os.contains("windows") -> System.getenv("ANDROID_HOME")
+    return when (getDesktopOS()) {
+        DesktopOS.WINDOWS -> System.getenv("ANDROID_HOME")
             ?: "$userHome\\AppData\\Local\\Android\\Sdk"
 
-        os.contains("mac") -> System.getenv("ANDROID_HOME")
+        DesktopOS.MAC -> System.getenv("ANDROID_HOME")
             ?: "$userHome/Library/Android/sdk"
 
-        else -> System.getenv("ANDROID_HOME")
+        DesktopOS.LINUX -> System.getenv("ANDROID_HOME")
             ?: "$userHome/Android/Sdk"
     }
 }
@@ -40,21 +39,20 @@ fun getDefaultKonanFolderPath(): String {
 
 fun getDefaultJetbrainsFolderPaths(): List<String> {
     val userHome = System.getProperty("user.home")
-    val os = System.getProperty("os.name").lowercase()
-    return when {
-        os.contains("windows") -> listOf(
+    return when (getDesktopOS()) {
+        DesktopOS.WINDOWS -> listOf(
             "C:/Program Files/JetBrains",
             "$userHome\\AppData\\Local\\JetBrains",
             "$userHome\\AppData\\Roaming\\JetBrains"
         )
 
-        os.contains("mac") -> listOf(
+        DesktopOS.MAC -> listOf(
             "$userHome/Library/Caches/JetBrains",
             "$userHome/Library/Logs/JetBrains",
             "$userHome/Library/Application Support/JetBrains"
         )
 
-        else -> listOf( // Linux / Unix
+        DesktopOS.LINUX -> listOf( // Linux / Unix
             "$userHome/.cache/JetBrains",
             "$userHome/.cache/JetBrains",
             "$userHome/.config/JetBrains"
@@ -64,21 +62,20 @@ fun getDefaultJetbrainsFolderPaths(): List<String> {
 
 fun getDefaultGoogleFolderPaths(): List<String> {
     val userHome = System.getProperty("user.home")
-    val os = System.getProperty("os.name").lowercase()
-    return when {
-        os.contains("windows") -> listOf(
+    return when (getDesktopOS()) {
+        DesktopOS.WINDOWS -> listOf(
             "C:/Program Files/Android",
             "$userHome\\AppData\\Local\\Google",
             "$userHome\\AppData\\Roaming\\Google"
         )
 
-        os.contains("mac") -> listOf(
+        DesktopOS.MAC -> listOf(
             "$userHome/Library/Caches/Google",
             "$userHome/Library/Logs/Google",
             "$userHome/Library/Application Support/Google"
         )
 
-        else -> listOf( // Linux / Unix
+        DesktopOS.LINUX -> listOf( // Linux / Unix
             "$userHome/.cache/Google",
             "$userHome/.cache/Google",
             "$userHome/.config/Google"
@@ -88,24 +85,23 @@ fun getDefaultGoogleFolderPaths(): List<String> {
 
 fun getDefaultJdkFolderPaths(): List<String> {
     val userHome = System.getProperty("user.home")
-    val os = System.getProperty("os.name").lowercase()
 
-    return when {
-        os.contains("mac") ->
+    return when (getDesktopOS()) {
+        DesktopOS.MAC ->
             listOf(
                 "$userHome/Library/Java/JavaVirtualMachines",
                 "/Library/Java/JavaVirtualMachines",
                 "$userHome/.gradle/jdks",
             )
 
-        os.contains("windows") ->
+        DesktopOS.WINDOWS ->
             listOf(
                 "C:\\Program Files\\Java",
                 "C:\\Program Files\\Eclipse Adoptium",
                 "$userHome\\.gradle\\jdks"
             )
 
-        else ->
+        DesktopOS.LINUX ->
             listOf(
                 "/usr/lib/jvm",
                 "$userHome/.gradle/jdks",

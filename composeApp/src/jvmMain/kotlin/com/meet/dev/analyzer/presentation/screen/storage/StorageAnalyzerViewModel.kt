@@ -42,14 +42,12 @@ class StorageAnalyzerViewModel(
     private var loadAllJob: Job? = null
 
     init {
-        AppLogger.d(TAG) { "ViewModel initialized" }
         handleIntent(StorageAnalyzerIntent.LoadAllData)
     }
 
     fun handleIntent(intent: StorageAnalyzerIntent) {
-        AppLogger.d(TAG) { "Handling intent: ${intent::class.simpleName}" }
         when (intent) {
-            is StorageAnalyzerIntent.LoadAllData -> loadAllData() /*dummyAllData()*/
+            is StorageAnalyzerIntent.LoadAllData -> loadAllData()
             is StorageAnalyzerIntent.ClearError -> clearError()
             is StorageAnalyzerIntent.RefreshData -> refreshData()
             is StorageAnalyzerIntent.SelectTab -> {
@@ -65,7 +63,7 @@ class StorageAnalyzerViewModel(
     }
 
     private fun loadAllData() {
-        AppLogger.i(TAG) { "Loading all data" }
+        AppLogger.i(tag = TAG) { "Loading all data" }
         _uiState.update {
             it.copy(
                 isScanning = true,
@@ -223,7 +221,7 @@ class StorageAnalyzerViewModel(
                         }
                     }
 
-                    AppLogger.i(TAG) {
+                    AppLogger.i(tag = TAG) {
                         "All data loaded successfully. Total storage: ${
                             Utils.formatSize(
                                 totalBytes
@@ -235,10 +233,10 @@ class StorageAnalyzerViewModel(
                 val totalSeconds = measureTime.inWholeSeconds
                 val minutes = totalSeconds / 60
                 val seconds = totalSeconds % 60
-                AppLogger.i(TAG) { "All data loaded in ${minutes}m ${seconds}s" }
+                AppLogger.i(tag = TAG) { "All data loaded in ${minutes}m ${seconds}s" }
 
             } catch (e: IOException) {
-                AppLogger.e(TAG, e) { "File read error" }
+                AppLogger.e(tag = TAG, throwable = e) { "File read error" }
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -247,7 +245,7 @@ class StorageAnalyzerViewModel(
                     )
                 }
             } catch (e: SecurityException) {
-                AppLogger.e(TAG, e) { "Permission denied" }
+                AppLogger.e(tag = TAG, throwable = e) { "Permission denied" }
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -256,7 +254,7 @@ class StorageAnalyzerViewModel(
                     )
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading all data" }
+                AppLogger.e(tag = TAG, throwable = e) { "Error loading all data" }
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -269,12 +267,12 @@ class StorageAnalyzerViewModel(
     }
 
     private fun clearError() {
-        AppLogger.d(TAG) { "Clearing error" }
+        AppLogger.d(tag = TAG) { "Clearing error" }
         _uiState.update { it.copy(error = null) }
     }
 
     private fun refreshData() {
-        AppLogger.i(TAG) { "Refreshing all data" }
+        AppLogger.i(tag = TAG) { "Refreshing all data" }
         // Cancel existing jobs
         cancelAllJobs()
 
@@ -298,14 +296,14 @@ class StorageAnalyzerViewModel(
     }
 
     private fun cancelAllJobs() {
-        AppLogger.d(TAG) { "Cancelling all jobs" }
+        AppLogger.d(tag = TAG) { "Cancelling all jobs" }
         loadAllJob?.cancel()
         loadAllJob = null
 
     }
 
     override fun onCleared() {
-        AppLogger.d(TAG) { "ViewModel cleared" }
+        AppLogger.d(tag = TAG) { "ViewModel cleared" }
         cancelAllJobs()
         super.onCleared()
     }

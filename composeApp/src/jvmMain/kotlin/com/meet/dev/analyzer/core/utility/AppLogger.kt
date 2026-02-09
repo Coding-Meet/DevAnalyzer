@@ -1,42 +1,22 @@
 package com.meet.dev.analyzer.core.utility
 
 import co.touchlab.kermit.Logger
-import co.touchlab.kermit.StaticConfig
-import co.touchlab.kermit.platformLogWriter
 
 object AppLogger {
 
-    const val isDebugBuild = false
+    fun d(tag: String = "", throwable: Throwable? = null, message: () -> String) {
+        Logger.d(tag, throwable = throwable, message = message)
+    }
 
-    val logger = Logger(
-        config = StaticConfig(
-            logWriterList = if (isDebugBuild) {
-                listOf(platformLogWriter())
-            } else {
-                emptyList() // No logging in release
-            }
-        ),
-        tag = "Dev-Analyzer"
-    )
+    fun i(tag: String = "", throwable: Throwable? = null, message: () -> String) {
+        Logger.i(tag, throwable = throwable, message = message)
+    }
 
-    inline fun d(tag: String = "", throwable: Throwable? = null, message: () -> String) {
-        if (isDebugBuild) {
-            logger.d(tag = tag, throwable = throwable, message = message)
-        }
+    fun e(tag: String = "", throwable: Throwable? = null, message: () -> String) {
+        Logger.e(tag, throwable = throwable, message = message)
     }
-    inline fun i(tag: String = "", throwable: Throwable? = null, message: () -> String) {
-        if (isDebugBuild) {
-            logger.i(tag = tag, throwable = throwable, message = message)
-        }
-    }
-    inline fun e(tag: String = "", throwable: Throwable? = null, message: () -> String) {
-        if (isDebugBuild) {
-            logger.e(tag = tag, throwable = throwable, message = message)
-        }
-    }
-    inline fun w(tag: String = "", throwable: Throwable? = null, message: () -> String) {
-        if (isDebugBuild) {
-            logger.w(tag = tag, throwable = throwable, message = message)
-        }
+
+    fun w(tag: String = "", throwable: Throwable? = null, message: () -> String) {
+        Logger.w(tag, throwable = throwable, message = message)
     }
 }

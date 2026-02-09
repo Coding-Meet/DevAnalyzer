@@ -32,8 +32,9 @@ fun LinkSettingItem(
     label: String,
     value: String,
     icon: ImageVector,
-    url: String,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    url: String? = null,
+    onClick: (() -> Unit)? = null
 ) {
     val uriHandler = LocalUriHandler.current
 
@@ -41,7 +42,10 @@ fun LinkSettingItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(CardDefaults.shape)
-            .clickable { uriHandler.openUri(url) }
+            .clickable {
+                url?.let { uriHandler.openUri(it) }
+                onClick?.invoke()
+            }
             .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)

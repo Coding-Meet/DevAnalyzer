@@ -4,6 +4,9 @@ import com.meet.dev.analyzer.core.utility.AppLogger
 import com.meet.dev.analyzer.core.utility.IdeDataSection
 import com.meet.dev.analyzer.core.utility.Utils
 import com.meet.dev.analyzer.core.utility.Utils.tagName
+import com.meet.dev.analyzer.core.utility.getDesktopOS
+import com.meet.dev.analyzer.core.utility.isLinux
+import com.meet.dev.analyzer.core.utility.isWindows
 import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import com.meet.dev.analyzer.data.models.storage.AndroidAvdInfo
 import com.meet.dev.analyzer.data.models.storage.AndroidSdkInfo
@@ -157,9 +160,9 @@ class StorageAnalyzerRepositoryImpl(
             }
         }
         try {
-            val os = System.getProperty("os.name").lowercase()
-            val isWindows = os.contains("windows")
-            val isLinux = !os.contains("windows") && !os.contains("mac")
+            val os = getDesktopOS()
+            val isWindows = os.isWindows()
+            val isLinux = os.isLinux()
             val basePaths = buildBasePaths(isWindows = isWindows)
 
             val allInstallations = buildList {
@@ -229,7 +232,7 @@ class StorageAnalyzerRepositoryImpl(
                 thirdCategoryGroup = thirdCategoryGroup
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error analyzing IDE data" }
+            AppLogger.e(tag = TAG, throwable = e) { "Error analyzing IDE data" }
             throw e
         }
     }
@@ -315,7 +318,7 @@ class StorageAnalyzerRepositoryImpl(
                     } ?: emptyList()
             }
         try {
-            AppLogger.i(TAG) { "Analyzing Konan data" }
+            AppLogger.i(tag = TAG) { "Analyzing Konan data" }
             val konanFolderPath = pathPreferenceManger.konanFolderPath.first()
             val konanRootDir = File(konanFolderPath)
             if (!konanRootDir.exists()) {
@@ -372,7 +375,7 @@ class StorageAnalyzerRepositoryImpl(
                 dependenciesInfo = dependenciesInfo,
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error analyzing Konan data" }
+            AppLogger.e(tag = TAG, throwable = e) { "Error analyzing Konan data" }
             throw e
         }
     }
@@ -402,7 +405,10 @@ class StorageAnalyzerRepositoryImpl(
                     else -> raw
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, throwable = e, message = { "Error parsing configured size: $raw" })
+                AppLogger.e(
+                    tag = TAG,
+                    throwable = e,
+                    message = { "Error parsing configured size: $raw" })
                 raw
             }
         }
@@ -441,7 +447,10 @@ class StorageAnalyzerRepositoryImpl(
                                 sizeBytes = actualSizeBytes
                             )
                         } catch (e: Exception) {
-                            AppLogger.e(TAG, e) { "Error processing AVD file: ${iniFile.name}" }
+                            AppLogger.e(
+                                tag = TAG,
+                                throwable = e
+                            ) { "Error processing AVD file: ${iniFile.name}" }
                             null
                         }
                     }
@@ -449,13 +458,13 @@ class StorageAnalyzerRepositoryImpl(
                     it.sizeBytes
                 } ?: emptyList()
         }
-        AppLogger.i(TAG) { "Loading AVD information" }
+        AppLogger.i(tag = TAG) { "Loading AVD information" }
         try {
             val avdLocationPath = pathPreferenceManger.avdLocationPath.first()
 
             val avdDir = File(avdLocationPath)
 
-            AppLogger.i(TAG) { "AVD directory: ${avdDir.absolutePath}" }
+            AppLogger.i(tag = TAG) { "AVD directory: ${avdDir.absolutePath}" }
 
             val avdItemLists = async {
                 loadAvdInfos(avdDir)
@@ -467,7 +476,7 @@ class StorageAnalyzerRepositoryImpl(
                 sizeReadable = Utils.formatSize(totalSizeBytes)
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error loading AVD information" }
+            AppLogger.e(tag = TAG, throwable = e) { "Error loading AVD information" }
             return@withContext AndroidAvdInfo(
                 avdItemList = emptyList(),
                 totalSizeBytes = 0,
@@ -505,7 +514,10 @@ class StorageAnalyzerRepositoryImpl(
                         it.sizeBytes
                     } ?: emptyList()
             } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error loading SDK items from ${directory?.absolutePath}" }
+                AppLogger.e(
+                    tag = TAG,
+                    throwable = e
+                ) { "Error loading SDK items from ${directory?.absolutePath}" }
                 emptyList()
             }
         }
@@ -530,7 +542,7 @@ class StorageAnalyzerRepositoryImpl(
             }
         }
 
-        AppLogger.i(TAG) { "Loading SDK information" }
+        AppLogger.i(tag = TAG) { "Loading SDK information" }
         val emptyAndroidSdkInfo = AndroidSdkInfo(
             sdkPath = "",
             sizeReadable = "0 B",
@@ -734,7 +746,7 @@ class StorageAnalyzerRepositoryImpl(
                 extrasInfo = extrasInfo
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error loading SDK information" }
+            AppLogger.e(tag = TAG, throwable = e) { "Error loading SDK information" }
             return@withContext emptyAndroidSdkInfo
         }
     }
@@ -972,7 +984,7 @@ class StorageAnalyzerRepositoryImpl(
                 otherGradleFolderInfo = otherGradleFolderInfo
             )
         } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Error analyzing Gradle data" }
+            AppLogger.e(tag = TAG, throwable = e) { "Error analyzing Gradle data" }
             return@withContext emptyGradleInfo
         }
     }
@@ -998,7 +1010,10 @@ class StorageAnalyzerRepositoryImpl(
                         ?.replace("\"", "")
                 }
             } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error reading JDK version from ${jdkDir.absolutePath}" }
+                AppLogger.e(
+                    tag = TAG,
+                    throwable = e
+                ) { "Error reading JDK version from ${jdkDir.absolutePath}" }
                 null
             }
 
