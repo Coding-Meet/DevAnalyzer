@@ -34,9 +34,9 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.data.models.cleanbuild.ModuleBuild
 import com.meet.dev.analyzer.data.models.cleanbuild.ProjectBuildInfo
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
 import java.awt.Cursor
 
 @Composable

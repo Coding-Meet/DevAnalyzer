@@ -1,5 +1,7 @@
-package com.meet.dev.analyzer.core.utility
+package com.meet.dev.analyzer.utility.crash_report
 
+import com.meet.dev.analyzer.utility.platform.AppEnvironment
+import com.meet.dev.analyzer.utility.platform.DesktopConfig
 import java.io.InputStream
 import java.util.Properties
 

@@ -1,7 +1,7 @@
 package com.meet.dev.analyzer.presentation.screen.project
 
-import com.meet.dev.analyzer.core.utility.ProjectScreenTabs
 import com.meet.dev.analyzer.data.models.project.ProjectInfo
+import com.meet.dev.analyzer.utility.ui.ProjectScreenTabs
 
 data class ProjectAnalyzerUiState(
     val selectedTab: ProjectScreenTabs = ProjectScreenTabs.Overview,

@@ -21,7 +21,6 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
-import com.meet.dev.analyzer.core.utility.StorageAnalyzerTabs
 import com.meet.dev.analyzer.presentation.components.ErrorLayout
 import com.meet.dev.analyzer.presentation.components.ProgressStatusLayout
 import com.meet.dev.analyzer.presentation.components.TabLayout
@@ -34,6 +33,7 @@ import com.meet.dev.analyzer.presentation.screen.storage.components.IdeInfoTabCo
 import com.meet.dev.analyzer.presentation.screen.storage.components.KotlinNativeJdkTabContent
 import com.meet.dev.analyzer.presentation.screen.storage.components.LibrariesTabContent
 import com.meet.dev.analyzer.presentation.screen.storage.components.OverviewTabContent
+import com.meet.dev.analyzer.utility.ui.StorageAnalyzerTabs
 import org.koin.compose.viewmodel.koinViewModel
 import java.awt.Cursor
 

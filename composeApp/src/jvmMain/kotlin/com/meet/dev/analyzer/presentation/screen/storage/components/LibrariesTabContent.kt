@@ -33,9 +33,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.core.utility.GradleLibrary
-import com.meet.dev.analyzer.core.utility.StorageLibraryColumn
-import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.data.models.storage.GradleLibraryInfo
 import com.meet.dev.analyzer.data.models.storage.GradleModulesInfo
 import com.meet.dev.analyzer.presentation.components.CustomOutlinedTextField
@@ -52,6 +49,9 @@ import com.meet.dev.analyzer.presentation.components.TableHeaderLayout
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.project.components.AvailableGradleVersions
 import com.meet.dev.analyzer.presentation.screen.project.components.getDependencyTypeColor
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
+import com.meet.dev.analyzer.utility.ui.GradleLibrary
+import com.meet.dev.analyzer.utility.ui.StorageLibraryColumn
 import kotlinx.coroutines.launch
 
 @Composable

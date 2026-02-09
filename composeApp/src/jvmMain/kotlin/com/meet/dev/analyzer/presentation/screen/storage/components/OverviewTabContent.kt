@@ -41,13 +41,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.core.utility.StorageSummarySection
 import com.meet.dev.analyzer.data.models.storage.StorageAnalyzerInfo
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdown
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItem
 import com.meet.dev.analyzer.presentation.components.SummaryExpandableSectionLayout
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.storage.StorageAnalyzerUiState
+import com.meet.dev.analyzer.utility.ui.StorageSummarySection
 import kotlin.math.cos
 import kotlin.math.sin
 

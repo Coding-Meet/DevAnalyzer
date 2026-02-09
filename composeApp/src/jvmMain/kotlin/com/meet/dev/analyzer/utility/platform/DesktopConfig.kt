@@ -1,4 +1,4 @@
-package com.meet.dev.analyzer.core.utility
+package com.meet.dev.analyzer.utility.platform
 
 data class DesktopConfig(
     val sentryDns: String?,

@@ -7,9 +7,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
-import com.meet.dev.analyzer.core.utility.Utils.formatSize
 import com.meet.dev.analyzer.data.models.cleanbuild.ModuleBuild
 import com.meet.dev.analyzer.data.models.cleanbuild.ProjectBuildInfo
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
 
 data class CleanBuildUiState(
     val selectedPath: String = "",

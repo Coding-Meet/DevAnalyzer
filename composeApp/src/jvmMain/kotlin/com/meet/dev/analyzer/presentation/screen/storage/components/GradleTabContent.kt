@@ -19,8 +19,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.core.utility.GradleSection
-import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.data.models.storage.CachesGradleWrapperInfo
 import com.meet.dev.analyzer.data.models.storage.CachesGradleWrapperItem
 import com.meet.dev.analyzer.data.models.storage.DaemonInfo
@@ -37,6 +35,8 @@ import com.meet.dev.analyzer.presentation.components.HeaderCardRow
 import com.meet.dev.analyzer.presentation.components.SummaryExpandableSectionLayout
 import com.meet.dev.analyzer.presentation.components.SummaryStatItem
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
+import com.meet.dev.analyzer.utility.ui.GradleSection
 
 @Composable
 fun GradleTabContent(

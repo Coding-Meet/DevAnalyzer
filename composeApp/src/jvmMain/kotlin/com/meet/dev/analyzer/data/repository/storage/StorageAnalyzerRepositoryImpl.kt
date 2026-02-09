@@ -1,12 +1,5 @@
 package com.meet.dev.analyzer.data.repository.storage
 
-import com.meet.dev.analyzer.core.utility.AppLogger
-import com.meet.dev.analyzer.core.utility.IdeDataSection
-import com.meet.dev.analyzer.core.utility.Utils
-import com.meet.dev.analyzer.core.utility.Utils.tagName
-import com.meet.dev.analyzer.core.utility.getDesktopOS
-import com.meet.dev.analyzer.core.utility.isLinux
-import com.meet.dev.analyzer.core.utility.isWindows
 import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import com.meet.dev.analyzer.data.models.storage.AndroidAvdInfo
 import com.meet.dev.analyzer.data.models.storage.AndroidSdkInfo
@@ -45,6 +38,13 @@ import com.meet.dev.analyzer.data.models.storage.SystemImageInfo
 import com.meet.dev.analyzer.data.models.storage.SystemImageInfoItem
 import com.meet.dev.analyzer.data.models.storage.WrapperInfo
 import com.meet.dev.analyzer.data.models.storage.WrapperItem
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
+import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils
+import com.meet.dev.analyzer.utility.platform.getDesktopOS
+import com.meet.dev.analyzer.utility.platform.isLinux
+import com.meet.dev.analyzer.utility.platform.isWindows
+import com.meet.dev.analyzer.utility.ui.IdeDataSection
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -100,11 +100,11 @@ class StorageAnalyzerRepositoryImpl(
                         isLinux && category == "CACHES" ->
                             ideDir.listFiles()
                                 ?.filter { it.name != "log" }
-                                ?.sumOf { Utils.calculateFolderSize(it) }
+                                ?.sumOf { FolderFileUtils.calculateFolderSize(it) }
                                 ?: 0L
 
                         else ->
-                            Utils.calculateFolderSize(targetDir)
+                            FolderFileUtils.calculateFolderSize(targetDir)
                     }
 
                     val (ideName, version) =
@@ -116,7 +116,7 @@ class StorageAnalyzerRepositoryImpl(
                         category = category,
                         path = targetDir.absolutePath,
                         sizeBytes = sizeBytes,
-                        sizeReadable = Utils.formatSize(sizeBytes),
+                        sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                         vendor = vendor
                     )
                 } ?: emptyList()
@@ -192,14 +192,14 @@ class StorageAnalyzerRepositoryImpl(
                 .sortedByDescending { it.sizeBytes }
 
             val totalSizeBytes = allInstallations.sumOf { it.sizeBytes }
-            val totalSizeReadable = Utils.formatSize(totalSizeBytes)
+            val totalSizeReadable = FolderFileUtils.formatSize(totalSizeBytes)
 
             val firstCategorySizeBytes = firstCategoryGroups.sumOf { it.sizeBytes }
-            val firstCategorySizeReadable = Utils.formatSize(firstCategorySizeBytes)
+            val firstCategorySizeReadable = FolderFileUtils.formatSize(firstCategorySizeBytes)
             val secondCategorySizeBytes = secondCategoryGroups.sumOf { it.sizeBytes }
-            val secondCategorySizeReadable = Utils.formatSize(secondCategorySizeBytes)
+            val secondCategorySizeReadable = FolderFileUtils.formatSize(secondCategorySizeBytes)
             val thirdCategorySizeBytes = thirdCategoryGroups.sumOf { it.sizeBytes }
-            val thirdCategorySizeReadable = Utils.formatSize(thirdCategorySizeBytes)
+            val thirdCategorySizeReadable = FolderFileUtils.formatSize(thirdCategorySizeBytes)
 
             val firstCategoryGroup = IdeGroup(
                 totalSizeBytes = firstCategorySizeBytes,
@@ -284,11 +284,11 @@ class StorageAnalyzerRepositoryImpl(
 
                                 else -> version
                             }
-                            val sizeBytes = Utils.calculateFolderSize(dir)
+                            val sizeBytes = FolderFileUtils.calculateFolderSize(dir)
                             DependenciesItem(
                                 version = displayVersion,
                                 path = dir.absolutePath,
-                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                                 sizeBytes = sizeBytes
                             )
                         }
@@ -305,11 +305,11 @@ class StorageAnalyzerRepositoryImpl(
                     ?.map { dir ->
                         async {
                             val version = versionRegex.find(dir.name)?.value ?: dir.name
-                            val sizeBytes = Utils.calculateFolderSize(dir)
+                            val sizeBytes = FolderFileUtils.calculateFolderSize(dir)
                             KotlinNativeItem(
                                 version = version,
                                 path = dir.absolutePath,
-                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                                 sizeBytes = sizeBytes
                             )
                         }
@@ -340,8 +340,8 @@ class StorageAnalyzerRepositoryImpl(
                     )
                 )
             }
-            val totalSizeBytes = Utils.calculateFolderSize(konanRootDir)
-            val totalSizeReadable = Utils.formatSize(totalSizeBytes)
+            val totalSizeBytes = FolderFileUtils.calculateFolderSize(konanRootDir)
+            val totalSizeReadable = FolderFileUtils.formatSize(totalSizeBytes)
 
 
             val kotlinNativeInfosDeferred =
@@ -351,7 +351,8 @@ class StorageAnalyzerRepositoryImpl(
 
             val kotlinNativeItems = kotlinNativeInfosDeferred.await()
             val kotlinNativeTotalSizeBytes = kotlinNativeItems.sumOf { it.sizeBytes }
-            val kotlinNativeTotalSizeReadable = Utils.formatSize(kotlinNativeTotalSizeBytes)
+            val kotlinNativeTotalSizeReadable =
+                FolderFileUtils.formatSize(kotlinNativeTotalSizeBytes)
             val kotlinNativeInfo = KotlinNativeInfo(
                 name = "Kotlin/Native (.konan)",
                 sizeBytes = kotlinNativeTotalSizeBytes,
@@ -360,7 +361,8 @@ class StorageAnalyzerRepositoryImpl(
             )
             val dependenciesItems = dependenciesInfosDeferred.await()
             val dependenciesTotalSizeBytes = dependenciesItems.sumOf { it.sizeBytes }
-            val dependenciesTotalSizeReadable = Utils.formatSize(dependenciesTotalSizeBytes)
+            val dependenciesTotalSizeReadable =
+                FolderFileUtils.formatSize(dependenciesTotalSizeBytes)
             val dependenciesInfo = DependenciesInfo(
                 name = "Dependencies (.konan)",
                 sizeBytes = dependenciesTotalSizeBytes,
@@ -388,20 +390,20 @@ class StorageAnalyzerRepositoryImpl(
                 when {
                     raw.endsWith("M", true) -> {
                         val mb = raw.dropLast(1).toLong()
-                        Utils.formatSize(mb * 1024 * 1024)
+                        FolderFileUtils.formatSize(mb * 1024 * 1024)
                     }
 
                     raw.endsWith("K", true) -> {
                         val kb = raw.dropLast(1).toLong()
-                        Utils.formatSize(kb * 1024)
+                        FolderFileUtils.formatSize(kb * 1024)
                     }
 
                     raw.endsWith("G", true) -> {
                         val gb = raw.dropLast(1).toLong()
-                        Utils.formatSize(gb * 1024 * 1024 * 1024)
+                        FolderFileUtils.formatSize(gb * 1024 * 1024 * 1024)
                     }
 
-                    raw.toLongOrNull() != null -> Utils.formatSize(raw.toLong())
+                    raw.toLongOrNull() != null -> FolderFileUtils.formatSize(raw.toLong())
                     else -> raw
                 }
             } catch (e: Exception) {
@@ -435,8 +437,8 @@ class StorageAnalyzerRepositoryImpl(
                             val device = configProps.getProperty("hw.device.name")
                             val configuredRaw = configProps.getProperty("disk.dataPartition.size")
                             val configuredStorage = parseConfiguredSize(configuredRaw)
-                            val actualSizeBytes = Utils.calculateFolderSize(File(path))
-                            val actualSize = Utils.formatSize(actualSizeBytes)
+                            val actualSizeBytes = FolderFileUtils.calculateFolderSize(File(path))
+                            val actualSize = FolderFileUtils.formatSize(actualSizeBytes)
                             AvdItem(
                                 name = name,
                                 apiLevel = apiLevel,
@@ -473,7 +475,7 @@ class StorageAnalyzerRepositoryImpl(
             AndroidAvdInfo(
                 avdItemList = avdItemLists,
                 totalSizeBytes = totalSizeBytes,
-                sizeReadable = Utils.formatSize(totalSizeBytes)
+                sizeReadable = FolderFileUtils.formatSize(totalSizeBytes)
             )
         } catch (e: Exception) {
             AppLogger.e(tag = TAG, throwable = e) { "Error loading AVD information" }
@@ -502,11 +504,11 @@ class StorageAnalyzerRepositoryImpl(
                     ?.filter { !it.name.startsWith(".") }
                     ?.map { dir ->
                         async {
-                            val sizeBytes = Utils.calculateFolderSize(dir)
+                            val sizeBytes = FolderFileUtils.calculateFolderSize(dir)
                             SdkItem(
                                 name = dir.name,
                                 path = dir.absolutePath,
-                                size = Utils.formatSize(sizeBytes),
+                                size = FolderFileUtils.formatSize(sizeBytes),
                                 sizeBytes = sizeBytes
                             )
                         }
@@ -528,11 +530,11 @@ class StorageAnalyzerRepositoryImpl(
                 async {
                     val dir = File(sdkDir, folder)
                     if (dir.exists()) {
-                        val sizeBytes = Utils.calculateFolderSize(dir)
+                        val sizeBytes = FolderFileUtils.calculateFolderSize(dir)
                         SdkItem(
                             name = folder,
                             path = dir.absolutePath,
-                            size = Utils.formatSize(sizeBytes),
+                            size = FolderFileUtils.formatSize(sizeBytes),
                             sizeBytes = sizeBytes
                         )
                     } else null
@@ -624,7 +626,7 @@ class StorageAnalyzerRepositoryImpl(
                 )
             }
             val platformsSize = platforms.sumOf { it.sizeBytes }
-            val platformsSizeReadable = Utils.formatSize(platformsSize)
+            val platformsSizeReadable = FolderFileUtils.formatSize(platformsSize)
             val platformInfo = PlatformInfo(
                 platforms = platforms,
                 sizeReadable = platformsSizeReadable,
@@ -640,7 +642,7 @@ class StorageAnalyzerRepositoryImpl(
                 )
             }
             val buildToolsSize = buildTools.sumOf { it.sizeBytes }
-            val buildToolsSizeReadable = Utils.formatSize(buildToolsSize)
+            val buildToolsSizeReadable = FolderFileUtils.formatSize(buildToolsSize)
             val buildToolInfo = BuildToolInfo(
                 buildTools = buildTools,
                 sizeReadable = buildToolsSizeReadable,
@@ -656,7 +658,7 @@ class StorageAnalyzerRepositoryImpl(
                 )
             }
             val systemImageSize = systemImages.sumOf { it.sizeBytes }
-            val systemImageSizeReadable = Utils.formatSize(systemImageSize)
+            val systemImageSizeReadable = FolderFileUtils.formatSize(systemImageSize)
             val systemImageInfo = SystemImageInfo(
                 systemImages = systemImages,
                 sizeReadable = systemImageSizeReadable,
@@ -672,7 +674,7 @@ class StorageAnalyzerRepositoryImpl(
                 )
             }
             val ndkSize = ndkItems.sumOf { it.sizeBytes }
-            val ndkSizeReadable = Utils.formatSize(ndkSize)
+            val ndkSizeReadable = FolderFileUtils.formatSize(ndkSize)
             val ndkInfo = NdkInfo(
                 ndkItems = ndkItems,
                 sizeReadable = ndkSizeReadable,
@@ -688,7 +690,7 @@ class StorageAnalyzerRepositoryImpl(
                 )
             }
             val sourcesSize = sources.sumOf { it.sizeBytes }
-            val sourcesSizeReadable = Utils.formatSize(sourcesSize)
+            val sourcesSizeReadable = FolderFileUtils.formatSize(sourcesSize)
             val sourcesInfo = SourcesInfo(
                 sources = sources,
                 sizeReadable = sourcesSizeReadable,
@@ -704,7 +706,7 @@ class StorageAnalyzerRepositoryImpl(
                 )
             }
             val cmakeSize = cmakeList.sumOf { it.sizeBytes }
-            val cmakeSizeReadable = Utils.formatSize(cmakeSize)
+            val cmakeSizeReadable = FolderFileUtils.formatSize(cmakeSize)
             val cmakeInfo = CmakeInfo(
                 cmakeItems = cmakeList,
                 sizeReadable = cmakeSizeReadable,
@@ -721,7 +723,7 @@ class StorageAnalyzerRepositoryImpl(
                 )
             }
             val extrasSize = extras.sumOf { it.sizeBytes }
-            val extrasSizeReadable = Utils.formatSize(extrasSize)
+            val extrasSizeReadable = FolderFileUtils.formatSize(extrasSize)
             val extrasInfo = ExtrasInfo(
                 extrasInfoItems = extras,
                 sizeReadable = extrasSizeReadable,
@@ -730,7 +732,7 @@ class StorageAnalyzerRepositoryImpl(
 
             val sdkDirSizeBytes =
                 platformsSize + buildToolsSize + systemImageSize + ndkSize + sourcesSize + cmakeSize + extrasSize
-            val sdkDirSizeReadable = Utils.formatSize(sdkDirSizeBytes)
+            val sdkDirSizeReadable = FolderFileUtils.formatSize(sdkDirSizeBytes)
 
 
             AndroidSdkInfo(
@@ -761,11 +763,11 @@ class StorageAnalyzerRepositoryImpl(
                     ?.filter { it.isDirectory && otherFolderList.contains(it.name) }
                     ?.map { distDir ->
                         async {
-                            val sizeBytes = Utils.calculateFolderSize(distDir)
+                            val sizeBytes = FolderFileUtils.calculateFolderSize(distDir)
                             OtherGradleFolderItem(
                                 version = distDir.name,
                                 path = distDir.absolutePath,
-                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                                 sizeBytes = sizeBytes
                             )
                         }
@@ -778,11 +780,11 @@ class StorageAnalyzerRepositoryImpl(
                     ?.filter { it.isDirectory && it.name != "files-2.1" }
                     ?.map { metaDir ->
                         async {
-                            val sizeBytes = Utils.calculateFolderSize(metaDir)
+                            val sizeBytes = FolderFileUtils.calculateFolderSize(metaDir)
                             OtherGradleFolderItem(
                                 version = metaDir.name,
                                 path = metaDir.absolutePath,
-                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                                 sizeBytes = sizeBytes
                             )
                         }
@@ -792,11 +794,11 @@ class StorageAnalyzerRepositoryImpl(
 
                 val tempDir = File(gradleDir, ".tmp")
                 val temp = async {
-                    val sizeBytes = Utils.calculateFolderSize(tempDir)
+                    val sizeBytes = FolderFileUtils.calculateFolderSize(tempDir)
                     OtherGradleFolderItem(
                         version = tempDir.name,
                         path = tempDir.absolutePath,
-                        sizeReadable = Utils.formatSize(sizeBytes),
+                        sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                         sizeBytes = sizeBytes
                     )
                 }.await()
@@ -816,11 +818,11 @@ class StorageAnalyzerRepositoryImpl(
                     ?.map { distDir ->
                         async {
                             val version = versionRegex.find(distDir.name)?.value ?: distDir.name
-                            val sizeBytes = Utils.calculateFolderSize(distDir)
+                            val sizeBytes = FolderFileUtils.calculateFolderSize(distDir)
                             CachesGradleWrapperItem(
                                 version = version,
                                 path = distDir.absolutePath,
-                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                                 sizeBytes = sizeBytes
                             )
                         }
@@ -839,11 +841,11 @@ class StorageAnalyzerRepositoryImpl(
                     ?.map { distDir ->
                         async {
                             val version = versionRegex.find(distDir.name)?.value ?: distDir.name
-                            val sizeBytes = Utils.calculateFolderSize(distDir)
+                            val sizeBytes = FolderFileUtils.calculateFolderSize(distDir)
                             DaemonItem(
                                 name = version,
                                 path = distDir.absolutePath,
-                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                                 sizeBytes = sizeBytes
                             )
                         }
@@ -862,11 +864,11 @@ class StorageAnalyzerRepositoryImpl(
                     ?.map { distDir ->
                         async {
                             val version = versionRegex.find(distDir.name)?.value ?: distDir.name
-                            val sizeBytes = Utils.calculateFolderSize(distDir)
+                            val sizeBytes = FolderFileUtils.calculateFolderSize(distDir)
                             WrapperItem(
                                 version = version,
                                 path = distDir.absolutePath,
-                                sizeReadable = Utils.formatSize(sizeBytes),
+                                sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                                 sizeBytes = sizeBytes
                             )
                         }
@@ -928,7 +930,7 @@ class StorageAnalyzerRepositoryImpl(
 
             val wrapperItems = wrapperItemDeferred.await()
             val wrapperTotalSizeBytes = wrapperItems.sumOf { it.sizeBytes }
-            val wrapperTotalSizeReadable = Utils.formatSize(wrapperTotalSizeBytes)
+            val wrapperTotalSizeReadable = FolderFileUtils.formatSize(wrapperTotalSizeBytes)
             val wrapperInfo = WrapperInfo(
                 totalSizeBytes = wrapperTotalSizeBytes,
                 sizeReadable = wrapperTotalSizeReadable,
@@ -937,7 +939,7 @@ class StorageAnalyzerRepositoryImpl(
 
             val daemonItems = daemonItemDeferred.await()
             val daemonTotalSizeBytes = daemonItems.sumOf { it.sizeBytes }
-            val daemonTotalSizeReadable = Utils.formatSize(daemonTotalSizeBytes)
+            val daemonTotalSizeReadable = FolderFileUtils.formatSize(daemonTotalSizeBytes)
             val daemonInfo = DaemonInfo(
                 totalSizeBytes = daemonTotalSizeBytes,
                 sizeReadable = daemonTotalSizeReadable,
@@ -947,7 +949,7 @@ class StorageAnalyzerRepositoryImpl(
             val cachesGradleWrapperItems = cachesGradleWrapperItemDeferred.await()
             val cachesGradleWrapperTotalSizeBytes = cachesGradleWrapperItems.sumOf { it.sizeBytes }
             val cachesGradleWrapperTotalSizeReadable =
-                Utils.formatSize(cachesGradleWrapperTotalSizeBytes)
+                FolderFileUtils.formatSize(cachesGradleWrapperTotalSizeBytes)
             val cachesGradleWrapperInfo = CachesGradleWrapperInfo(
                 totalSizeBytes = cachesGradleWrapperTotalSizeBytes,
                 sizeReadable = cachesGradleWrapperTotalSizeReadable,
@@ -956,12 +958,12 @@ class StorageAnalyzerRepositoryImpl(
 
             val jdkInfo = jdkInfoDeferred.await()
 
-            val gradleModulesInfo = Utils.getGradleModulesInfo()
+            val gradleModulesInfo = FolderFileUtils.getGradleModulesInfo()
 
             val otherGradleFolderItems = otherFolderItemDeferred.await()
             val otherGradleFolderTotalSizeBytes = otherGradleFolderItems.sumOf { it.sizeBytes }
             val otherGradleFolderTotalSizeReadable =
-                Utils.formatSize(otherGradleFolderTotalSizeBytes)
+                FolderFileUtils.formatSize(otherGradleFolderTotalSizeBytes)
             val otherGradleFolderInfo = OtherGradleFolderInfo(
                 totalSizeBytes = otherGradleFolderTotalSizeBytes,
                 sizeReadable = otherGradleFolderTotalSizeReadable,
@@ -970,7 +972,7 @@ class StorageAnalyzerRepositoryImpl(
 
             val totalSizeBytes = gradleModulesInfo.sizeBytes + cachesGradleWrapperTotalSizeBytes +
                     daemonTotalSizeBytes + wrapperTotalSizeBytes + jdkInfo.totalSizeBytes + otherGradleFolderTotalSizeBytes
-            val totalSizeReadable = Utils.formatSize(totalSizeBytes)
+            val totalSizeReadable = FolderFileUtils.formatSize(totalSizeBytes)
 
             GradleInfo(
                 rootPath = gradleDir.absolutePath,
@@ -1017,11 +1019,11 @@ class StorageAnalyzerRepositoryImpl(
                 null
             }
 
-            val sizeBytes = Utils.calculateFolderSize(jdkDir)
+            val sizeBytes = FolderFileUtils.calculateFolderSize(jdkDir)
             JdkItem(
                 path = jdkDir.absolutePath,
                 name = version ?: "Unknown",
-                sizeReadable = Utils.formatSize(sizeBytes),
+                sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                 sizeBytes = sizeBytes,
             )
         }
@@ -1063,7 +1065,7 @@ class StorageAnalyzerRepositoryImpl(
                 it.sizeBytes
             }
         val jdkSize = jdks.sumOf { it.sizeBytes }
-        val jdkSizeReadable = Utils.formatSize(jdkSize)
+        val jdkSizeReadable = FolderFileUtils.formatSize(jdkSize)
         JdkInfo(
             sizeReadable = jdkSizeReadable,
             totalSizeBytes = jdkSize,

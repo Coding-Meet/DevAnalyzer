@@ -31,8 +31,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.core.utility.DependencyColumn
-import com.meet.dev.analyzer.core.utility.GradleLibrary
 import com.meet.dev.analyzer.data.models.project.Dependency
 import com.meet.dev.analyzer.presentation.components.CustomOutlinedTextField
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
@@ -44,6 +42,8 @@ import com.meet.dev.analyzer.presentation.components.TableBodyLayout
 import com.meet.dev.analyzer.presentation.components.TableHeaderCell
 import com.meet.dev.analyzer.presentation.components.TableHeaderLayout
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
+import com.meet.dev.analyzer.utility.ui.DependencyColumn
+import com.meet.dev.analyzer.utility.ui.GradleLibrary
 import kotlinx.coroutines.launch
 
 

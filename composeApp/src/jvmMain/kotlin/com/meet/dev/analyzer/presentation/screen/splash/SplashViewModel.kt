@@ -2,10 +2,10 @@ package com.meet.dev.analyzer.presentation.screen.splash
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meet.dev.analyzer.core.utility.AppLogger
-import com.meet.dev.analyzer.core.utility.Utils.tagName
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager
 import com.meet.dev.analyzer.presentation.navigation.AppRoute
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
+import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow

@@ -1,4 +1,4 @@
-package com.meet.dev.analyzer.core.utility
+package com.meet.dev.analyzer.utility.crash_report
 
 import co.touchlab.kermit.LogWriter
 import co.touchlab.kermit.Severity

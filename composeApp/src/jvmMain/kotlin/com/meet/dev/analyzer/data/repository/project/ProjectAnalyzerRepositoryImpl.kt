@@ -2,9 +2,6 @@ package com.meet.dev.analyzer.data.repository.project
 
 import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlInputConfig
-import com.meet.dev.analyzer.core.utility.AppLogger
-import com.meet.dev.analyzer.core.utility.Utils
-import com.meet.dev.analyzer.core.utility.Utils.tagName
 import com.meet.dev.analyzer.data.models.project.BuildFileType
 import com.meet.dev.analyzer.data.models.project.Bundle
 import com.meet.dev.analyzer.data.models.project.Dependency
@@ -25,6 +22,9 @@ import com.meet.dev.analyzer.data.models.project.VersionCatalog
 import com.meet.dev.analyzer.data.models.project.VersionCatalogFileInfo
 import com.meet.dev.analyzer.data.models.storage.GradleLibraryInfo
 import com.meet.dev.analyzer.data.models.storage.GradleModulesInfo
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
+import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
@@ -77,7 +77,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             )
 
         updateProgress(0.5f, "Analyzing plugins...")
-        val gradleModulesInfo = Utils.getGradleModulesInfo()
+        val gradleModulesInfo = FolderFileUtils.getGradleModulesInfo()
         val plugins =
             findPlugin(
                 moduleBuildFileInfos = moduleBuildFileInfos,
@@ -673,12 +673,12 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             return platforms.toList()
         }
 
-        val sizeBytes = Utils.calculateFolderSize(projectDir)
+        val sizeBytes = FolderFileUtils.calculateFolderSize(projectDir)
 
         val projectOverviewInfo = ProjectOverviewInfo(
             projectPath = projectDir.absolutePath,
             projectName = findProjectName(),
-            sizeReadable = Utils.formatSize(sizeBytes),
+            sizeReadable = FolderFileUtils.formatSize(sizeBytes),
             totalSizeBytes = sizeBytes,
             isMultiModule = moduleBuildFileInfos.size > 2,
             gradleVersion = findGradleVersion(),
@@ -721,7 +721,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             val versionCatalogFileInfo = VersionCatalogFileInfo(
                 name = versionCatalogFile.name,
                 path = versionCatalogFile.absolutePath,
-                sizeReadable = Utils.formatSize(sizeBytes),
+                sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                 sizeBytes = sizeBytes,
                 content = versionCatalogFile.readText(),
                 readLines = versionCatalogFile.readLines(),
@@ -754,7 +754,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                         ModuleBuildFileInfo(
                             path = file.absolutePath,
                             type = buildFileType,
-                            sizeReadable = Utils.formatSize(sizeBytes),
+                            sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                             sizeBytes = sizeBytes,
                             content = file.readText(),
                             readLines = file.readLines(),
@@ -795,7 +795,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 name = settingsGradleFileType.fileName,
                 path = file.absolutePath,
                 type = settingsGradleFileType,
-                size = Utils.formatSize(sizeBytes),
+                size = FolderFileUtils.formatSize(sizeBytes),
                 sizeBytes = sizeBytes,
                 content = file.readText(),
                 readLines = file.readLines(),
@@ -832,7 +832,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                 name = propertiesFileType.fileName,
                 path = file.absolutePath,
                 type = propertiesFileType,
-                size = Utils.formatSize(sizeBytes),
+                size = FolderFileUtils.formatSize(sizeBytes),
                 sizeBytes = sizeBytes,
                 content = file.readText(),
                 readLines = file.readLines(),
@@ -870,7 +870,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             val gradleWrapperPropertiesFileInfo = GradleWrapperPropertiesFileInfo(
                 name = gradleWrapperPropertiesFile.name,
                 path = gradleWrapperPropertiesFile.absolutePath,
-                size = Utils.formatSize(sizeBytes),
+                size = FolderFileUtils.formatSize(sizeBytes),
                 sizeBytes = sizeBytes,
                 content = gradleWrapperPropertiesFile.readText(),
                 readLines = gradleWrapperPropertiesFile.readLines(),
@@ -1166,7 +1166,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
                                     path = file.absolutePath,
                                     relativePath = relativePath,
                                     type = fileType,
-                                    sizeReadable = Utils.formatSize(sizeBytes),
+                                    sizeReadable = FolderFileUtils.formatSize(sizeBytes),
                                     sizeBytes = sizeBytes,
                                     extension = file.extension.lowercase(),
                                     content = file.readText(),

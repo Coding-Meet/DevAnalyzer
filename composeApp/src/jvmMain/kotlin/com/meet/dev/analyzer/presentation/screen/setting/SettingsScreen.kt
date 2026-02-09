@@ -51,16 +51,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
-import com.meet.dev.analyzer.core.utility.AppLinks
-import com.meet.dev.analyzer.core.utility.AppLinks.socialLinks
-import com.meet.dev.analyzer.core.utility.CustomProperties
-import com.meet.dev.analyzer.core.utility.getDefaultAndroidSdkPath
-import com.meet.dev.analyzer.core.utility.getDefaultAvdLocationPath
-import com.meet.dev.analyzer.core.utility.getDefaultGoogleFolderPaths
-import com.meet.dev.analyzer.core.utility.getDefaultGradleHomePath
-import com.meet.dev.analyzer.core.utility.getDefaultJdkFolderPaths
-import com.meet.dev.analyzer.core.utility.getDefaultJetbrainsFolderPaths
-import com.meet.dev.analyzer.core.utility.getDefaultKonanFolderPath
 import com.meet.dev.analyzer.presentation.components.TopAppBar
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.setting.components.LinkSettingItem
@@ -69,6 +59,16 @@ import com.meet.dev.analyzer.presentation.screen.setting.components.PathSettingI
 import com.meet.dev.analyzer.presentation.screen.setting.components.SettingsSection
 import com.meet.dev.analyzer.presentation.screen.setting.components.SocialLinkButton
 import com.meet.dev.analyzer.presentation.screen.setting.components.SwitchSettingItem
+import com.meet.dev.analyzer.utility.AppLinks
+import com.meet.dev.analyzer.utility.AppLinks.socialLinks
+import com.meet.dev.analyzer.utility.crash_report.CustomProperties
+import com.meet.dev.analyzer.utility.getDefaultAndroidSdkPath
+import com.meet.dev.analyzer.utility.getDefaultAvdLocationPath
+import com.meet.dev.analyzer.utility.getDefaultGoogleFolderPaths
+import com.meet.dev.analyzer.utility.getDefaultGradleHomePath
+import com.meet.dev.analyzer.utility.getDefaultJdkFolderPaths
+import com.meet.dev.analyzer.utility.getDefaultJetbrainsFolderPaths
+import com.meet.dev.analyzer.utility.getDefaultKonanFolderPath
 import org.koin.compose.viewmodel.koinViewModel
 import java.awt.Cursor
 

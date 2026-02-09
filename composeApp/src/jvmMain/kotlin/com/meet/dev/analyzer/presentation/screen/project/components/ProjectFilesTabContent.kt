@@ -52,12 +52,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.data.models.project.FileType
 import com.meet.dev.analyzer.data.models.project.ProjectFileInfo
 import com.meet.dev.analyzer.presentation.components.CustomOutlinedTextField
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
 import java.awt.Cursor
 import java.io.File
 

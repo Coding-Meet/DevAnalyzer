@@ -22,7 +22,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import com.meet.dev.analyzer.core.utility.TabItem
+import com.meet.dev.analyzer.utility.ui.TabItem
 import java.awt.Cursor
 
 

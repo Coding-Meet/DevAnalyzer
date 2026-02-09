@@ -32,13 +32,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.core.utility.ObserveAsEvents
 import com.meet.dev.analyzer.data.models.onboarding.OnboardingPageData
 import com.meet.dev.analyzer.presentation.components.TabSlideAnimation
 import com.meet.dev.analyzer.presentation.screen.onboarding.components.AnimatedIcon
 import com.meet.dev.analyzer.presentation.screen.onboarding.components.FeatureItem
 import com.meet.dev.analyzer.presentation.screen.onboarding.components.HighlightCard
 import com.meet.dev.analyzer.presentation.screen.onboarding.components.OnboardingBottomBar
+import com.meet.dev.analyzer.utility.ui.ObserveAsEvents
 import kotlinx.coroutines.delay
 import org.koin.compose.viewmodel.koinViewModel
 

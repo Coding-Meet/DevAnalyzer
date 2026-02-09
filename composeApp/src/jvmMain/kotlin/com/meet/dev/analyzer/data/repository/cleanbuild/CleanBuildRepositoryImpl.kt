@@ -1,12 +1,12 @@
 package com.meet.dev.analyzer.data.repository.cleanbuild
 
-import com.meet.dev.analyzer.core.utility.AppLogger
-import com.meet.dev.analyzer.core.utility.Utils.calculateFolderSize
-import com.meet.dev.analyzer.core.utility.Utils.formatSize
-import com.meet.dev.analyzer.core.utility.Utils.tagName
 import com.meet.dev.analyzer.data.models.cleanbuild.ModuleBuild
 import com.meet.dev.analyzer.data.models.cleanbuild.ProjectBuildInfo
 import com.meet.dev.analyzer.data.models.project.BuildFileType
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
+import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.calculateFolderSize
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File

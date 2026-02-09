@@ -23,7 +23,6 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavBackStackEntry
-import com.meet.dev.analyzer.core.utility.ProjectScreenTabs
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.dev.analyzer.presentation.components.TabLayout
 import com.meet.dev.analyzer.presentation.components.TabSlideAnimation
@@ -35,6 +34,7 @@ import com.meet.dev.analyzer.presentation.screen.project.components.PluginsTabCo
 import com.meet.dev.analyzer.presentation.screen.project.components.ProjectFilesTabContent
 import com.meet.dev.analyzer.presentation.screen.project.components.ProjectOverviewTabContent
 import com.meet.dev.analyzer.presentation.screen.project.components.ProjectSelectionSection
+import com.meet.dev.analyzer.utility.ui.ProjectScreenTabs
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.path

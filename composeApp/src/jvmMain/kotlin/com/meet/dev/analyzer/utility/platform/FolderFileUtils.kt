@@ -1,8 +1,10 @@
-package com.meet.dev.analyzer.core.utility
+package com.meet.dev.analyzer.utility.platform
 
 import com.meet.dev.analyzer.data.models.storage.GradleLibraryInfo
 import com.meet.dev.analyzer.data.models.storage.GradleModulesInfo
 import com.meet.dev.analyzer.data.models.storage.GradleVersionInfo
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
+import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import io.github.z4kn4fein.semver.VersionFormatException
 import io.github.z4kn4fein.semver.toVersion
 import java.awt.Desktop
@@ -11,7 +13,7 @@ import java.util.Locale
 import kotlin.math.log10
 import kotlin.math.pow
 
-object Utils {
+object FolderFileUtils {
     private val TAG = tagName(javaClass = javaClass)
 
     fun calculateFolderSize(file: File, isCommend: Boolean = true): Long {
@@ -202,17 +204,5 @@ object Utils {
         return gradleModulesInfo
     }
 
-    fun tagName(
-        javaClass: Class<*>
-    ): String {
-        return if (!javaClass.isAnonymousClass) {
-            val name = javaClass.simpleName
-            if (name.length <= 23) name else name.take(23)  // first 23 chars
-        } else {
-            val name = javaClass.name
-            if (name.length <= 23) name else name.substring(
-                name.length - 23, name.length
-            )                   // last 23 chars
-        }
-    }
+
 }

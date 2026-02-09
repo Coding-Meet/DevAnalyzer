@@ -34,8 +34,8 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meet.dev.analyzer.Res
 import com.meet.dev.analyzer.app_logo
-import com.meet.dev.analyzer.core.utility.ObserveAsEvents
 import com.meet.dev.analyzer.presentation.navigation.AppRoute
+import com.meet.dev.analyzer.utility.ui.ObserveAsEvents
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 

@@ -1,6 +1,6 @@
 package com.meet.dev.analyzer.data.models.storage
 
-import com.meet.dev.analyzer.core.utility.ExpandableSection
+import com.meet.dev.analyzer.utility.ui.ExpandableSection
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 

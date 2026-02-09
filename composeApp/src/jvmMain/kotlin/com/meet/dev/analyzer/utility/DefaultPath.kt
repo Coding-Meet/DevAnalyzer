@@ -1,4 +1,7 @@
-package com.meet.dev.analyzer.core.utility
+package com.meet.dev.analyzer.utility
+
+import com.meet.dev.analyzer.utility.platform.DesktopOS
+import com.meet.dev.analyzer.utility.platform.getDesktopOS
 
 
 fun getDefaultAndroidSdkPath(): String {

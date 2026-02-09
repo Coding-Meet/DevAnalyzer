@@ -2,10 +2,6 @@ package com.meet.dev.analyzer.presentation.screen.storage
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meet.dev.analyzer.core.utility.AppLogger
-import com.meet.dev.analyzer.core.utility.Utils
-import com.meet.dev.analyzer.core.utility.Utils.formatElapsedTime
-import com.meet.dev.analyzer.core.utility.Utils.tagName
 import com.meet.dev.analyzer.data.models.storage.AndroidAvdInfo
 import com.meet.dev.analyzer.data.models.storage.AndroidSdkInfo
 import com.meet.dev.analyzer.data.models.storage.GradleInfo
@@ -16,6 +12,10 @@ import com.meet.dev.analyzer.data.models.storage.StorageBreakdown
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItem
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItemColor
 import com.meet.dev.analyzer.data.repository.storage.StorageAnalyzerRepository
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
+import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatElapsedTime
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelAndJoin
@@ -138,7 +138,7 @@ class StorageAnalyzerViewModel(
                         ideDataInfo = ideDataInfo,
                         gradleInfo = gradleInfo
                     )
-                    val totalStorageUsed = Utils.formatSize(totalBytes)
+                    val totalStorageUsed = FolderFileUtils.formatSize(totalBytes)
                     val storageBreakdownItemList = listOf(
                         StorageBreakdownItem(
                             name = "Gradle",
@@ -183,7 +183,7 @@ class StorageAnalyzerViewModel(
                         it.sizeByte
                     }
                     val storageBreakdownItemTotalSizeReadable =
-                        Utils.formatSize(storageBreakdownItemTotalSize)
+                        FolderFileUtils.formatSize(storageBreakdownItemTotalSize)
                     val storageBreakdown = StorageBreakdown(
                         totalSizeByte = storageBreakdownItemTotalSize,
                         totalSizeReadable = storageBreakdownItemTotalSizeReadable,
@@ -223,7 +223,7 @@ class StorageAnalyzerViewModel(
 
                     AppLogger.i(tag = TAG) {
                         "All data loaded successfully. Total storage: ${
-                            Utils.formatSize(
+                            FolderFileUtils.formatSize(
                                 totalBytes
                             )
                         }"

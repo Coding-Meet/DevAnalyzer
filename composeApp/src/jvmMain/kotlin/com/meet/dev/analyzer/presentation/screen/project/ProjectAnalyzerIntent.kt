@@ -1,6 +1,6 @@
 package com.meet.dev.analyzer.presentation.screen.project
 
-import com.meet.dev.analyzer.core.utility.ProjectScreenTabs
+import com.meet.dev.analyzer.utility.ui.ProjectScreenTabs
 
 sealed interface ProjectAnalyzerIntent {
     data class SelectProject(val projectPath: String) : ProjectAnalyzerIntent

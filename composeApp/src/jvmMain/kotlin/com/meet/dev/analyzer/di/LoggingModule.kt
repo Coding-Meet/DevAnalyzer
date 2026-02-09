@@ -4,9 +4,9 @@ import co.touchlab.kermit.Logger
 import co.touchlab.kermit.Severity
 import co.touchlab.kermit.StaticConfig
 import co.touchlab.kermit.platformLogWriter
-import com.meet.dev.analyzer.core.utility.AppEnvironment
-import com.meet.dev.analyzer.core.utility.FileLogWriter
-import com.meet.dev.analyzer.core.utility.SentryLogWriter
+import com.meet.dev.analyzer.utility.crash_report.FileLogWriter
+import com.meet.dev.analyzer.utility.crash_report.SentryLogWriter
+import com.meet.dev.analyzer.utility.platform.AppEnvironment
 import org.koin.core.module.Module
 import org.koin.dsl.module
 

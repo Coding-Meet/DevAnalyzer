@@ -39,10 +39,10 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.cleanbuild.DeletionProgress
 import com.meet.dev.analyzer.presentation.screen.cleanbuild.DeletionStatus
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
 import java.awt.Cursor
 
 @Composable

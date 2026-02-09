@@ -2,7 +2,7 @@
 
 package com.meet.dev.analyzer.data.models.cleanbuild
 
-import com.meet.dev.analyzer.core.utility.Utils.formatSize
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
 import kotlin.uuid.ExperimentalUuidApi
 import kotlin.uuid.Uuid
 

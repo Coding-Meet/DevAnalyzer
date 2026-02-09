@@ -2,11 +2,11 @@ package com.meet.dev.analyzer.presentation.screen.cleanbuild
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meet.dev.analyzer.core.utility.AppLogger
-import com.meet.dev.analyzer.core.utility.Utils.formatElapsedTime
-import com.meet.dev.analyzer.core.utility.Utils.tagName
 import com.meet.dev.analyzer.data.models.project.BuildFileType
 import com.meet.dev.analyzer.data.repository.cleanbuild.CleanBuildRepository
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
+import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatElapsedTime
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow

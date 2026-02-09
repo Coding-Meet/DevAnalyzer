@@ -1,7 +1,7 @@
 package com.meet.dev.analyzer.presentation.screen.storage
 
-import com.meet.dev.analyzer.core.utility.StorageAnalyzerTabs
 import com.meet.dev.analyzer.data.models.storage.StorageAnalyzerInfo
+import com.meet.dev.analyzer.utility.ui.StorageAnalyzerTabs
 
 data class StorageAnalyzerUiState(
     val selectedTab: StorageAnalyzerTabs = StorageAnalyzerTabs.Overview,

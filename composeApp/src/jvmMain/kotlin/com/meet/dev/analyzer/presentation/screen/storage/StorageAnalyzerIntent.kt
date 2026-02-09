@@ -1,6 +1,6 @@
 package com.meet.dev.analyzer.presentation.screen.storage
 
-import com.meet.dev.analyzer.core.utility.StorageAnalyzerTabs
+import com.meet.dev.analyzer.utility.ui.StorageAnalyzerTabs
 
 sealed interface StorageAnalyzerIntent {
     data object LoadAllData : StorageAnalyzerIntent

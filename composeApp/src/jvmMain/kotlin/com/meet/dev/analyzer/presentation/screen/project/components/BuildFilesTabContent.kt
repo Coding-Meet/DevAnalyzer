@@ -48,7 +48,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.core.utility.Utils.openFile
 import com.meet.dev.analyzer.data.models.project.GradleWrapperPropertiesFileInfo
 import com.meet.dev.analyzer.data.models.project.ModuleBuildFileInfo
 import com.meet.dev.analyzer.data.models.project.PropertiesFileInfo
@@ -56,6 +55,7 @@ import com.meet.dev.analyzer.data.models.project.SettingsGradleFileInfo
 import com.meet.dev.analyzer.data.models.project.VersionCatalogFileInfo
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
 import java.awt.Cursor
 import java.io.File
 

@@ -1,4 +1,4 @@
-package com.meet.dev.analyzer.core.utility
+package com.meet.dev.analyzer.utility
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.Send
