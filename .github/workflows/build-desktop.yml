@@ -128,4 +128,4 @@ jobs:
           draft: true
           tag_name: ${{ github.ref_name }}
         env:
-          GITHUB_TOKEN: ${{ secretssecrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
