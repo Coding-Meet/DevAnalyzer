@@ -59,6 +59,13 @@ jobs:
           echo "sentry_dns=$SENTRY_DNS" >> composeApp/src/jvmMain/resources/props.properties
           echo "version=$VERSION" >> composeApp/src/jvmMain/resources/props.properties
 
+      - name: Normalize version
+        shell: bash
+        run: |
+          RAW_TAG="${GITHUB_REF_NAME}"
+          VERSION="${RAW_TAG#v}"
+          echo "APP_VERSION=$VERSION" >> $GITHUB_ENV
+
       - name: Build native packages
         run: ./gradlew packageReleaseDistributionForCurrentOS --stacktrace
 
@@ -67,7 +74,7 @@ jobs:
         if: matrix.format == 'macos-arm'
         run: |
           FILE=$(find composeApp/build/compose/binaries -name "*.dmg" -type f)
-          NEW="DevAnalyzer-${{ github.ref_name }}-macos-arm64.dmg"
+          NEW="DevAnalyzer-${{ env.APP_VERSION }}-macos-arm64.dmg"
           mv "$FILE" "$(dirname "$FILE")/$NEW"
 
       # macOS Intel
@@ -75,7 +82,7 @@ jobs:
         if: matrix.format == 'macos-intel'
         run: |
           FILE=$(find composeApp/build/compose/binaries -name "*.dmg" -type f)
-          NEW="DevAnalyzer-${{ github.ref_name }}-macos-x64.dmg"
+          NEW="DevAnalyzer-${{ env.APP_VERSION }}-macos-x64.dmg"
           mv "$FILE" "$(dirname "$FILE")/$NEW"
 
       # Windows
@@ -84,7 +91,7 @@ jobs:
         shell: pwsh
         run: |
           $file = Get-ChildItem -Recurse -Filter *.msi -Path "composeApp/build/compose/binaries" | Select-Object -First 1
-          $newName = "DevAnalyzer-${{ github.ref_name }}-windows-x64.msi"
+          $newName = "DevAnalyzer-${{ env.APP_VERSION }}-windows-x64.msi"
           Rename-Item -Path $file.FullName -NewName $newName
 
       # Linux
@@ -92,7 +99,7 @@ jobs:
         if: matrix.format == 'linux'
         run: |
           FILE=$(find composeApp/build/compose/binaries -name "*.deb" -type f)
-          NEW="DevAnalyzer-${{ github.ref_name }}-linux-amd64.deb"
+          NEW="DevAnalyzer-${{ env.APP_VERSION }}-linux-amd64.deb"
           mv "$FILE" "$(dirname "$FILE")/$NEW"
 
       # Upload renamed artifacts
