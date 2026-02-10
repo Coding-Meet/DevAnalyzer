@@ -54,6 +54,11 @@
 -keepnames class kotlinx.coroutines.internal.MainDispatcherFactory {}
 -keepnames class kotlinx.coroutines.CoroutineExceptionHandler {}
 
+# Most of volatile fields are updated with AFU and should not be mangled
+-keepclassmembers class kotlinx.coroutines.** {
+    volatile <fields>;
+}
+
 # Same story for the standard library's SafeContinuation that also uses AtomicReferenceFieldUpdater
 -keepclassmembers class kotlin.coroutines.SafeContinuation {
     volatile <fields>;
@@ -73,6 +78,34 @@
 # An annotation used for build tooling, won't be directly accessed.
 -dontwarn org.codehaus.mojo.animal_sniffer.IgnoreJRERequirement
 
+-keep class kotlinx.coroutines.swing.SwingDispatcherFactory {*;}
+
+
 # Additional dontwarn rules for common issues
 -dontwarn java.awt.**
 -dontwarn javax.annotation.**
+-keep class com.sun.jna.* { *; }
+-keepclassmembers class * extends com.sun.jna.* { public *; }
+
+# Preserve SAX classes and interfaces
+-keep class javax.xml.parsers.SAXParserFactory { *; }
+-keep class org.xml.sax.** { *; }
+-keep interface org.xml.sax.** { *; }
+
+# OkHttp platform used only on JVM and when Conscrypt and other security providers are available.
+-dontwarn okhttp3.internal.platform.**
+-dontwarn org.conscrypt.**
+-dontwarn org.bouncycastle.**
+-dontwarn org.openjsse.**
+
+# Animal Sniffer compileOnly dependency to ensure APIs are compatible with older versions of Java.
+-dontwarn org.codehaus.mojo.animal_sniffer.*
+
+# A resource is loaded with a relative path so the package of this class must be preserved.
+-adaptresourcefilenames okhttp3/internal/publicsuffix/PublicSuffixDatabase.gz
+
+#Jsoup
+-keeppackagenames org.jsoup.nodes
+-keep public enum * {    public static **[] values();    public static ** valueOf(java.lang.String); }
+
+-ignorewarnings
