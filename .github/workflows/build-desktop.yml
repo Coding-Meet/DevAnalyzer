@@ -16,25 +16,21 @@ jobs:
           - os: macos-latest
             format: macos-arm
             arch_label: macos-arm64
-            gradle_task: packageReleaseDistributionForCurrentOS
 
           # macOS Intel (x64)
           - os: macos-15-intel
             format: macos-intel
             arch_label: macos-x64
-            gradle_task: packageReleaseDistributionForCurrentOS
 
           # Windows
           - os: windows-latest
             format: windows
             arch_label: windows-x64
-            gradle_task: packageReleaseDistributionForCurrentOS
 
           # Linux
           - os: ubuntu-latest
             format: linux
             arch_label: linux-amd64
-            gradle_task: packageReleaseDistributionForCurrentOS
 
     steps:
       - name: Checkout code
@@ -50,37 +46,52 @@ jobs:
         if: runner.os != 'Windows'
         run: chmod +x gradlew
 
-      - name: Build native packages
-        run: ./gradlew ${{ matrix.gradle_task }} --stacktrace
+      - name: Inject release props
+        shell: bash
+        env:
+          SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
+        run: |
+          VERSION=${GITHUB_REF_NAME#v}
+          echo "is_release=true" > desktopApp/src/jvmMain/resources/props.properties
+          echo "sentry_dns=$SENTRY_DNS" >> desktopApp/src/jvmMain/resources/props.properties
+          echo "version=$VERSION" >> desktopApp/src/jvmMain/resources/props.properties
 
+      - name: Build native packages
+        run: ./gradlew packageReleaseDistributionForCurrentOS --stacktrace
+
+      # macOS ARM
       - name: Rename macOS ARM DMG
         if: matrix.format == 'macos-arm'
         run: |
-          FILE=$(find composeApp/build/compose/binaries -name "*.dmg" -type f)
-          NEW="DevAnalyzer-${{ github.ref_name }}-macos-arm64.dmg"
-          mv "$FILE" "$(dirname "$FILE")/$NEW"
+          FILE=$(find composeApp/build/compose/binaries -name "*.dmg")
+          VERSION=${GITHUB_REF_NAME#v}
+          mv "$FILE" "$(dirname "$FILE")/DevAnalyzer-$VERSION-macos-arm64.dmg"
 
+      # macOS Intel
       - name: Rename macOS Intel DMG
         if: matrix.format == 'macos-intel'
         run: |
-          FILE=$(find composeApp/build/compose/binaries -name "*.dmg" -type f)
-          NEW="DevAnalyzer-${{ github.ref_name }}-macos-x64.dmg"
-          mv "$FILE" "$(dirname "$FILE")/$NEW"
+          FILE=$(find composeApp/build/compose/binaries -name "*.dmg")
+          VERSION=${GITHUB_REF_NAME#v}
+          mv "$FILE" "$(dirname "$FILE")/DevAnalyzer-$VERSION-macos-x64.dmg"
 
+      # Windows
       - name: Rename Windows MSI
         if: matrix.format == 'windows'
         shell: pwsh
         run: |
-          $file = Get-ChildItem -Recurse -Filter *.msi -Path "composeApp/build/compose/binaries" | Select-Object -First 1
-          $newName = "DevAnalyzer-${{ github.ref_name }}-windows-x64.msi"
-          Rename-Item -Path $file.FullName -NewName $newName
+          $version = $env:GITHUB_REF_NAME.Replace("v","")
+          $file = Get-ChildItem -Recurse -Filter *.msi composeApp/build/compose/binaries | Select-Object -First 1
+          Rename-Item $file.FullName "DevAnalyzer-$version-windows-x64.msi"
 
+      # Linux
       - name: Rename Linux DEB
         if: matrix.format == 'linux'
         run: |
-          FILE=$(find composeApp/build/compose/binaries -name "*.deb" -type f)
-          NEW="DevAnalyzer-${{ github.ref_name }}-linux-amd64.deb"
-          mv "$FILE" "$(dirname "$FILE")/$NEW"
+          FILE=$(find composeApp/build/compose/binaries -name "*.deb")
+          VERSION=${GITHUB_REF_NAME#v}
+          mv "$FILE" "$(dirname "$FILE")/DevAnalyzer-$VERSION-linux-amd64.deb"
+      
 
       # Upload renamed artifacts
       - name: Upload artifact
@@ -117,4 +128,4 @@ jobs:
           draft: true
           tag_name: ${{ github.ref_name }}
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secretssecrets.GITHUB_TOKEN }}
