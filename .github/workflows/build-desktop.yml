@@ -51,7 +51,7 @@ jobs:
         env:
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
         run: |
-          VERSION=${GITHUB_REF_NAME#v}
+          VERSION=${{ github.ref_name }}
           echo "is_release=true" > composeApp/src/jvmMain/resources/props.properties
           echo "sentry_dns=$SENTRY_DNS" >> composeApp/src/jvmMain/resources/props.properties
           echo "version=$VERSION" >> composeApp/src/jvmMain/resources/props.properties
@@ -63,35 +63,34 @@ jobs:
       - name: Rename macOS ARM DMG
         if: matrix.format == 'macos-arm'
         run: |
-          FILE=$(find composeApp/build/compose/binaries -name "*.dmg")
-          VERSION=${GITHUB_REF_NAME#v}
-          mv "$FILE" "$(dirname "$FILE")/DevAnalyzer-$VERSION-macos-arm64.dmg"
+          FILE=$(find composeApp/build/compose/binaries -name "*.dmg" -type f)
+          NEW="DevAnalyzer-${{ github.ref_name }}-macos-arm64.dmg"
+          mv "$FILE" "$(dirname "$FILE")/$NEW"
 
       # macOS Intel
       - name: Rename macOS Intel DMG
         if: matrix.format == 'macos-intel'
         run: |
-          FILE=$(find composeApp/build/compose/binaries -name "*.dmg")
-          VERSION=${GITHUB_REF_NAME#v}
-          mv "$FILE" "$(dirname "$FILE")/DevAnalyzer-$VERSION-macos-x64.dmg"
+          FILE=$(find composeApp/build/compose/binaries -name "*.dmg" -type f)
+          NEW="DevAnalyzer-${{ github.ref_name }}-macos-x64.dmg"
+          mv "$FILE" "$(dirname "$FILE")/$NEW"
 
       # Windows
       - name: Rename Windows MSI
         if: matrix.format == 'windows'
         shell: pwsh
         run: |
-          $version = $env:GITHUB_REF_NAME.Replace("v","")
-          $file = Get-ChildItem -Recurse -Filter *.msi composeApp/build/compose/binaries | Select-Object -First 1
-          Rename-Item $file.FullName "DevAnalyzer-$version-windows-x64.msi"
+          $file = Get-ChildItem -Recurse -Filter *.msi -Path "composeApp/build/compose/binaries" | Select-Object -First 1
+          $newName = "DevAnalyzer-${{ github.ref_name }}-windows-x64.msi"
+          Rename-Item -Path $file.FullName -NewName $newName
 
       # Linux
       - name: Rename Linux DEB
         if: matrix.format == 'linux'
         run: |
-          FILE=$(find composeApp/build/compose/binaries -name "*.deb")
-          VERSION=${GITHUB_REF_NAME#v}
-          mv "$FILE" "$(dirname "$FILE")/DevAnalyzer-$VERSION-linux-amd64.deb"
-      
+          FILE=$(find composeApp/build/compose/binaries -name "*.deb" -type f)
+          NEW="DevAnalyzer-${{ github.ref_name }}-linux-amd64.deb"
+          mv "$FILE" "$(dirname "$FILE")/$NEW"
 
       # Upload renamed artifacts
       - name: Upload artifact
