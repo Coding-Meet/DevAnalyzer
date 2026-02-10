@@ -14,6 +14,26 @@ group = "com.meet"
 val appVersionName: () -> String by extra
 val appVersionCode: () -> Int by extra
 
+// Generate BuildConfig for JVM (Configuration Cache Compatible)
+val generateJvmBuildConfig = tasks.register("generateJvmBuildConfig") {
+    val outputDir = layout.buildDirectory.dir("generated/buildconfig/jvm")
+    outputs.dir(outputDir)
+
+    doLast {
+        val file = outputDir.get().asFile.resolve("com/meet/dev/analyzer/BuildConfig.kt")
+        file.parentFile.mkdirs()
+        file.writeText(
+            """
+            package com.meet.dev.analyzer
+            
+            object BuildConfig {
+                const val VERSION_NAME = "${appVersionName()}"
+            }
+        """.trimIndent()
+        )
+    }
+}
+
 java {
     toolchain {
         vendor = JvmVendorSpec.JETBRAINS
@@ -89,6 +109,9 @@ kotlin {
         commonTest.dependencies {
             implementation(libs.kotlin.test)
         }
+        jvmMain {
+            kotlin.srcDir(layout.buildDirectory.dir("generated/buildconfig/jvm"))
+        }
         jvmMain.dependencies {
             // Compose Desktop
             implementation(compose.desktop.currentOs)          // Platform-specific desktop support
@@ -99,6 +122,16 @@ kotlin {
     }
 }
 
+afterEvaluate {
+    tasks.matching { it.name.contains("kspKotlinJvm") || it.name == "compileKotlinJvm" }
+        .configureEach {
+            dependsOn(generateJvmBuildConfig)
+        }
+}
+
+tasks.named("compileKotlinJvm") {
+    dependsOn(generateJvmBuildConfig)
+}
 
 compose {
     resources {

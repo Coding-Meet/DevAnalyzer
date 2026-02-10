@@ -3,11 +3,11 @@ import java.util.Date
 import java.util.Properties
 
 val versionProps = Properties()
-val versionPropertiesFile = rootProject.file("composeApp/src/jvmMain/resources/props.properties")
+val versionPropertiesFile = rootProject.file("version.properties")
 if (versionPropertiesFile.exists()) {
     versionPropertiesFile.inputStream().use { versionProps.load(it) }
 } else {
-    throw GradleException("Root project version.properties not found! Please ensure it exists with the version number.")
+    throw GradleException("Root project version.properties not found! Please ensure it exists with MAJOR, MINOR, PATCH values.")
 }
 fun getCurrentTimestamp(): String {
     val sdf = SimpleDateFormat("yyyyMMddHHmm")
@@ -24,8 +24,12 @@ fun appVersionCode(): Int {
     }
 }
 
+val appMajorVersion = versionProps.getProperty("MAJOR").toInt()
+val appMinorVersion = versionProps.getProperty("MINOR").toInt()
+val appPatchVersion = versionProps.getProperty("PATCH").toInt()
+
 fun appVersionName(): String {
-    return versionProps.getProperty("version")
+    return "${appMajorVersion}.${appMinorVersion}.${appPatchVersion}"
 }
 
 project.extra.set("appVersionCode", ::appVersionCode)

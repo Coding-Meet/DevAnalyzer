@@ -51,7 +51,10 @@ jobs:
         env:
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
         run: |
-          VERSION=${{ github.ref_name }}
+          MAJOR=$(grep "MAJOR=" version.properties | cut -d'=' -f2)
+          MINOR=$(grep "MINOR=" version.properties | cut -d'=' -f2)
+          PATCH=$(grep "PATCH=" version.properties | cut -d'=' -f2)
+          VERSION="$MAJOR.$MINOR.$PATCH"
           echo "is_release=true" > composeApp/src/jvmMain/resources/props.properties
           echo "sentry_dns=$SENTRY_DNS" >> composeApp/src/jvmMain/resources/props.properties
           echo "version=$VERSION" >> composeApp/src/jvmMain/resources/props.properties
