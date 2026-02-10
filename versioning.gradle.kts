@@ -14,6 +14,7 @@ fun getCurrentTimestamp(): String {
     return sdf.format(Date())
 }
 
+// this is for android app. desktop app not need
 fun appVersionCode(): Int {
     val ciBuildNumber = System.getenv("GITHUB_RUN_NUMBER")
     return if (ciBuildNumber != null) {
