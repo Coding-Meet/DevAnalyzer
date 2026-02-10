@@ -52,9 +52,9 @@ jobs:
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
         run: |
           VERSION=${GITHUB_REF_NAME#v}
-          echo "is_release=true" > desktopApp/src/jvmMain/resources/props.properties
-          echo "sentry_dns=$SENTRY_DNS" >> desktopApp/src/jvmMain/resources/props.properties
-          echo "version=$VERSION" >> desktopApp/src/jvmMain/resources/props.properties
+          echo "is_release=true" > composeApp/src/jvmMain/resources/props.properties
+          echo "sentry_dns=$SENTRY_DNS" >> composeApp/src/jvmMain/resources/props.properties
+          echo "version=$VERSION" >> composeApp/src/jvmMain/resources/props.properties
 
       - name: Build native packages
         run: ./gradlew packageReleaseDistributionForCurrentOS --stacktrace
