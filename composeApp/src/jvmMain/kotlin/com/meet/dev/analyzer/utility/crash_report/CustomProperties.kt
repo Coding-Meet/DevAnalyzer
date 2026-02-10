@@ -1,6 +1,6 @@
 package com.meet.dev.analyzer.utility.crash_report
 
-import com.meet.dev.analyzer.BuildConfig
+import com.meet.dev.analyzer.BuildKonfig
 import com.meet.dev.analyzer.utility.platform.AppEnvironment
 import com.meet.dev.analyzer.utility.platform.DesktopConfig
 import java.io.InputStream
@@ -18,7 +18,7 @@ object CustomProperties {
 
     fun createAppConfig(properties: Properties): DesktopConfig {
         val sentryDns = properties["sentry_dns"]?.toString()
-        val version = BuildConfig.VERSION_NAME
+        val version = BuildKonfig.VERSION_NAME
         val isRelease = properties["is_release"]?.toString()?.toBooleanStrictOrNull() ?: false
 
         val appEnvironment = if (isRelease) AppEnvironment.Release else AppEnvironment.Debug
