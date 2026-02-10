@@ -51,8 +51,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
+import com.meet.dev.analyzer.data.models.setting.PathPickerType
 import com.meet.dev.analyzer.presentation.components.TopAppBar
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
+import com.meet.dev.analyzer.presentation.screen.setting.components.CrashLogDialog
 import com.meet.dev.analyzer.presentation.screen.setting.components.LinkSettingItem
 import com.meet.dev.analyzer.presentation.screen.setting.components.PathPickerDialog
 import com.meet.dev.analyzer.presentation.screen.setting.components.PathSettingItem
@@ -556,10 +558,10 @@ fun SettingsScreenContent(
                         label = "Report Bug with Logs",
                         value = "Copy crash log and open GitHub issue",
                         icon = Icons.Default.CloudUpload,
-                        url = AppLinks.REPORT_BUG
+                        url = null
                     ) {
                         onEvent(
-                            SettingsUiIntent.UploadLatestLogToGitHub
+                            SettingsUiIntent.ShowCrashLogDialog
                         )
                     }
 
@@ -657,7 +659,19 @@ fun SettingsScreenContent(
             VerticalScrollBarLayout(adapter = rememberScrollbarAdapter(scrollState))
         }
     }
-
+    if (settingsUiState.showCrashLogDialog) {
+        val uriHandler = LocalUriHandler.current
+        CrashLogDialog(
+            logFile = settingsUiState.logFile,
+            onDismiss = {
+                onEvent(SettingsUiIntent.DismissCrashLogDialog)
+            },
+            onOpenGitHub = {
+                onEvent(SettingsUiIntent.DismissCrashLogDialog)
+                uriHandler.openUri(AppLinks.REPORT_BUG)
+            }
+        )
+    }
     settingsUiState.showPathPicker?.let { showPathPicker ->
         PathPickerDialog(
             type = showPathPicker,

@@ -8,6 +8,8 @@ import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import io.github.z4kn4fein.semver.VersionFormatException
 import io.github.z4kn4fein.semver.toVersion
 import java.awt.Desktop
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.io.File
 import java.util.Locale
 import kotlin.math.log10
@@ -114,7 +116,22 @@ object FolderFileUtils {
         val file = File(this)
         file.openFile()
     }
+    fun copyToClipboard(content: String) {
+        try {
+            val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+            clipboard.setContents(StringSelection(content), null)
+        } catch (e: Exception) {
+            AppLogger.e(TAG, throwable = e) { "Error copying to clipboard" }
+        }
+    }
 
+    fun formatNumber(num: Int): String {
+        return when {
+            num >= 1000000 -> String.format("%.1fM", num / 1000000.0)
+            num >= 1000 -> String.format("%.1fK", num / 1000.0)
+            else -> num.toString()
+        }
+    }
     fun getGradleModulesInfo(): GradleModulesInfo {
         AppLogger.d(TAG) { "Getting gradle modules info" }
         val modulesDir =

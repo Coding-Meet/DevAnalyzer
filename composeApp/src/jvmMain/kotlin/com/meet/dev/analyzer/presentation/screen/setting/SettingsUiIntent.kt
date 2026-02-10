@@ -1,5 +1,7 @@
 package com.meet.dev.analyzer.presentation.screen.setting
 
+import com.meet.dev.analyzer.data.models.setting.PathPickerType
+
 sealed interface SettingsUiIntent {
     data class UpdateAndroidSdkPath(val path: String) : SettingsUiIntent
     data class UpdateGradleHomePath(val path: String) : SettingsUiIntent
@@ -23,7 +25,8 @@ sealed interface SettingsUiIntent {
 
     data class ToggleLocalLogs(val enabled: Boolean) : SettingsUiIntent
 
-    data object UploadLatestLogToGitHub : SettingsUiIntent
+    data object ShowCrashLogDialog : SettingsUiIntent
+    data object DismissCrashLogDialog : SettingsUiIntent
 
 
     data object CheckForUpdates : SettingsUiIntent

@@ -2,8 +2,9 @@ package com.meet.dev.analyzer.presentation.screen.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meet.dev.analyzer.data.datastore.AppPreferenceManager
-import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
+import com.meet.dev.analyzer.data.models.setting.PathPickerType
+import com.meet.dev.analyzer.data.repository.setting.SettingsRepository
+import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -12,33 +13,32 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.awt.Toolkit
-import java.awt.datatransfer.StringSelection
 import java.io.File
 
 class SettingsViewModel(
-    private val pathPreferenceManger: PathPreferenceManger,
-    private val appPreferenceManager: AppPreferenceManager,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
+    private val TAG = tagName(javaClass)
+
     val pathSettingsState = combine(
-        pathPreferenceManger.sdkPath,
-        pathPreferenceManger.gradleUserHomePath,
-        pathPreferenceManger.avdLocationPath,
-        pathPreferenceManger.androidFolderPath,
-        pathPreferenceManger.konanFolderPath,
+        settingsRepository.sdkPath,
+        settingsRepository.gradleUserHomePath,
+        settingsRepository.avdLocationPath,
+        settingsRepository.androidFolderPath,
+        settingsRepository.konanFolderPath,
 
-        pathPreferenceManger.jdkPath1,
-        pathPreferenceManger.jdkPath2,
-        pathPreferenceManger.jdkPath3,
+        settingsRepository.jdkPath1,
+        settingsRepository.jdkPath2,
+        settingsRepository.jdkPath3,
 
-        pathPreferenceManger.ideJetBrainsPath1,
-        pathPreferenceManger.ideJetBrainsPath2,
-        pathPreferenceManger.ideJetBrainsPath3,
+        settingsRepository.ideJetBrainsPath1,
+        settingsRepository.ideJetBrainsPath2,
+        settingsRepository.ideJetBrainsPath3,
 
-        pathPreferenceManger.ideGooglePath1,
-        pathPreferenceManger.ideGooglePath2,
-        pathPreferenceManger.ideGooglePath3
+        settingsRepository.ideGooglePath1,
+        settingsRepository.ideGooglePath2,
+        settingsRepository.ideGooglePath3
     ) { paths ->
 
         val sdk = paths[0]
@@ -126,7 +126,8 @@ class SettingsViewModel(
 
             is SettingsUiIntent.ToggleCrashReporting -> toggleCrashReporting(intent.enabled)
             is SettingsUiIntent.ToggleLocalLogs -> toggleLocalLogs(intent.enabled)
-            is SettingsUiIntent.UploadLatestLogToGitHub -> uploadLatestLogToGitHub()
+            is SettingsUiIntent.ShowCrashLogDialog -> showCrashLogDialog()
+            is SettingsUiIntent.DismissCrashLogDialog -> dismissCrashLogDialog()
 
             is SettingsUiIntent.CheckForUpdates -> checkForUpdates()
             is SettingsUiIntent.ShowPathPicker -> showPathPicker(intent.path, intent.type)
@@ -139,8 +140,8 @@ class SettingsViewModel(
     init {
         viewModelScope.launch {
             combine(
-                appPreferenceManager.crashReportingEnabled,
-                appPreferenceManager.isLocalLogsEnabled,
+                settingsRepository.crashReportingEnabled,
+                settingsRepository.localLogsEnabled,
             ) { crashReportingEnabled, localLogsEnabled ->
                 Pair(crashReportingEnabled, localLogsEnabled)
             }.collect { (crashReportingEnabled, localLogsEnabled) ->
@@ -158,99 +159,99 @@ class SettingsViewModel(
 
     private fun updateAndroidSdkPath(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveSdkPath(path)
+            settingsRepository.saveSdkPath(path)
         }
     }
 
     private fun updateGradleHomePath(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveGradleUserHomePath(path)
+            settingsRepository.saveGradleUserHomePath(path)
         }
     }
 
     private fun updateAvdLocationPath(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveAvdLocationPath(path)
+            settingsRepository.saveAvdLocationPath(path)
         }
     }
 
     private fun updateAndroidFolderPath(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveAndroidFolderPath(path)
+            settingsRepository.saveAndroidFolderPath(path)
         }
     }
 
     private fun updateKonanFolderPath(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveKonanFolderPath(path)
+            settingsRepository.saveKonanFolderPath(path)
         }
     }
 
     private fun updateJdkPath1(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveJdkPath1(path)
+            settingsRepository.saveJdkPath1(path)
         }
     }
 
     private fun updateJdkPath2(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveJdkPath2(path)
+            settingsRepository.saveJdkPath2(path)
         }
     }
 
     private fun updateJdkPath3(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveJdkPath3(path)
+            settingsRepository.saveJdkPath3(path)
         }
     }
 
     private fun updateIdeJetBrains1(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveIdeJetBrainsPath1(path)
+            settingsRepository.saveIdeJetBrainsPath1(path)
         }
     }
 
     private fun updateIdeJetBrains2(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveIdeJetBrainsPath2(path)
+            settingsRepository.saveIdeJetBrainsPath2(path)
         }
     }
 
     private fun updateIdeJetBrains3(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveIdeJetBrainsPath3(path)
+            settingsRepository.saveIdeJetBrainsPath3(path)
         }
     }
 
     private fun updateIdeGoogle1(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveIdeGooglePath1(path)
+            settingsRepository.saveIdeGooglePath1(path)
         }
     }
 
     private fun updateIdeGoogle2(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveIdeGooglePath2(path)
+            settingsRepository.saveIdeGooglePath2(path)
         }
     }
 
     private fun updateIdeGoogle3(path: String) {
         viewModelScope.launch {
-            pathPreferenceManger.saveIdeGooglePath3(path)
+            settingsRepository.saveIdeGooglePath3(path)
         }
     }
 
 
     private fun toggleCrashReporting(enabled: Boolean) {
         viewModelScope.launch {
-            appPreferenceManager.saveCrashReportingEnabled(enabled)
+            settingsRepository.setCrashReporting(enabled)
             _uiState.update { it.copy(crashReportingEnabled = enabled) }
         }
     }
 
     private fun toggleLocalLogs(enabled: Boolean) {
         viewModelScope.launch {
-            appPreferenceManager.saveLocalLogsEnabled(enabled)
+            settingsRepository.setLocalLogs(enabled)
             _uiState.update { it.copy(localLogsEnabled = enabled) }
         }
     }
@@ -278,22 +279,13 @@ class SettingsViewModel(
         }
     }
 
-    private fun uploadLatestLogToGitHub() {
-        fun getLatestLogFile(): File? {
-            val dir = File(System.getProperty("user.home"), ".dev_analyzer")
+    private fun showCrashLogDialog() {
+        val logFile = settingsRepository.getLatestLogFile()
+        _uiState.update { it.copy(logFile = logFile, showCrashLogDialog = true) }
+    }
 
-            return dir.listFiles { f ->
-                f.extension == "log"
-            }?.maxByOrNull { it.lastModified() }
-        }
-
-        val file = getLatestLogFile() ?: return
-
-        val content = file.readText().trimIndent()
-
-        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
-        clipboard.setContents(StringSelection(content), null)
-//        Desktop.getDesktop().browse(URI(REPORT_BUG))
+    private fun dismissCrashLogDialog() {
+        _uiState.update { it.copy(showCrashLogDialog = false, logFile = null) }
     }
 
 

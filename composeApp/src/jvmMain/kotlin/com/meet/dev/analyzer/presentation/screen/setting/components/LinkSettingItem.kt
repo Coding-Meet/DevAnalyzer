@@ -43,8 +43,8 @@ fun LinkSettingItem(
             .fillMaxWidth()
             .clip(CardDefaults.shape)
             .clickable {
-                url?.let { uriHandler.openUri(it) }
                 onClick?.invoke()
+                url?.let { uriHandler.openUri(it) }
             }
             .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
         colors = CardDefaults.cardColors(
