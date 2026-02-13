@@ -1,0 +1,45 @@
+name: macOS ARM Test Build (Local QA)
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    name: macOS ARM Test
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v5
+        with:
+          distribution: jetbrains
+          java-version: 21
+
+      - name: Grant execute permission
+        run: chmod +x gradlew
+
+      - name: Inject release props
+        shell: bash
+        env:
+          SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
+        run: |
+          MAJOR=$(grep "MAJOR=" version.properties | cut -d'=' -f2)
+          MINOR=$(grep "MINOR=" version.properties | cut -d'=' -f2)
+          PATCH=$(grep "PATCH=" version.properties | cut -d'=' -f2)
+          VERSION="$MAJOR.$MINOR.$PATCH"
+          echo "is_release=true" > composeApp/src/jvmMain/resources/props.properties
+          echo "sentry_dns=$SENTRY_DNS" >> composeApp/src/jvmMain/resources/props.properties
+          echo "version=$VERSION" >> composeApp/src/jvmMain/resources/props.properties
+
+      - name: Build macOS ARM DMG
+        run: ./gradlew packageReleaseDistributionForCurrentOS --stacktrace
+
+      - name: Rename DMG
+        run: |
+          FILE=$(find composeApp/build/compose/binaries -name "*.dmg")
+          mv "$FILE" "$(dirname "$FILE")/DevAnalyzer-test-macos-arm64.dmg"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: macos-arm-test
+          path: composeApp/build/compose/binaries/**/dmg/*.dmg
