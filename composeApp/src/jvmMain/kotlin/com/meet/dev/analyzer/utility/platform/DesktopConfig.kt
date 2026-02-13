@@ -7,9 +7,9 @@ data class DesktopConfig(
     val os: DesktopOS = getDesktopOS(),
 )
 
-sealed class AppEnvironment {
-    data object Debug : AppEnvironment()
-    data object Release : AppEnvironment()
+sealed class AppEnvironment(val label: String) {
+    data object Debug : AppEnvironment("Debug")
+    data object Release : AppEnvironment("Release")
 
     fun isDebug(): Boolean =
         this is Debug

@@ -42,11 +42,19 @@ fun LinkSettingItem(
         modifier = modifier
             .fillMaxWidth()
             .clip(CardDefaults.shape)
-            .clickable {
+            .clickable(
+                enabled = url != null || onClick != null
+            ) {
                 onClick?.invoke()
                 url?.let { uriHandler.openUri(it) }
             }
-            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                then (
+                if (url != null || onClick != null) {
+                    Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                } else {
+                    Modifier
+                }
+                ),
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
         ),
@@ -81,11 +89,13 @@ fun LinkSettingItem(
                 },
                 enabled = false
             ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.OpenInNew,
-                    contentDescription = "Open link",
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                if (url != null || onClick != null) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.OpenInNew,
+                        contentDescription = "Open link",
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         }
     }

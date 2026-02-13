@@ -534,6 +534,11 @@ fun SettingsScreenContent(
                             url = AppLinks.RELEASE_LINK
                         )
                     }
+                    LinkSettingItem(
+                        label = "Environment",
+                        value = desktopConfig.appEnvironment.label,
+                        icon = Icons.Default.Build,
+                    )
 
                     LinkSettingItem(
                         label = "Website",
