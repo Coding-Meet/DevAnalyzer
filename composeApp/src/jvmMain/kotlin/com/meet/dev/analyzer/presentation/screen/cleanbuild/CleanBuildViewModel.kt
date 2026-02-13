@@ -2,7 +2,6 @@ package com.meet.dev.analyzer.presentation.screen.cleanbuild
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meet.dev.analyzer.data.models.project.BuildFileType
 import com.meet.dev.analyzer.data.repository.cleanbuild.CleanBuildRepository
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
@@ -12,6 +11,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.io.IOException
 import java.io.File
 
 class CleanBuildViewModel(
@@ -254,22 +254,35 @@ class CleanBuildViewModel(
 
     private fun handleAnalyzeProjects() {
         viewModelScope.launch {
-            val rootPath = _uiState.value.selectedPath
-            if (!validateRootPath(rootPath)) return@launch
-
-            val startTime = System.currentTimeMillis()
-
-            _uiState.update {
-                it.copy(
-                    isAnalyzing = true,
-                    scanProgress = 0f,
-                    scanStatus = "Starting scan...",
-                    error = null,
-                    projectBuildInfoList = emptyList()
-                )
-            }
-
             try {
+                val rootPath = _uiState.value.selectedPath
+                if (!validateRootPath(rootPath)) {
+                    AppLogger.e(tag = TAG) { "Invalid root path: $rootPath" }
+                    _uiState.update {
+                        it.copy(
+                            isAnalyzing = false,
+                            error = "Invalid root path: $rootPath",
+                            scanProgress = 0f,
+                            scanStatus = "",
+                            projectBuildInfoList = emptyList(),
+                            expandedProjects = emptySet(),
+                        )
+                    }
+                    return@launch
+                }
+
+                val startTime = System.currentTimeMillis()
+
+                _uiState.update {
+                    it.copy(
+                        isAnalyzing = true,
+                        scanProgress = 0f,
+                        scanStatus = "Starting scan...",
+                        error = null,
+                        projectBuildInfoList = emptyList()
+                    )
+                }
+
                 val result = repository.scanProjects(
                     rootPath = rootPath
                 ) { progress, status ->
@@ -298,56 +311,50 @@ class CleanBuildViewModel(
                     "Clean build analysis completed successfully in ${formatElapsedTime(startTime)}"
                 }
 
+            } catch (e: IOException) {
+                AppLogger.e(tag = TAG, throwable = e) { "File read error" }
+                _uiState.update {
+                    it.copy(
+                        isAnalyzing = false,
+                        error = "Failed to access some files",
+                        scanProgress = 0f,
+                        scanStatus = "",
+                        projectBuildInfoList = emptyList(),
+                        expandedProjects = emptySet(),
+                    )
+                }
+            } catch (e: SecurityException) {
+                AppLogger.e(tag = TAG, throwable = e) { "Permission denied" }
+                _uiState.update {
+                    it.copy(
+                        isAnalyzing = false,
+                        error = "Permission denied for storage access",
+                        scanProgress = 0f,
+                        scanStatus = "",
+                        projectBuildInfoList = emptyList(),
+                        expandedProjects = emptySet(),
+                    )
+                }
             } catch (e: Exception) {
-                AppLogger.e(TAG, e) { "Error during project scan" }
-                updateError(
-                    e.message ?: "Unexpected error occurred while scanning projects"
-                )
+                AppLogger.e(tag = TAG, throwable = e) { "Error analyzing project" }
+                _uiState.update {
+                    it.copy(
+                        isAnalyzing = false,
+                        error = "Analysis failed: ${e.message}",
+                        scanProgress = 0f,
+                        scanStatus = "",
+                        projectBuildInfoList = emptyList(),
+                        expandedProjects = emptySet(),
+                    )
+                }
             }
         }
     }
 
     private fun validateRootPath(rootPath: String): Boolean {
         val rootDir = File(rootPath)
-
-        val hasAtLeastOneGradleProject = rootDir.listFiles()
-            ?.filter { it.isDirectory }
-            ?.any { projectDir ->
-
-                // 1️⃣ Root-level build folder (fast check)
-                if (File(projectDir, "build").exists()) {
-                    return@any true
-                }
-
-                // 2️⃣ build.gradle(.kts) within depth = 3
-                projectDir.walkTopDown()
-                    .maxDepth(3)
-                    .any { file ->
-                        file.isFile && BuildFileType.entries.any {
-                            file.name == it.fileName
-                        }
-                    }
-            } ?: false
-
-        if (!hasAtLeastOneGradleProject) {
-            updateError("Selected folder does not contain any Gradle project")
-            return false
-        }
-
-        return true
-    }
-
-    private fun updateError(message: String) {
-        _uiState.update {
-            it.copy(
-                isAnalyzing = false,
-                error = message,
-                scanProgress = 0f,
-                scanStatus = "",
-                projectBuildInfoList = emptyList(),
-                expandedProjects = emptySet(),
-            )
-        }
-        AppLogger.e(TAG) { message }
+        return rootDir.walkTopDown()
+            .maxDepth(3)
+            .any { it.isDirectory && it.name == "build" }
     }
 }
