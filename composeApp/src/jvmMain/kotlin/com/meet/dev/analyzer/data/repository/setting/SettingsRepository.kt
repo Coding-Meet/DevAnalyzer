@@ -1,29 +1,12 @@
 package com.meet.dev.analyzer.data.repository.setting
 
 import com.meet.dev.analyzer.data.models.setting.LogFile
+import com.meet.dev.analyzer.data.models.setting.PathSettings
 import kotlinx.coroutines.flow.Flow
 
 interface SettingsRepository {
 
-    /* ---------- Paths Flow ---------- */
-
-    val sdkPath: Flow<String>
-    val gradleUserHomePath: Flow<String>
-    val avdLocationPath: Flow<String>
-    val androidFolderPath: Flow<String>
-    val konanFolderPath: Flow<String>
-
-    val jdkPath1: Flow<String>
-    val jdkPath2: Flow<String>
-    val jdkPath3: Flow<String>
-
-    val ideJetBrainsPath1: Flow<String>
-    val ideJetBrainsPath2: Flow<String>
-    val ideJetBrainsPath3: Flow<String>
-
-    val ideGooglePath1: Flow<String>
-    val ideGooglePath2: Flow<String>
-    val ideGooglePath3: Flow<String>
+    val pathSettings: Flow<PathSettings>
 
     val crashReportingEnabled: Flow<Boolean>
     val localLogsEnabled: Flow<Boolean>

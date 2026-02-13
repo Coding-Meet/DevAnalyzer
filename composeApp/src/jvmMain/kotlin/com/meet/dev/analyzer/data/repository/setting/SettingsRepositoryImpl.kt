@@ -11,23 +11,7 @@ class SettingsRepositoryImpl(
     private val appPreferenceManager: AppPreferenceManager
 ) : SettingsRepository {
 
-    override val sdkPath = pathPreferenceManger.sdkPath
-    override val gradleUserHomePath = pathPreferenceManger.gradleUserHomePath
-    override val avdLocationPath = pathPreferenceManger.avdLocationPath
-    override val androidFolderPath = pathPreferenceManger.androidFolderPath
-    override val konanFolderPath = pathPreferenceManger.konanFolderPath
-
-    override val jdkPath1 = pathPreferenceManger.jdkPath1
-    override val jdkPath2 = pathPreferenceManger.jdkPath2
-    override val jdkPath3 = pathPreferenceManger.jdkPath3
-
-    override val ideJetBrainsPath1 = pathPreferenceManger.ideJetBrainsPath1
-    override val ideJetBrainsPath2 = pathPreferenceManger.ideJetBrainsPath2
-    override val ideJetBrainsPath3 = pathPreferenceManger.ideJetBrainsPath3
-
-    override val ideGooglePath1 = pathPreferenceManger.ideGooglePath1
-    override val ideGooglePath2 = pathPreferenceManger.ideGooglePath2
-    override val ideGooglePath3 = pathPreferenceManger.ideGooglePath3
+    override val pathSettings = pathPreferenceManger.pathSettings
 
     override val crashReportingEnabled = appPreferenceManager.crashReportingEnabled
     override val localLogsEnabled = appPreferenceManager.isLocalLogsEnabled

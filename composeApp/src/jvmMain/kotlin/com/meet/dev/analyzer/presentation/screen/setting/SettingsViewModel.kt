@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -21,88 +22,50 @@ class SettingsViewModel(
 
     private val TAG = tagName(javaClass)
 
-    val pathSettingsState = combine(
-        settingsRepository.sdkPath,
-        settingsRepository.gradleUserHomePath,
-        settingsRepository.avdLocationPath,
-        settingsRepository.androidFolderPath,
-        settingsRepository.konanFolderPath,
+    val pathSettingsState =
+        settingsRepository.pathSettings
+            .map { paths ->
 
-        settingsRepository.jdkPath1,
-        settingsRepository.jdkPath2,
-        settingsRepository.jdkPath3,
+                PathUiState(
+                    sdkPath = paths.sdkPath,
+                    gradleHomePath = paths.gradleUserHomePath,
+                    avdLocationPath = paths.avdLocationPath,
+                    androidFolderPath = paths.androidFolderPath,
+                    konanFolderPath = paths.konanFolderPath,
 
-        settingsRepository.ideJetBrainsPath1,
-        settingsRepository.ideJetBrainsPath2,
-        settingsRepository.ideJetBrainsPath3,
+                    jdkPath1 = paths.jdkPath1,
+                    jdkPath2 = paths.jdkPath2,
+                    jdkPath3 = paths.jdkPath3,
 
-        settingsRepository.ideGooglePath1,
-        settingsRepository.ideGooglePath2,
-        settingsRepository.ideGooglePath3
-    ) { paths ->
+                    ideJetBrains1 = paths.ideJetBrains1,
+                    ideJetBrains2 = paths.ideJetBrains2,
+                    ideJetBrains3 = paths.ideJetBrains3,
 
-        val sdk = paths[0]
-        val gradleHome = paths[1]
-        val avd = paths[2]
-        val androidFolder = paths[3]
-        val konan = paths[4]
+                    ideGoogle1 = paths.ideGoogle1,
+                    ideGoogle2 = paths.ideGoogle2,
+                    ideGoogle3 = paths.ideGoogle3,
 
-        val jdk1 = paths[5]
-        val jdk2 = paths[6]
-        val jdk3 = paths[7]
+                    sdkPathStatus = validateSdkPath(paths.sdkPath),
+                    gradleHomePathStatus = validateGradlePath(paths.gradleUserHomePath),
+                    avdLocationPathStatus = validateAvdPath(paths.avdLocationPath),
+                    androidFolderPathStatus = validateAndroidPath(paths.androidFolderPath),
+                    konanFolderPathStatus = validateKonanPath(paths.konanFolderPath),
 
-        val jb1 = paths[8]
-        val jb2 = paths[9]
-        val jb3 = paths[10]
+                    jdkPath1Status = validateJdkPath(paths.jdkPath1),
+                    jdkPath2Status = validateJdkPath(paths.jdkPath2),
+                    jdkPath3Status = validateJdkPath(paths.jdkPath3),
 
-        val google1 = paths[11]
-        val google2 = paths[12]
-        val google3 = paths[13]
+                    ideJetBrains1Status = validateIdePath(paths.ideJetBrains1),
+                    ideJetBrains2Status = validateIdePath(paths.ideJetBrains2),
+                    ideJetBrains3Status = validateIdePath(paths.ideJetBrains3),
 
-        PathUiState(
-            sdkPath = sdk,
-            gradleHomePath = gradleHome,
-            avdLocationPath = avd,
-            androidFolderPath = androidFolder,
-            konanFolderPath = konan,
+                    ideGoogle1Status = validateIdePath(paths.ideGoogle1),
+                    ideGoogle2Status = validateIdePath(paths.ideGoogle2),
+                    ideGoogle3Status = validateIdePath(paths.ideGoogle3),
+                )
+            }
+            .stateIn(viewModelScope, SharingStarted.Eagerly, PathUiState())
 
-            jdkPath1 = jdk1,
-            jdkPath2 = jdk2,
-            jdkPath3 = jdk3,
-
-            ideJetBrains1 = jb1,
-            ideJetBrains2 = jb2,
-            ideJetBrains3 = jb3,
-
-            ideGoogle1 = google1,
-            ideGoogle2 = google2,
-            ideGoogle3 = google3,
-
-            sdkPathStatus = validateSdkPath(sdk),
-            gradleHomePathStatus = validateGradlePath(gradleHome),
-            avdLocationPathStatus = validateAvdPath(avd),
-            androidFolderPathStatus = validateAndroidPath(androidFolder),
-            konanFolderPathStatus = validateKonanPath(konan),
-
-            jdkPath1Status = validateJdkPath(jdk1),
-            jdkPath2Status = validateJdkPath(jdk2),
-            jdkPath3Status = validateJdkPath(jdk3),
-
-            ideJetBrains1Status = validateIdePath(jb1),
-            ideJetBrains2Status = validateIdePath(jb2),
-            ideJetBrains3Status = validateIdePath(jb3),
-
-            ideGoogle1Status = validateIdePath(google1),
-            ideGoogle2Status = validateIdePath(google2),
-            ideGoogle3Status = validateIdePath(google3)
-        )
-
-
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.Eagerly,
-        initialValue = PathUiState()
-    )
 
     fun onIntent(intent: SettingsUiIntent) {
         when (intent) {
