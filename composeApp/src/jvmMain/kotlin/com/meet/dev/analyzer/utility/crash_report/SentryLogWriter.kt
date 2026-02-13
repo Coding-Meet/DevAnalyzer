@@ -48,7 +48,7 @@ class SentryLogWriter(
 
         if (shouldCaptureException) {
             // Avoid duplicate Sentry events for throwable logs.
-            throwable?.let { captureException(it) }
+            captureException(throwable)
             return
         }
 

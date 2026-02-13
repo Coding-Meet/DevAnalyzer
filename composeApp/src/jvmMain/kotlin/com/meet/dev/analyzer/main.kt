@@ -35,9 +35,7 @@ import java.awt.Toolkit
 fun main() {
     val properties = CustomProperties.loadProperties()
     val appConfig = CustomProperties.createAppConfig(properties)
-    initKoin(
-        appEnvironment = appConfig.appEnvironment,
-    ) {}
+    initKoin()
     FileKit.init(appId = "DevAnalyzer")
     System.setProperty("apple.awt.application.appearance", "system")
     application {

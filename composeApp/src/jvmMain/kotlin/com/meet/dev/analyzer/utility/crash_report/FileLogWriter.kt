@@ -51,7 +51,7 @@ class FileLogWriter(
 
     override fun log(severity: Severity, message: String, tag: String, throwable: Throwable?) {
         if (severity < minSeverity) return
-        val stack = throwable?.stackTraceToString() ?: return
+        val stack = throwable?.stackTraceToString() ?: ""
 
         val file = getOrCreateLogFile()
 

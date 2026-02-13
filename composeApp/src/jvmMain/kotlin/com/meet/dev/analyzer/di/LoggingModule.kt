@@ -10,6 +10,7 @@ import com.meet.dev.analyzer.utility.platform.AppEnvironment
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
+// this method not use. it not need it SentryLogWriter and FileLogWriter move core module, and logger object is not need it to koin
 fun getLoggingModule(
     appEnvironment: AppEnvironment,
 ): Module =

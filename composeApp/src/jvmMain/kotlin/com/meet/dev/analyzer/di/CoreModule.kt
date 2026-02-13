@@ -5,6 +5,8 @@ import androidx.datastore.preferences.core.PreferenceDataStoreFactory
 import androidx.datastore.preferences.core.Preferences
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager
 import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
+import com.meet.dev.analyzer.utility.crash_report.FileLogWriter
+import com.meet.dev.analyzer.utility.crash_report.SentryLogWriter
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.module
 import java.io.File
@@ -22,4 +24,7 @@ val coreModule = module {
     singleOf(::AppPreferenceManager)
     singleOf(::PathPreferenceManger)
 
+    // logging
+    single<SentryLogWriter> { SentryLogWriter() }
+    single<FileLogWriter> { FileLogWriter() }
 }
