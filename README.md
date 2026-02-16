@@ -29,7 +29,8 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 - 🔍 Analyze **Gradle modules**, **plugins**, and **dependencies**.
 - 📦 List all applied plugins and version catalogs.
 - 📄 View **build files** and configuration scripts in an organized manner.
-- 🧱 Inspect project metadata such as Gradle Kotlin, AGP, Min SDK, Compile SDK, Target SDK and
+- 🧱 Inspect project metadata such as Gradle Kotlin, AGP, Min SDK, Compile SDK, Target SDK, NDK,
+  CMake and
   Multi-Module.
 - 🧾 Preview all **project and Gradle files** directly in the app.
 
@@ -62,28 +63,30 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
     - Android Studio/IDE locations
 - ✅ Path validation and existence status indicators
 - 🔄 Reset to default paths option
-- 💾 Persistent storage using DataStore
+- 🪵 Crash logging
 
 ---
 
 ## 🧰 Tech Stack
 
-| Category | Libraries & Tools                                                       |
-|-----------|-------------------------------------------------------------------------|
-| **Framework** | Compose Multiplatform |
-| **Language** | Kotlin 2.x (Multiplatform)                                              |
-| **Architecture** | MVVM |
-| **Design System** | Material 3 with Adaptive Navigation Suite                               |
-| **Dependency Injection** | Koin                                             |
-| **Navigation** | Jetpack Navigation for Compose                                          |
-| **Image Loading** | Coil3 (Compose + Ktor + Multiplatform)        |
-| **Local Storage** | DataStore (Core + Preferences)                                          |
-| **Serialization** | kotlinx.serialization                                              |
-| **Logging** | Kermit (TouchLab Multiplatform Logger)                                  |
-| **File Handling** | FileKit (Dialogs + Compose)                                             |
-| **Theme Detection** | JSystemThemeDetector                                                    |
-| **Semantic Versioning** | SemVer (z4kn4fein/semver)                                               |
-| **Coroutines** | kotlinx.coroutines + Swing Dispatcher (Desktop)                         |
+| Category                 | Libraries & Tools                               |
+|--------------------------|-------------------------------------------------|
+| **Framework**            | Compose Multiplatform                           |
+| **Language**             | Kotlin 2.x (Multiplatform)                      |
+| **Architecture**         | MVVM                                            |
+| **Design System**        | Material 3 with Adaptive Navigation Suite       |
+| **Dependency Injection** | Koin                                            |
+| **Navigation**           | Jetpack Navigation for Compose                  |
+| **Image Loading**        | Coil3 (Compose + Ktor + Multiplatform)          |
+| **Local Storage**        | DataStore (Core + Preferences)                  |
+| **Serialization**        | kotlinx.serialization                           |
+| **Logging**              | Kermit (TouchLab Multiplatform Logger)          |
+| **File Handling**        | FileKit (Dialogs + Compose)                     |
+| **Theme Detection**      | JSystemThemeDetector                            |
+| **Semantic Versioning**  | SemVer (z4kn4fein/semver)                       |
+| **Coroutines**           | kotlinx.coroutines + Swing Dispatcher (Desktop) |
+| **Sentry**               | Sentry (Crash Reporting)                        |
+| **buildConfig**          | Buildkonfig                                     |
 
 ## 🖥️ How to Run DevAnalyzer
 
