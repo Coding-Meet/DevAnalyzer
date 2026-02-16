@@ -643,10 +643,15 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
         }
 
         fun extractCmakeVersion(): String? {
-            val regex = Regex("""version\s*=?\s*["']?(\d+\.\d+\.\d+)["']?""")
-            val subModuleBuildFileInfo =
-                moduleBuildFileInfos.find { regex.containsMatchIn(it.content) }
-            return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
+            val blockRegex = Regex("""cmake\s*\{([^}]*)\}""", RegexOption.DOT_MATCHES_ALL)
+            val versionRegex = Regex("""\bversion\s*=?\s*["']?(\d+\.\d+\.\d+)["']?""")
+
+            val buildFile = moduleBuildFileInfos.firstOrNull()?.content ?: return null
+
+            val blockMatch = blockRegex.find(buildFile) ?: return null
+            val blockContent = blockMatch.groupValues[1]
+
+            return versionRegex.find(blockContent)?.groupValues?.get(1)
         }
 
         fun getPlatforms(): List<String> {
@@ -657,19 +662,40 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             val jsRegex = Regex("""\bjs\s*([({])""")
             val wasmRegex = Regex("""\bwasm(Js)?\s*([({])""")
             val iosRegex = Regex("""\bios(Arm64|X64|SimulatorArm64)?\s*([({])""")
-            val serverRegex = Regex("""\bapplication\s*([({])""")
 
+            // Server frameworks / plugins
+            val serverFrameworkRegex = Regex(
+                """ktor|springframework|spring-boot|micronaut|vertx""",
+                RegexOption.IGNORE_CASE
+            )
+
+            // Compose Desktop exclusion
+            val composeDesktopRegex =
+                Regex("""org\.jetbrains\.compose\.desktop""")
+
+
+            var hasJvm = false
+            var hasServerFramework = false
+            var isComposeDesktop = false
             moduleBuildFileInfos.forEach { file ->
                 val content = file.content
 
                 if (androidRegex.containsMatchIn(content)) platforms.add("ANDROID")
-                if (jvmRegex.containsMatchIn(content)) platforms.add("JVM")
+                if (jvmRegex.containsMatchIn(content)) {
+                    platforms.add("JVM")
+                    hasJvm = true
+                }
                 if (jsRegex.containsMatchIn(content)) platforms.add("JS")
                 if (wasmRegex.containsMatchIn(content)) platforms.add("WASM")
                 if (iosRegex.containsMatchIn(content)) platforms.add("IOS")
-                if (serverRegex.containsMatchIn(content)) platforms.add("SERVER")
-            }
 
+                if (serverFrameworkRegex.containsMatchIn(content)) hasServerFramework = true
+                if (composeDesktopRegex.containsMatchIn(content)) isComposeDesktop = true
+            }
+            // SERVER = JVM + Backend framework - Compose Desktop
+            if (hasJvm && hasServerFramework && !isComposeDesktop) {
+                platforms.add("SERVER")
+            }
             return platforms.toList()
         }
 
@@ -739,6 +765,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             AppLogger.d(tag = TAG) { "Finding build files" }
 
             val moduleDirs = projectDir.walkTopDown()
+                .maxDepth(4)
                 .filter { it.isDirectory && !it.name.startsWith(".") }
                 .toList()
             // Find module build files
