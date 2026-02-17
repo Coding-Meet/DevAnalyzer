@@ -117,7 +117,7 @@ compose {
                 targetFormats(
                     TargetFormat.Dmg, TargetFormat.Pkg, // macOS
                     TargetFormat.Msi, TargetFormat.Exe, // Windows
-                    TargetFormat.Deb                    // Linux
+                    TargetFormat.AppImage, TargetFormat.Deb // Linux
                 )
                 packageName = "DevAnalyzer"
                 packageVersion = appVersionName()
