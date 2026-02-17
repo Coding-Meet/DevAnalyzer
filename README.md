@@ -177,6 +177,17 @@ Your generosity is greatly appreciated! Thank you for supporting this project.
 
 ## Screenshots
 
+### Onboarding Feature
+
+![Onboarding Screenshot](screenshot/onboarding/img_1.png)
+![Onboarding Screenshot](screenshot/onboarding/img_2.png)
+![Onboarding Screenshot](screenshot/onboarding/img_3.png)
+![Onboarding Screenshot](screenshot/onboarding/img_4.png)
+![Onboarding Screenshot](screenshot/onboarding/img_5.png)
+![Onboarding Screenshot](screenshot/onboarding/img_6.png)
+![Onboarding Screenshot](screenshot/onboarding/img_7.png)
+![Onboarding Screenshot](screenshot/onboarding/img_8.png)
+
 ### Development Project Analyzer Feature
 
 ![Development Project Analyzer Screenshot](screenshot/project/img.png)
