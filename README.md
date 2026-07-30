@@ -13,6 +13,7 @@
 - 🧩 **Project Analyzer** — Examines project modules, Gradle configurations, applied plugins, dependencies, and related build files.
 - 🧹 **Clean Build** — Scans Android Studio projects for build folders across all modules and enables
   selective deletion to reclaim disk space.
+- 🏢 **Workspace Analyzer** — Combined scan of multiple project folders to cross-reference referenced Gradle/Kotlin/SDK versions against system assets and safely clean unused development resources.
 - 💾 **Storage Analyzer** — Scans SDKs, IDE data, Gradle caches, and library directories to visualize overall storage usage.
 - ⚙️ **Settings** — Configure custom paths for Android SDK, Gradle User Home, Kotlin Native, and IDE
   locations.
@@ -30,8 +31,7 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 - 📦 List all applied plugins and version catalogs.
 - 📄 View **build files** and configuration scripts in an organized manner.
 - 🧱 Inspect project metadata such as Gradle Kotlin, AGP, Min SDK, Compile SDK, Target SDK, NDK,
-  CMake and
-  Multi-Module.
+  CMake and Multi-Module.
 - 🧾 Preview all **project and Gradle files** directly in the app.
 
 ### 🧹 Clean Build
@@ -45,6 +45,16 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 - 🎨 **Floating action button** with smooth animations for quick delete access.
 - 💾 **Space recovery tracking** - See exactly how much space you'll free up.
 
+### 🏢 Workspace Analyzer
+
+- 📂 **Multi-Workspace Path Persistence** — Add and persist multiple workspace root paths (e.g. `AndroidStudioProjects`, `IdeaProjects`) in a single run.
+- 🔄 **Cross-Reference Dependency Auditing** — Traverses all projects under workspace directories to extract referenced compile/target SDK versions, Gradle wrappers, and Kotlin compilers.
+- 🛡️ **Protected Active Resources** — Automatically locks and hides active system resources referenced by any of your workspace projects, showing a lock icon and project references.
+- 🧹 **Unused System Resources Cleanup** — Highlights installed Android SDK Platforms, SDK Build Tools, old Gradle wrapper versions, Kotlin Native compiler prebuilts, and library cache distributions that are no longer in use.
+- 📦 **Accordion Grouping Panels** — Groups scan results inside bordered nested category containers with dynamic rounded corners based on expanded state.
+- ⚠️ **Context-Aware Safety Banners** — Prompts alert caution strips and warning sheets dynamically based on active search queries or tab filters.
+- 💾 **State Persistence** — Saves the list of currently selected workspace folders in DataStore for seamless return.
+
 ### 💾 Storage Analyzer
 
 - 💡 Get total storage summaries by component (SDK, IDE, Gradle, Library, etc.).
@@ -57,10 +67,10 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 ### ⚙️ Settings
 
 - 🛠️ Configure custom paths for:
-    - Android SDK location
-    - Gradle User Home directory
-    - Kotlin Native cache
-    - Android Studio/IDE locations
+  - Android SDK location
+  - Gradle User Home directory
+  - Kotlin Native cache
+  - Android Studio/IDE locations
 - ✅ Path validation and existence status indicators
 - 🔄 Reset to default paths option
 - 🪵 Crash logging
@@ -70,7 +80,7 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 ## 🧰 Tech Stack
 
 | Category                 | Libraries & Tools                               |
-|--------------------------|-------------------------------------------------|
+| ------------------------ | ----------------------------------------------- |
 | **Framework**            | Compose Multiplatform                           |
 | **Language**             | Kotlin 2.x (Multiplatform)                      |
 | **Architecture**         | MVVM                                            |
@@ -145,6 +155,7 @@ If you want to build and run the app from source:
 ```shell
 .\gradlew.bat :composeApp:run
 ```
+
 ---
 
 ## Contributing 🤝

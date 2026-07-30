@@ -5,10 +5,12 @@ import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.CleaningServices
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.filled.Storage
+import androidx.compose.material.icons.filled.Workspaces
 import androidx.compose.material.icons.outlined.AccountTree
 import androidx.compose.material.icons.outlined.CleaningServices
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.material.icons.outlined.Storage
+import androidx.compose.material.icons.outlined.Workspaces
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.meet.dev.analyzer.presentation.navigation.AppRoute
 
@@ -39,6 +41,13 @@ enum class NavigationItem(
         selectedIcon = Icons.Filled.CleaningServices,
         unSelectedIcon = Icons.Outlined.CleaningServices,
         description = "Scan and delete build folders from Android Studio projects to free up disk space."
+    ),
+    Workspace(
+        title = "Workspace",
+        appRoute = AppRoute.Workspace,
+        selectedIcon = Icons.Filled.Workspaces,
+        unSelectedIcon = Icons.Outlined.Workspaces,
+        description = "Scan and delete unused SDKs, build tools, Gradle wrapper caches, and Kotlin Native compilers."
     ),
     Settings(
         title = "Settings",

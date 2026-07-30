@@ -8,6 +8,8 @@ import com.meet.dev.analyzer.data.repository.setting.SettingsRepository
 import com.meet.dev.analyzer.data.repository.setting.SettingsRepositoryImpl
 import com.meet.dev.analyzer.data.repository.storage.StorageAnalyzerRepository
 import com.meet.dev.analyzer.data.repository.storage.StorageAnalyzerRepositoryImpl
+import com.meet.dev.analyzer.data.repository.workspace.WorkspaceRepository
+import com.meet.dev.analyzer.data.repository.workspace.WorkspaceRepositoryImpl
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -18,6 +20,7 @@ val repositoryModule = module {
     singleOf(::StorageAnalyzerRepositoryImpl).bind(StorageAnalyzerRepository::class)
     singleOf(::CleanBuildRepositoryImpl).bind(CleanBuildRepository::class)
     singleOf(::SettingsRepositoryImpl).bind(SettingsRepository::class)
+    singleOf(::WorkspaceRepositoryImpl).bind(WorkspaceRepository::class)
 
 }
 

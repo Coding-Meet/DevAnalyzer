@@ -7,6 +7,7 @@ import com.meet.dev.analyzer.presentation.screen.project.ProjectAnalyzerViewMode
 import com.meet.dev.analyzer.presentation.screen.setting.SettingsViewModel
 import com.meet.dev.analyzer.presentation.screen.splash.SplashViewModel
 import com.meet.dev.analyzer.presentation.screen.storage.StorageAnalyzerViewModel
+import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceViewModel
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.module
 
@@ -18,4 +19,5 @@ val viewModule = module {
     viewModelOf(::StorageAnalyzerViewModel)
     viewModelOf(::SettingsViewModel)
     viewModelOf(::CleanBuildViewModel)
+    viewModelOf(::WorkspaceViewModel)
 }

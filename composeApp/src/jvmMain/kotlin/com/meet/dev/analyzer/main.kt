@@ -1,6 +1,6 @@
 package com.meet.dev.analyzer
 
-import androidx.compose.material.MaterialTheme
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -77,7 +77,7 @@ fun main() {
             }
 
             DevAnalyzerTheme(darkTheme = appUiState.isDarkMode) {
-                val surfaceColor = MaterialTheme.colors.surface.toArgb()
+                val surfaceColor = MaterialTheme.colorScheme.surface.toArgb()
                 val backgroundColor = Color(surfaceColor)
 
                 LaunchedEffect(appUiState.isDarkMode, window.rootPane) {
@@ -115,6 +115,19 @@ fun main() {
                             )
                         }
                 }
+//
+//                val updateState = appViewModel.updateDialogState
+//                LaunchedEffect(
+//                    Unit
+//                ){
+//                    appViewModel.openUpdateDialog()
+//                }
+//                if (updateState != null) {
+//                    UpdateDialog(
+//                        state = updateState,
+//                        onDismiss = { appViewModel.closeUpdateDialog() }
+//                    )
+//                }
             }
         }
     }
