@@ -608,9 +608,18 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             if (fromCatalog != null) return fromCatalog
 
             val regex = Regex("""compileSdk(?:Version)?\s*=?\s*(\d+)""")
-            val subModuleBuildFileInfo =
-                moduleBuildFileInfos.find { regex.containsMatchIn(it.content) }
-            return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
+            val newFormatRegex = Regex(
+                """compileSdk\s*\{\s*(?:[^{}]*)\bversion\s*=\s*release\((\d+)\)""",
+                RegexOption.DOT_MATCHES_ALL
+            )
+
+            val subModuleBuildFileInfo = moduleBuildFileInfos.find {
+                regex.containsMatchIn(it.content) || newFormatRegex.containsMatchIn(it.content)
+            }
+            return subModuleBuildFileInfo?.let {
+                regex.find(it.content)?.groupValues?.get(1)
+                    ?: newFormatRegex.find(it.content)?.groupValues?.get(1)
+            }
         }
 
         fun extractMinSdk(): String? {
@@ -633,6 +642,23 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             val subModuleBuildFileInfo =
                 moduleBuildFileInfos.find { regex.containsMatchIn(it.content) }
             return subModuleBuildFileInfo?.let { regex.find(it.content)?.groupValues?.get(1) }
+        }
+        fun extractBuildToolsSdk(): String? {
+            // buildToolsVersion = "33.0.1"
+            // buildToolsVersion = '33.0.1'
+            // buildToolsVersion "33.0.1"
+            // buildToolsVersion '33.0.1'
+            // buildToolsVersion=33.0.1
+            // buildToolsVersion = 33.0.1
+            // buildToolsVersion "35"
+            // buildToolsVersion "35.0"
+            // buildToolsVersion "35.0.0"
+            val buildToolsRegex = Regex("""buildToolsVersion\s*=?\s*(["'])?(\d+(?:\.\d+){0,2})\1""")
+            val subModuleBuildFileInfo =
+                moduleBuildFileInfos.find { buildToolsRegex.containsMatchIn(it.content) }
+            return subModuleBuildFileInfo
+                ?.let { buildToolsRegex.find(it.content)?.groupValues?.get(2) }
+                ?: extractCompileSdk()?.let { "$it.0.0" }
         }
 
         fun extractNdkVersion(): String? {
@@ -710,6 +736,7 @@ class ProjectAnalyzerRepositoryImpl : ProjectAnalyzerRepository {
             gradleVersion = findGradleVersion(),
             kotlinVersion = extractKotlinVersion(),
             androidGradlePluginVersion = extractAgpVersion(),
+            buildToolsSdk = extractBuildToolsSdk(),
             targetSdkVersion = extractTargetSdk(),
             minSdkVersion = extractMinSdk(),
             compileSdkVersion = extractCompileSdk(),

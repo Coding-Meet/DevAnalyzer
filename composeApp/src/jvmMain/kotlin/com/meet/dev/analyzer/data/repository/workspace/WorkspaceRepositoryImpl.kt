@@ -82,10 +82,21 @@ class WorkspaceRepositoryImpl : WorkspaceRepository {
                 val apiRegex = Regex("""android-(\d+)""")
                 sdkPlatformsDir.listFiles()?.filter { it.isDirectory }?.forEach { dir ->
                     val apiVal = apiRegex.find(dir.name)?.groupValues?.get(1) ?: dir.name.substringAfter("android-")
-                    val isUsed = usedCompileSdks.contains(apiVal) || usedTargetSdks.contains(apiVal) || usedMinSdks.contains(apiVal)
+                    val isUsed =
+                        usedCompileSdks.contains(apiVal) || usedCompileSdks.any { it.contains(apiVal) } ||
+                                usedTargetSdks.contains(apiVal) || usedTargetSdks.any {
+                            it.contains(
+                                apiVal
+                            )
+                        } ||
+                                usedMinSdks.contains(apiVal) || usedMinSdks.any { it.contains(apiVal) }
                     val size = FolderFileUtils.calculateFolderSize(dir, false)
                     val usingProjects = if (isUsed) {
-                        projects.filter { it.compileSdk == apiVal || it.targetSdk == apiVal || it.minSdk == apiVal }.map { it.projectName }
+                        projects.filter {
+                            it.compileSdk == apiVal || it.compileSdk?.contains(apiVal) == true ||
+                                    it.targetSdk == apiVal || it.targetSdk?.contains(apiVal) == true ||
+                                    it.minSdk == apiVal || it.minSdk?.contains(apiVal) == true
+                        }.map { it.projectName }
                     } else emptyList()
                     val resource = UnusedResourceItem(
                         name = "Android Platform API $apiVal",
@@ -305,22 +316,55 @@ class WorkspaceRepositoryImpl : WorkspaceRepository {
             catalogContent = versionCatalogFile.readText()
         }
 
-        // Regex definitions
-        val compileSdkRegex = Regex("""compileSdk(?:Version)?\s*=?\s*(\d+)""")
-        val minSdkRegex = Regex("""minSdk(?:Version)?\s*=?\s*(\d+)""")
-        val targetSdkRegex = Regex("""targetSdk(?:Version)?\s*=?\s*(\d+)""")
-        val buildToolsRegex = Regex("""buildToolsVersion\s*=?\s*["']?([\d.]+)["']?""")
-        val agpPluginRegex = Regex("""id\("com\.android\.(?:application|library)"\)\s+version\s+"([\d.]+)"""")
-        val kotlinPluginRegex = Regex("""id\("org\.jetbrains\.kotlin\.(?:android|jvm|multiplatform)"\)\s+version\s+"([\d.]+)"""")
+        // Regex definitions aligned with ProjectAnalyzerRepositoryImpl
+        val compileSdkRegex = Regex("compileSdk(?:Version)?\\s*=?\\s*(\\d+)")
+        val compileSdkNewFormatRegex = Regex(
+            "compileSdk\\s*\\{\\s*(?:[^{}]*)\\bversion\\s*=\\s*release\\((\\d+)\\)",
+            RegexOption.DOT_MATCHES_ALL
+        )
+        val minSdkRegex = Regex("minSdk(?:Version)?\\s*=?\\s*(\\d+)")
+        val targetSdkRegex = Regex("targetSdk(?:Version)?\\s*=?\\s*(\\d+)")
+        val buildToolsRegex = Regex("buildToolsVersion\\s*=?\\s*[\"']?([\\d.]+)[\"']?")
+
+        // AGP matching
+        val agpPluginRegex =
+            Regex("id\\(\"com\\.android\\.(?:application|library)\"\\)\\s+version\\s+\"([\\d.]+)\"")
+        val agpKtsClasspathRegex =
+            Regex("classpath\\(\"com\\.android\\.tools\\.build:gradle:([\\d.]+)\"\\)")
+        val agpGroovyClasspathRegex =
+            Regex("classpath\\s+['\"]com\\.android\\.tools\\.build:gradle:([\\d.]+)['\"]")
+
+        // Kotlin matching
+        val kotlinPluginRegex =
+            Regex("id\\(\"org\\.jetbrains\\.kotlin\\.(?:android|jvm|multiplatform)\"\\)\\s+version\\s+\"([\\d.]+)\"")
+        val kotlinKtsClasspathRegex =
+            Regex("classpath\\(\"org\\.jetbrains\\.kotlin:kotlin-gradle-plugin:([\\d.]+)\"\\)")
+        val kotlinGroovyClasspathRegex =
+            Regex("classpath\\s+['\"]org\\.jetbrains\\.kotlin:kotlin-gradle-plugin:([\\d.]+)['\"]")
 
         // Parse versions from Toml Version Catalog
         if (catalogContent.isNotEmpty()) {
             val versionSection = catalogContent.substringAfter("[versions]").substringBefore("[")
-            val compileSdkToml = Regex("""android[.-]compileSdk\s*=\s*["']?(\d+)["']?""").find(versionSection)?.groupValues?.get(1)
-            val minSdkToml = Regex("""android[.-]minSdk\s*=\s*["']?(\d+)["']?""").find(versionSection)?.groupValues?.get(1)
-            val targetSdkToml = Regex("""android[.-]targetSdk\s*=\s*["']?(\d+)["']?""").find(versionSection)?.groupValues?.get(1)
-            val agpToml = Regex("""(?:agp|androidGradlePlugin)\s*=\s*["']?([\d.]+)["']?""").find(versionSection)?.groupValues?.get(1)
-            val kotlinToml = Regex("""kotlin\s*=\s*["']?([\d.]+)["']?""").find(versionSection)?.groupValues?.get(1)
+            val compileSdkToml =
+                Regex("""(?:android[.-])?compileSdk\s*=\s*["']?(\d+)["']?""").find(versionSection)?.groupValues?.get(
+                    1
+                )
+            val minSdkToml =
+                Regex("""(?:android[.-])?minSdk\s*=\s*["']?(\d+)["']?""").find(versionSection)?.groupValues?.get(
+                    1
+                )
+            val targetSdkToml =
+                Regex("""(?:android[.-])?targetSdk\s*=\s*["']?(\d+)["']?""").find(versionSection)?.groupValues?.get(
+                    1
+                )
+            val agpToml =
+                Regex("""(?:agp|androidGradlePlugin|android[.-]gradle[.-]plugin)\s*=\s*["']?([\d.]+)["']?""").find(
+                    versionSection
+                )?.groupValues?.get(1)
+            val kotlinToml =
+                Regex("""(?:kotlin|kotlin[.-]version)\s*=\s*["']?([\d.]+)["']?""").find(
+                    versionSection
+                )?.groupValues?.get(1)
 
             compileSdkToml?.let { compileSdk = it }
             minSdkToml?.let { minSdk = it }
@@ -333,11 +377,20 @@ class WorkspaceRepositoryImpl : WorkspaceRepository {
             val content = file.readText()
 
             compileSdkRegex.find(content)?.let { compileSdk = it.groupValues[1] }
+            compileSdkNewFormatRegex.find(content)?.let { compileSdk = it.groupValues[1] }
             minSdkRegex.find(content)?.let { minSdk = it.groupValues[1] }
             targetSdkRegex.find(content)?.let { targetSdk = it.groupValues[1] }
             buildToolsRegex.find(content)?.let { buildToolsVersion = it.groupValues[1] }
+
+            // AGP versions lookup
             agpPluginRegex.find(content)?.let { agpVersion = it.groupValues[1] }
+            agpKtsClasspathRegex.find(content)?.let { agpVersion = it.groupValues[1] }
+            agpGroovyClasspathRegex.find(content)?.let { agpVersion = it.groupValues[1] }
+
+            // Kotlin versions lookup
             kotlinPluginRegex.find(content)?.let { kotlinVersion = it.groupValues[1] }
+            kotlinKtsClasspathRegex.find(content)?.let { kotlinVersion = it.groupValues[1] }
+            kotlinGroovyClasspathRegex.find(content)?.let { kotlinVersion = it.groupValues[1] }
         }
 
         return WorkspaceProjectInfo(

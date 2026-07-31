@@ -164,6 +164,7 @@ fun ProjectOverviewCard(
                         projectOverviewInfo.minSdkVersion?.let { add("Min SDK $it") }
                         projectOverviewInfo.compileSdkVersion?.let { add("Compile SDK $it") }
                         projectOverviewInfo.targetSdkVersion?.let { add("Target SDK $it") }
+                        projectOverviewInfo.buildToolsSdk?.let { add("Build Tools $it") }
                         if (projectOverviewInfo.isMultiModule) {
                             add("Multi-Module")
                         }
