@@ -11,12 +11,10 @@
 **DevAnalyzer** is a cross-platform desktop application built with **Compose Multiplatform** and **Kotlin Multiplatform (KMP)**.
 
 - 🧩 **Project Analyzer** — Examines project modules, Gradle configurations, applied plugins, dependencies, and related build files.
-- 🧹 **Clean Build** — Scans Android Studio projects for build folders across all modules and enables
-  selective deletion to reclaim disk space.
-- 🏢 **Workspace Analyzer** — Combined scan of multiple project folders to cross-reference referenced Gradle/Kotlin/SDK versions against system assets and safely clean unused development resources.
+- 🧹 **Clean Build** — Scans Android Studio projects for build folders across all modules and enables selective deletion to reclaim disk space.
+- 🏢 **Workspace Analyzer** — Combined scan of multiple project folders to cross-reference referenced Gradle/Kotlin/SDK/NDK/CMake versions against system assets and safely clean unused development resources.
 - 💾 **Storage Analyzer** — Scans SDKs, IDE data, Gradle caches, and library directories to visualize overall storage usage.
-- ⚙️ **Settings** — Configure custom paths for Android SDK, Gradle User Home, Kotlin Native, and IDE
-  locations.
+- ⚙️ **Settings** — Configure custom paths for Android SDK, Gradle User Home, Kotlin Native, and IDE locations.
 
 Designed for modern developers, **DevAnalyzer** helps you **understand**, **analyze**, and **optimize** your entire development ecosystem — all from a single, unified interface.  
 Built as a **desktop-first tool**, it runs seamlessly across platforms and can be easily extended to **Android**, **KMP**, or **backend Kotlin** environments.
@@ -50,7 +48,7 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 - 📂 **Multi-Workspace Path Persistence** — Add and persist multiple workspace root paths (e.g. `AndroidStudioProjects`, `IdeaProjects`) in a single run.
 - 🔄 **Cross-Reference Dependency Auditing** — Traverses all projects under workspace directories to extract referenced compile/target SDK versions, Gradle wrappers, and Kotlin compilers.
 - 🛡️ **Protected Active Resources** — Automatically locks and hides active system resources referenced by any of your workspace projects, showing a lock icon and project references.
-- 🧹 **Unused System Resources Cleanup** — Highlights installed Android SDK Platforms, SDK Build Tools, old Gradle wrapper versions, Kotlin Native compiler prebuilts, and library cache distributions that are no longer in use.
+- 🧹 **Unused System Resources Cleanup** — Highlights installed Android SDK Platforms, SDK Build Tools, SDK Sources, old Gradle wrapper versions, Kotlin Native compiler prebuilts, NDKs, CMake versions, and library cache distributions that are no longer in use.
 - 📦 **Accordion Grouping Panels** — Groups scan results inside bordered nested category containers with dynamic rounded corners based on expanded state.
 - ⚠️ **Context-Aware Safety Banners** — Prompts alert caution strips and warning sheets dynamically based on active search queries or tab filters.
 - 💾 **State Persistence** — Saves the list of currently selected workspace folders in DataStore for seamless return.

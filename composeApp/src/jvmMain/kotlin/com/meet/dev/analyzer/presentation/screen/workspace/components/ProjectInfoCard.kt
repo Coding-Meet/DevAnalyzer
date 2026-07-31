@@ -27,14 +27,14 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.data.models.workspace.WorkspaceProjectInfo
+import com.meet.dev.analyzer.data.models.project.ProjectOverviewInfo
 import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
 import java.awt.Cursor
 
 @Composable
 fun ProjectInfoCard(
-    project: WorkspaceProjectInfo,
+    project: ProjectOverviewInfo,
     isHighlighted: Boolean
 ) {
     val shape = RoundedCornerShape(12.dp)
@@ -96,13 +96,17 @@ fun ProjectInfoCard(
 
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 val metadata = listOf(
-                    "Compile SDK" to project.compileSdk,
-                    "Target SDK" to project.targetSdk,
-                    "Min SDK" to project.minSdk,
-                    "Build Tools" to (project.buildToolsVersion ?: project.compileSdk?.let { "$it.0.0 (Auto)" }),
+                    "Compile SDK" to project.compileSdkVersion,
+                    "Target SDK" to project.targetSdkVersion,
+                    "Min SDK" to project.minSdkVersion,
+                    "Build Tools" to (project.buildToolsSdk ?: project.compileSdkVersion?.let { "$it.0.0 (Auto)" }),
                     "Gradle Version" to project.gradleVersion,
                     "Kotlin version" to project.kotlinVersion,
-                    "AGP version" to project.agpVersion
+                    "AGP version" to project.androidGradlePluginVersion,
+                    "Project Size" to project.sizeReadable,
+                    "Multi-Module" to (if (project.isMultiModule) "Yes" else "No"),
+                    "NDK Version" to project.ndkVersion,
+                    "CMake Version" to project.cmakeVersion
                 )
 
                 metadata.chunked(2).forEach { rowItems ->
@@ -131,6 +135,31 @@ fun ProjectInfoCard(
                         if (rowItems.size == 1) {
                             Spacer(modifier = Modifier.weight(1f))
                         }
+                    }
+                }
+
+                val platforms = project.platformList.joinToString(", ")
+
+                if (platforms.isNotEmpty()) {
+                    HorizontalDivider(
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.05f),
+                        modifier = Modifier.padding(vertical = 4.dp)
+                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Platforms:",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = platforms,
+                            style = MaterialTheme.typography.bodySmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.primary
+                        )
                     }
                 }
             }

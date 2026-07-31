@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ChevronRight
+import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.data.models.workspace.ResourceCategory
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
+import com.meet.dev.analyzer.presentation.components.CustomToolTip
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceIntent
 import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
@@ -88,6 +90,17 @@ fun CategoryHeaderItem(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
+            CustomToolTip(
+                title = category.displayName,
+                description = category.description
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = "Info",
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+                    modifier = Modifier.size(20.dp)
+                )
+            }
         }
         Row(
             verticalAlignment = Alignment.CenterVertically,

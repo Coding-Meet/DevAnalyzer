@@ -93,7 +93,7 @@ fun WorkspaceSelectionSection(
                         modifier = Modifier.size(18.dp)
                     )
                     Text(
-                        text = "Tip: Add all your projects' parent folders (e.g. AndroidStudioProjects, IdeaProjects). Since Gradle cache, Kotlin native prebuilts, and SDK platforms are shared globally, scanning all workspace folders together ensures safe and accurate cleanup without breaking other projects.",
+                        text = "Tip: Add all your projects' parent folders (e.g. AndroidStudioProjects, IdeaProjects). Since Gradle cache, Kotlin native compilers, SDK platforms, SDK sources, NDKs, and CMake tools are shared globally, scanning all workspace folders together ensures safe and accurate cleanup without breaking other projects.",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSecondaryContainer
                     )

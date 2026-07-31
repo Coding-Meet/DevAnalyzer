@@ -7,13 +7,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.meet.dev.analyzer.data.models.project.ProjectOverviewInfo
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
-import com.meet.dev.analyzer.data.models.workspace.WorkspaceProjectInfo
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
 
 data class WorkspaceUiState(
     val selectedPaths: List<String> = emptyList(),
-    val projects: List<WorkspaceProjectInfo> = emptyList(),
+    val projects: List<ProjectOverviewInfo> = emptyList(),
     val unusedResources: List<UnusedResourceItem> = emptyList(),
 
     val searchQuery: String = "",

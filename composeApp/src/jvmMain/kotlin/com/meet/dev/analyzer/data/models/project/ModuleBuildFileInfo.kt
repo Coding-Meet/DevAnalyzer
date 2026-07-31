@@ -17,6 +17,7 @@ data class ModuleBuildFileInfo(
     val readLines: List<String>,
     val file: File,
     val modulePath: String,
+    val isRootBuildFile: Boolean = false,
     val plugins: List<Plugin> = emptyList(),
     val dependencies: List<Dependency> = emptyList()
 )
