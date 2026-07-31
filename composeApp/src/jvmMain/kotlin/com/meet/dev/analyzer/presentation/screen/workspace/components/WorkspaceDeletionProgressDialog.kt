@@ -1,5 +1,6 @@
 package com.meet.dev.analyzer.presentation.screen.workspace.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
@@ -28,17 +29,19 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
-import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceDeletionProgress
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceDeletionStatus
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
 import java.awt.Cursor
 
 @Composable
@@ -54,7 +57,11 @@ fun WorkspaceDeletionProgressDialog(
     onDismiss: () -> Unit
 ) {
     val scrollState = rememberLazyListState()
-
+    LaunchedEffect(deletionProgressList.size) {
+        if (deletionProgressList.isNotEmpty() && !isDeletionComplete) {
+            scrollState.animateScrollToItem(0)
+        }
+    }
     AlertDialog(
         onDismissRequest = { if (isDeletionComplete) onDismiss() },
         modifier = Modifier.width(700.dp),
@@ -89,10 +96,6 @@ fun WorkspaceDeletionProgressDialog(
                             MaterialTheme.colorScheme.surfaceVariant
                         }
                     ),
-                    elevation = CardDefaults.cardElevation(
-                        defaultElevation = 0.dp,
-                        hoveredElevation = 2.dp
-                    )
                 ) {
                     Column(
                         modifier = Modifier
@@ -203,8 +206,8 @@ fun WorkspaceDeletionProgressDialog(
                     LazyColumn(
                         state = scrollState,
                         modifier = Modifier
-                            .heightIn(max = 250.dp)
                             .fillMaxWidth()
+                            .heightIn(max = 400.dp)
                             .padding(end = 12.dp),
                         contentPadding = PaddingValues(top = 4.dp, bottom = 4.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -215,10 +218,6 @@ fun WorkspaceDeletionProgressDialog(
                                 colors = CardDefaults.cardColors(
                                     containerColor = progress.status.containerColor()
                                 ),
-                                elevation = CardDefaults.cardElevation(
-                                    defaultElevation = 0.dp,
-                                    hoveredElevation = 2.dp
-                                )
                             ) {
                                 Row(
                                     modifier = Modifier
@@ -236,7 +235,21 @@ fun WorkspaceDeletionProgressDialog(
                                         Text(
                                             progress.resourceItem.path,
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                            maxLines = 1,
+                                            modifier = if (progress.status == WorkspaceDeletionStatus.FAILED)
+                                                Modifier.pointerHoverIcon(
+                                                    PointerIcon(
+                                                        Cursor.getPredefinedCursor(
+                                                            Cursor.HAND_CURSOR
+                                                        )
+                                                    )
+                                                )
+                                                    .clickable {
+                                                        progress.resourceItem.path.openFile()
+                                                    }
+                                            else
+                                                Modifier
                                         )
                                     }
 
@@ -277,6 +290,7 @@ fun WorkspaceDeletionProgressDialog(
                     Text("OK")
                 }
             }
-        }
+        },
+        dismissButton = null
     )
 }
