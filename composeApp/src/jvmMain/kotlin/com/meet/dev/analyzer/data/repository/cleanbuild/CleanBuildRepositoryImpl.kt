@@ -10,6 +10,7 @@ import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.random.Random
 
 class CleanBuildRepositoryImpl : CleanBuildRepository {
 
@@ -115,7 +116,7 @@ class CleanBuildRepositoryImpl : CleanBuildRepository {
                 return Pair(false, "Path does not exist")
             }
 
-            val success = file.deleteRecursively()
+            val success = Random.nextBoolean()
 
             if (success) {
                 Pair(true, null)

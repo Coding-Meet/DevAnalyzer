@@ -18,6 +18,7 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Folder
@@ -568,6 +569,13 @@ fun SettingsScreenContent(
                         value = "buymeacoffee.com/codingmeet",
                         icon = Icons.Default.LocalCafe,
                         url = AppLinks.DONATE_COFFEE
+                    )
+
+                    LinkSettingItem(
+                        label = "Donate via PayPal",
+                        value = "paypal.me/meetb26",
+                        icon = Icons.Default.CreditCard,
+                        url = AppLinks.DONATE_PAYPAL
                     )
                 }
 

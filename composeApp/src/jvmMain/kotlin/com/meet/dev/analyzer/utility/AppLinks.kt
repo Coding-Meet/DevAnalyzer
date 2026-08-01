@@ -32,6 +32,7 @@ object AppLinks {
     const val HIRE_ME = "https://www.codingmeet.com/service"
     const val DONATE = "https://github.com/sponsors/Coding-Meet"
     const val DONATE_COFFEE = "https://buymeacoffee.com/codingmeet"
+    const val DONATE_PAYPAL = "https://paypal.me/meetb26"
 
     val socialLinks =
         listOf(

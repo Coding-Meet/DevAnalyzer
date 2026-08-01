@@ -38,6 +38,7 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.meet.dev.analyzer.presentation.components.SponsorTipCard
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceDeletionProgress
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceDeletionStatus
@@ -190,6 +191,11 @@ fun WorkspaceDeletionProgressDialog(
                             )
                         }
                     }
+                }
+
+                if (isDeletionComplete && failedCount == 0 && successCount > 0) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SponsorTipCard()
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

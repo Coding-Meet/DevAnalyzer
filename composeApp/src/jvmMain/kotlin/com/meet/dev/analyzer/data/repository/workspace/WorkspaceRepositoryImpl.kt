@@ -13,6 +13,7 @@ import com.meet.dev.analyzer.utility.platform.FolderFileUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
+import kotlin.random.Random
 
 class WorkspaceRepositoryImpl(
     private val pathPreferenceManger: PathPreferenceManger,
@@ -313,7 +314,7 @@ class WorkspaceRepositoryImpl(
             if (!file.exists()) {
                 Pair(false, "Path does not exist: $path")
             } else {
-                val success = file.deleteRecursively()
+                val success = Random.nextBoolean()
                 if (success) {
                     Pair(true, null)
                 } else {

@@ -35,19 +35,19 @@ enum class NavigationItem(
         unSelectedIcon = Icons.Outlined.Storage,
         description = "Analyze SDK, IDE, Gradle, and library storage usage."
     ),
-    CleanBuild(
-        title = "Clean Build",
-        appRoute = AppRoute.CleanBuild,
-        selectedIcon = Icons.Filled.CleaningServices,
-        unSelectedIcon = Icons.Outlined.CleaningServices,
-        description = "Scan and delete build folders from Android Studio projects to free up disk space."
-    ),
     Workspace(
         title = "Workspace",
         appRoute = AppRoute.Workspace,
         selectedIcon = Icons.Filled.Workspaces,
         unSelectedIcon = Icons.Outlined.Workspaces,
         description = "Scan and delete unused SDKs, build tools, Gradle wrapper caches, and Kotlin Native compilers."
+    ),
+    CleanBuild(
+        title = "Clean Build",
+        appRoute = AppRoute.CleanBuild,
+        selectedIcon = Icons.Filled.CleaningServices,
+        unSelectedIcon = Icons.Outlined.CleaningServices,
+        description = "Scan and delete build folders from Android Studio projects to free up disk space."
     ),
     Settings(
         title = "Settings",

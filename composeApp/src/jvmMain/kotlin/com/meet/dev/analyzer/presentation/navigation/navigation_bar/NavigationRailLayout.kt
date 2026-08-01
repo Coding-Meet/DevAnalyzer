@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material3.Icon
@@ -22,6 +23,7 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
+import com.meet.dev.analyzer.utility.AppLinks
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -117,6 +119,7 @@ fun NavigationRailLayout(
             }
 
             Spacer(Modifier.weight(1f))
+            SponsorButton()
             ThemeSwitch(
                 isDarkMode = isDarkTheme,
                 onThemeChange = onThemeChange
@@ -129,6 +132,35 @@ fun NavigationRailLayout(
         )
     }
 
+}
+
+@Composable
+fun SponsorButton(
+    modifier: Modifier = Modifier
+) {
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+
+    CustomToolTip(
+        title = "Sponsor Project",
+        description = "Support the development of DevAnalyzer on GitHub Sponsors",
+    ) {
+        IconButton(
+            onClick = { uriHandler.openUri(AppLinks.DONATE) },
+            modifier = modifier
+                .padding(8.dp)
+                .size(42.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = "Sponsor Project",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.size(22.dp)
+            )
+        }
+    }
 }
 
 @Composable
