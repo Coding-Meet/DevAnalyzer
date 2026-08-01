@@ -3,6 +3,7 @@ package com.meet.dev.analyzer.presentation.screen.cleanbuild
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.data.repository.cleanbuild.CleanBuildRepository
+import com.meet.dev.analyzer.data.repository.setting.SettingsRepository
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatElapsedTime
@@ -15,11 +16,16 @@ import kotlinx.io.IOException
 import java.io.File
 
 class CleanBuildViewModel(
-    private val repository: CleanBuildRepository
+    private val cleanBuildRepository: CleanBuildRepository,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
     private val TAG = tagName(javaClass)
 
-    private val _uiState = MutableStateFlow(CleanBuildUiState())
+    private val _uiState = MutableStateFlow(
+        CleanBuildUiState(
+            lastSubmittedReviewVersion = settingsRepository.lastSubmittedReviewVersion
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     fun handleIntent(intent: CleanBuildIntent) {
@@ -181,7 +187,7 @@ class CleanBuildViewModel(
                     }
 
                     // Perform deletion
-                    val (success, errorMessage) = repository.deleteBuildFolder(module.path)
+                    val (success, errorMessage) = cleanBuildRepository.deleteBuildFolder(module.path)
                     // Update status to SUCCESS or FAILED
                     _uiState.update { state ->
                         state.copy(
@@ -283,7 +289,7 @@ class CleanBuildViewModel(
                     )
                 }
 
-                val result = repository.scanProjects(
+                val result = cleanBuildRepository.scanProjects(
                     rootPath = rootPath
                 ) { progress, status ->
                     _uiState.update {
@@ -356,5 +362,11 @@ class CleanBuildViewModel(
         return rootDir.walkTopDown()
             .maxDepth(3)
             .any { it.isDirectory && it.name == "build" }
+    }
+
+    fun saveReviewVersion(version: String) {
+        viewModelScope.launch {
+            settingsRepository.saveLastSubmittedReviewVersion(version)
+        }
     }
 }

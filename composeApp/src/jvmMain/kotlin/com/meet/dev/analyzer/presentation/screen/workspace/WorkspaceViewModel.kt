@@ -4,7 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import com.meet.dev.analyzer.data.models.workspace.ResourceCategory
-import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
+import com.meet.dev.analyzer.data.repository.setting.SettingsRepository
 import com.meet.dev.analyzer.data.repository.workspace.WorkspaceRepository
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
@@ -19,12 +19,14 @@ import java.io.File
 
 class WorkspaceViewModel(
     private val repository: WorkspaceRepository,
-    private val pathPreferenceManger: PathPreferenceManger
+    private val pathPreferenceManger: PathPreferenceManger,
+    private val settingsRepository: SettingsRepository,
 ) : ViewModel() {
 
     private val TAG = tagName(javaClass)
 
-    private val _uiState = MutableStateFlow(WorkspaceUiState())
+    private val _uiState =
+        MutableStateFlow(WorkspaceUiState(lastSubmittedReviewVersion = settingsRepository.lastSubmittedReviewVersion))
     val uiState = _uiState.asStateFlow()
 
     init {
@@ -42,19 +44,30 @@ class WorkspaceViewModel(
                     pathPreferenceManger.saveRecentWorkspace(intent.path)
                 }
             }
+
             is WorkspaceIntent.OnRemovePath -> {
                 viewModelScope.launch {
                     pathPreferenceManger.removeRecentWorkspace(intent.path)
                 }
             }
+
             WorkspaceIntent.OnClearPaths -> {
                 viewModelScope.launch {
                     pathPreferenceManger.clearRecentWorkspaces()
                 }
             }
+
             WorkspaceIntent.OnAnalyzeWorkspace -> handleAnalyzeWorkspace()
-            is WorkspaceIntent.OnResourceSelectionChange -> handleResourceSelectionChange(intent.uniqueId, intent.isSelected)
-            is WorkspaceIntent.OnCategorySelectionChange -> handleCategorySelectionChange(intent.category, intent.isSelected)
+            is WorkspaceIntent.OnResourceSelectionChange -> handleResourceSelectionChange(
+                intent.uniqueId,
+                intent.isSelected
+            )
+
+            is WorkspaceIntent.OnCategorySelectionChange -> handleCategorySelectionChange(
+                intent.category,
+                intent.isSelected
+            )
+
             WorkspaceIntent.OnSelectAll -> handleSelectAll()
             WorkspaceIntent.OnDeselectAll -> handleDeselectAll()
             WorkspaceIntent.OnDeleteClicked -> handleDeleteClicked()
@@ -63,11 +76,23 @@ class WorkspaceViewModel(
             WorkspaceIntent.OnResultDismissDialog -> handleResultDismissDialog()
             WorkspaceIntent.OnClearError -> handleClearError()
             is WorkspaceIntent.OnSearchQueryChange -> _uiState.update { it.copy(searchQuery = intent.query) }
-            is WorkspaceIntent.OnResourceFilterChange -> _uiState.update { it.copy(resourceFilter = intent.filter, highlightedProjectName = null) }
+            is WorkspaceIntent.OnResourceFilterChange -> _uiState.update {
+                it.copy(
+                    resourceFilter = intent.filter,
+                    highlightedProjectName = null
+                )
+            }
+
             is WorkspaceIntent.OnResourceClicked -> {
                 handleResourceSelectionChange(intent.resource.uniqueId, !intent.resource.isSelected)
             }
-            is WorkspaceIntent.OnProjectHighlight -> _uiState.update { it.copy(highlightedProjectName = intent.projectName) }
+
+            is WorkspaceIntent.OnProjectHighlight -> _uiState.update {
+                it.copy(
+                    highlightedProjectName = intent.projectName
+                )
+            }
+
             WorkspaceIntent.OnClearHighlights -> _uiState.update { it.copy(highlightedProjectName = null) }
         }
     }
@@ -279,6 +304,12 @@ class WorkspaceViewModel(
         }
         viewModelScope.launch {
             pathPreferenceManger.clearRecentWorkspaces()
+        }
+    }
+
+    fun saveReviewVersion(version: String) {
+        viewModelScope.launch {
+            settingsRepository.saveLastSubmittedReviewVersion(version)
         }
     }
 }

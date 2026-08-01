@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.meet.dev.analyzer.data.models.cleanbuild.ModuleBuild
 import com.meet.dev.analyzer.data.models.cleanbuild.ProjectBuildInfo
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
+import kotlinx.coroutines.flow.Flow
 
 data class CleanBuildUiState(
     val selectedPath: String = "",
@@ -30,6 +31,8 @@ data class CleanBuildUiState(
     val deletionResult: String = "",
 
     val error: String? = null,
+
+    val lastSubmittedReviewVersion: Flow<String>
 ) {
 
     val allSelected = projectBuildInfoList.all { project ->

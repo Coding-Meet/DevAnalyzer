@@ -119,7 +119,7 @@ fun NavigationRailLayout(
             }
 
             Spacer(Modifier.weight(1f))
-            SponsorButton()
+//            SponsorButton()
             ThemeSwitch(
                 isDarkMode = isDarkTheme,
                 onThemeChange = onThemeChange

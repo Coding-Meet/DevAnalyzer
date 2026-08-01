@@ -94,6 +94,7 @@ class SettingsViewModel(
 
             is SettingsUiIntent.CheckForUpdates -> checkForUpdates()
             is SettingsUiIntent.ShowPathPicker -> showPathPicker(intent.path, intent.type)
+            is SettingsUiIntent.SaveReviewVersion -> saveReviewVersion(intent.version)
         }
     }
 
@@ -105,17 +106,25 @@ class SettingsViewModel(
             combine(
                 settingsRepository.crashReportingEnabled,
                 settingsRepository.localLogsEnabled,
-            ) { crashReportingEnabled, localLogsEnabled ->
-                Pair(crashReportingEnabled, localLogsEnabled)
-            }.collect { (crashReportingEnabled, localLogsEnabled) ->
+                settingsRepository.lastSubmittedReviewVersion
+            ) { crashReportingEnabled, localLogsEnabled, lastSubmittedReviewVersion ->
+                Triple(crashReportingEnabled, localLogsEnabled, lastSubmittedReviewVersion)
+            }.collect { (crashReportingEnabled, localLogsEnabled, lastSubmittedReviewVersion) ->
                 _uiState.update {
                     it.copy(
                         crashReportingEnabled = crashReportingEnabled,
-                        localLogsEnabled = localLogsEnabled
+                        localLogsEnabled = localLogsEnabled,
+                        lastSubmittedReviewVersion = lastSubmittedReviewVersion
                     )
                 }
 
             }
+        }
+    }
+
+    private fun saveReviewVersion(version: String) {
+        viewModelScope.launch {
+            settingsRepository.saveLastSubmittedReviewVersion(version)
         }
     }
 

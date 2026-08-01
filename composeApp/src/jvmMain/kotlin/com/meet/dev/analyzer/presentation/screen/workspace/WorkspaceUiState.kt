@@ -10,6 +10,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.meet.dev.analyzer.data.models.project.ProjectOverviewInfo
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
+import kotlinx.coroutines.flow.Flow
 
 data class WorkspaceUiState(
     val selectedPaths: List<String> = emptyList(),
@@ -32,7 +33,8 @@ data class WorkspaceUiState(
     val isDeletionComplete: Boolean = false,
     val deletionResult: String = "",
 
-    val error: String? = null
+    val error: String? = null,
+    val lastSubmittedReviewVersion: Flow<String>
 ) {
     val allSelected: Boolean
         get() = unusedResources.isNotEmpty() && unusedResources.all { it.isSelected }

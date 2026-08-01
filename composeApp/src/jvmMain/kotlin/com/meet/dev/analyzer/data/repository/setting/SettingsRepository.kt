@@ -32,9 +32,11 @@ interface SettingsRepository {
     suspend fun saveIdeGooglePath3(path: String)
 
     /* ---------- App Settings ---------- */
+    val lastSubmittedReviewVersion: Flow<String>
 
     suspend fun setCrashReporting(enabled: Boolean)
     suspend fun setLocalLogs(enabled: Boolean)
+    suspend fun saveLastSubmittedReviewVersion(version: String)
 
     fun getLatestLogFile(): LogFile?
 }

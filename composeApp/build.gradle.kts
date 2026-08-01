@@ -61,6 +61,10 @@ kotlin {
             implementation(libs.coil.network.ktor3)           // Coil3 network loading with Ktor
             implementation(libs.coil.mp)                      // Coil3 multiplatform support
 
+            // Ktor Client
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.cio)
+
             // Dependency Injection - Koin for DI
             api(libs.koin.core)                     // Koin dependency injection core
             implementation(libs.koin.compose)                  // Koin integration with Compose

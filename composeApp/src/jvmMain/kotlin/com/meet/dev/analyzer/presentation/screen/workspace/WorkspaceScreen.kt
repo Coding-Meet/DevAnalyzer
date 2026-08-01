@@ -12,7 +12,6 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,12 +26,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.dev.analyzer.presentation.components.ReviewDialog
 import com.meet.dev.analyzer.presentation.components.TopAppBar
 import com.meet.dev.analyzer.presentation.screen.cleanbuild.components.DeleteFloatingActionButton
 import com.meet.dev.analyzer.presentation.screen.workspace.components.WorkspaceConfirmationDialog
 import com.meet.dev.analyzer.presentation.screen.workspace.components.WorkspaceDeletionProgressDialog
 import com.meet.dev.analyzer.presentation.screen.workspace.components.WorkspaceResultsContent
 import com.meet.dev.analyzer.presentation.screen.workspace.components.WorkspaceSelectionSection
+import com.meet.dev.analyzer.utility.crash_report.CustomProperties
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.path
@@ -50,6 +51,13 @@ fun WorkspaceScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+    val lastSubmittedVersion by uiState.lastSubmittedReviewVersion.collectAsStateWithLifecycle(initialValue = "")
+    val desktopConfig = remember {
+        CustomProperties.createAppConfig(CustomProperties.loadProperties())
+    }
+    val currentVersion = desktopConfig.version ?: "1.0.0"
+    val showFeedbackButton = lastSubmittedVersion != currentVersion
+    var showReviewDialog by remember { mutableStateOf(false) }
 
     var isSelectionPanelExpanded by remember { mutableStateOf(true) }
 
@@ -181,7 +189,21 @@ fun WorkspaceScreen(
             totalSelectedCount = uiState.totalSelectedCount,
             totalSelectedSizeReadable = uiState.totalSelectedSizeReadable,
             deletionResult = uiState.deletionResult,
+            showFeedbackButton = showFeedbackButton,
+            onShareFeedbackClick = { showReviewDialog = true },
             onDismiss = { viewModel.handleIntent(WorkspaceIntent.OnResultDismissDialog) }
+        )
+    }
+
+    if (showReviewDialog) {
+        ReviewDialog(
+            appVersion = currentVersion,
+            onDismiss = { showReviewDialog = false },
+            onReviewSubmitted = {
+                coroutineScope.launch {
+                    viewModel.saveReviewVersion(currentVersion)
+                }
+            }
         )
     }
 }

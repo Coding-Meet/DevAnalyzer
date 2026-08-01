@@ -31,4 +31,5 @@ sealed interface SettingsUiIntent {
 
     data object CheckForUpdates : SettingsUiIntent
     data class ShowPathPicker(val path: String, val type: PathPickerType?) : SettingsUiIntent
+    data class SaveReviewVersion(val version: String) : SettingsUiIntent
 }

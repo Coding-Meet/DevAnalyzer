@@ -55,6 +55,8 @@ fun WorkspaceDeletionProgressDialog(
     totalSelectedCount: Int,
     totalSelectedSizeReadable: String,
     deletionResult: String,
+    showFeedbackButton: Boolean,
+    onShareFeedbackClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val scrollState = rememberLazyListState()
@@ -195,7 +197,10 @@ fun WorkspaceDeletionProgressDialog(
 
                 if (isDeletionComplete && failedCount == 0 && successCount > 0) {
                     Spacer(modifier = Modifier.height(12.dp))
-                    SponsorTipCard()
+                    SponsorTipCard(
+                        showFeedbackButton = showFeedbackButton,
+                        onShareFeedbackClick = onShareFeedbackClick
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

@@ -73,6 +73,13 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 - 🔄 Reset to default paths option
 - 🪵 Crash logging
 
+### 💬 Feedback & Review
+
+- ⭐ **Interactive Rating System** — Rate your experience with a touch-friendly star selector.
+- 📋 **Detailed Suggestions & Checklists** — Share suggestions, select most-used features, and request future tools.
+- 🔐 **Local Version Locking** — Prevents duplicate reviews for the same version using DataStore, unlocking automatically when you update.
+- 🛡️ **Privacy & Anonymity** — Clear trust indicators ensuring reviews are anonymous unless you choose to share your email.
+
 ---
 
 ## 🧰 Tech Stack

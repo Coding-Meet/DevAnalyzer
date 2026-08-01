@@ -11,5 +11,6 @@ data class SettingsUiState(
     val logFile: LogFile? = null,
     val showCrashLogDialog: Boolean = false,
     val showPathPicker: PathPickerType? = null,
-    val currentPath: String = ""
+    val currentPath: String = "",
+    val lastSubmittedReviewVersion: String = ""
 )

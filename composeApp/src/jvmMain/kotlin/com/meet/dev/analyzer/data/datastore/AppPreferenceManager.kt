@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import com.jthemedetecor.OsThemeDetector
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager.PreferencesKey.DARK_MODE_KEY
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager.PreferencesKey.ONBOARDING_DONE_KEY
@@ -33,6 +34,7 @@ class AppPreferenceManager(private val dataStore: DataStore<Preferences>) {
         val WINDOW_POSITION_Y_KEY = floatPreferencesKey("window_position_y")
         val CRASH_REPORTING_ENABLED = booleanPreferencesKey("crash_reporting_enabled")
         val IS_LOCAL_LOGS_ENABLED = booleanPreferencesKey("is_local_logs_enabled")
+        val LAST_SUBMITTED_REVIEW_VERSION = stringPreferencesKey("last_submitted_review_version")
     }
 
     private val detector = OsThemeDetector.getDetector()
@@ -82,6 +84,17 @@ class AppPreferenceManager(private val dataStore: DataStore<Preferences>) {
     val isLocalLogsEnabled = dataStore.data.map { prefs ->
         prefs[PreferencesKey.IS_LOCAL_LOGS_ENABLED] ?: true
     }
+
+    val lastSubmittedReviewVersion = dataStore.data.map { prefs ->
+        prefs[PreferencesKey.LAST_SUBMITTED_REVIEW_VERSION] ?: ""
+    }
+
+    suspend fun saveLastSubmittedReviewVersion(version: String) =
+        withContext(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[PreferencesKey.LAST_SUBMITTED_REVIEW_VERSION] = version
+            }
+        }
 
     suspend fun saveTheme(isDark: Boolean) =
         withContext(Dispatchers.IO) {

@@ -25,12 +25,13 @@ import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
-import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -44,7 +45,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -55,6 +57,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.data.models.setting.PathPickerType
+import com.meet.dev.analyzer.presentation.components.ReviewDialog
 import com.meet.dev.analyzer.presentation.components.TopAppBar
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.setting.components.CrashLogDialog
@@ -98,6 +101,12 @@ fun SettingsScreen(
 fun SettingsScreenContent(
     pathUiState: PathUiState, settingsUiState: SettingsUiState, onEvent: (SettingsUiIntent) -> Unit
 ) {
+    var showReviewDialog by remember { mutableStateOf(false) }
+    val desktopConfig = remember {
+        CustomProperties.createAppConfig(CustomProperties.loadProperties())
+    }
+    val lastSubmittedVersion = settingsUiState.lastSubmittedReviewVersion
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -108,11 +117,6 @@ fun SettingsScreenContent(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
         ) {
             val scrollState = rememberScrollState()
-            val desktopConfig by rememberSaveable {
-                mutableStateOf(
-                    CustomProperties.createAppConfig(CustomProperties.loadProperties())
-                )
-            }
 
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(16.dp),
@@ -583,6 +587,20 @@ fun SettingsScreenContent(
 
                 // Feedback Section
                 SettingsSection(title = "Feedback") {
+                    val currentVersion = desktopConfig.version ?: "1.0.0"
+                    val isReviewSubmitted = lastSubmittedVersion == currentVersion
+
+                    LinkSettingItem(
+                        label = "Rate DevAnalyzer",
+                        value = if (isReviewSubmitted) "Feedback submitted (Thank you! 💙)" else "Share your experience and suggestions for $currentVersion",
+                        icon = Icons.Default.Star,
+                        url = null
+                    ) {
+                        if (!isReviewSubmitted) {
+                            showReviewDialog = true
+                        }
+                    }
+
                     LinkSettingItem(
                         label = "Report Bug with Logs",
                         value = "Copy crash log and open GitHub issue",
@@ -814,6 +832,17 @@ fun SettingsScreenContent(
                 }
                 onEvent(SettingsUiIntent.ShowPathPicker("", null))
             })
+    }
+
+    if (showReviewDialog) {
+        val currentVersion = desktopConfig.version ?: "1.0.0"
+        ReviewDialog(
+            appVersion = currentVersion,
+            onDismiss = { showReviewDialog = false },
+            onReviewSubmitted = {
+                onEvent(SettingsUiIntent.SaveReviewVersion(currentVersion))
+            }
+        )
     }
 
 }
