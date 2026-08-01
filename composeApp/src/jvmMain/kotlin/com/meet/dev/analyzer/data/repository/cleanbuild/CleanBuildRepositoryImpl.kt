@@ -116,7 +116,7 @@ class CleanBuildRepositoryImpl : CleanBuildRepository {
                 return Pair(false, "Path does not exist")
             }
 
-            val success = Random.nextBoolean()
+            val success = file.deleteRecursively()
 
             if (success) {
                 Pair(true, null)

@@ -314,7 +314,7 @@ class WorkspaceRepositoryImpl(
             if (!file.exists()) {
                 Pair(false, "Path does not exist: $path")
             } else {
-                val success = Random.nextBoolean()
+                val success = file.deleteRecursively()
                 if (success) {
                     Pair(true, null)
                 } else {

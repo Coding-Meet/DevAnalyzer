@@ -263,7 +263,6 @@ class CleanBuildViewModel(
             try {
                 val rootPath = _uiState.value.selectedPath
                 if (!validateRootPath(rootPath)) {
-                    AppLogger.e(tag = TAG) { "Invalid root path: $rootPath" }
                     _uiState.update {
                         it.copy(
                             isAnalyzing = false,
