@@ -21,6 +21,7 @@ import com.meet.dev.analyzer.presentation.navigation.AppNavigation
 import com.meet.dev.analyzer.presentation.screen.app.AppUiIntent
 import com.meet.dev.analyzer.presentation.screen.app.AppViewModel
 import com.meet.dev.analyzer.presentation.screen.app.UpdateDialog
+import com.meet.dev.analyzer.presentation.screen.app.UpdateDialogState
 import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
 import com.meet.dev.analyzer.utility.crash_report.CustomProperties
 import com.meet.dev.analyzer.utility.platform.getDesktopOS
@@ -117,12 +118,7 @@ fun main() {
                         }
                 }
                 val updateState = appViewModel.updateDialogState
-                LaunchedEffect(
-                    Unit
-                ){
-                    appViewModel.openUpdateDialog()
-                }
-                if (updateState != null) {
+                if (updateState is UpdateDialogState.Available) {
                     UpdateDialog(
                         state = updateState,
                         onDismiss = { appViewModel.closeUpdateDialog() }

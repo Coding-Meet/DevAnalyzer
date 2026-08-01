@@ -80,6 +80,12 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 - 🔐 **Local Version Locking** — Prevents duplicate reviews for the same version using DataStore, unlocking automatically when you update.
 - 🛡️ **Privacy & Anonymity** — Clear trust indicators ensuring reviews are anonymous unless you choose to share your email.
 
+### 🔄 Silent Update Checks
+
+- 🚀 **Silent Background Verification** — Checks for new releases on startup using Ktor without interrupting your work.
+- 📋 **Release Notes View** — Displays a premium scrollable "What's New" release details card if an update is found.
+- 🌐 **One-Click GitHub Redirection** — Prompts a direct link to open the latest release download page instantly.
+
 ---
 
 ## 🧰 Tech Stack

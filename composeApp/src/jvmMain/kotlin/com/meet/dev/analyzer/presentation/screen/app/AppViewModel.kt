@@ -40,6 +40,9 @@ class AppViewModel(
     var updateDialogState by mutableStateOf<UpdateDialogState?>(null)
         private set
 
+    init {
+        openUpdateDialog()
+    }
     fun openUpdateDialog() {
         updateDialogState = UpdateDialogState.Checking
         checkUpdate()
@@ -57,14 +60,14 @@ class AppViewModel(
                         val latestVersion = release.tagName.removePrefix("v").trim()
                         val currentVersion = BuildKonfig.VERSION_NAME.removePrefix("v").trim()
 
-                        if (isNewerVersion(currentVersion, latestVersion)) {
-                            updateDialogState = UpdateDialogState.Available(
+                        updateDialogState = if (isNewerVersion(currentVersion, latestVersion)) {
+                            UpdateDialogState.Available(
                                 version = release.tagName,
                                 releaseNotes = release.body,
                                 htmlUrl = release.htmlUrl
                             )
                         } else {
-                            updateDialogState = UpdateDialogState.UpToDate
+                            UpdateDialogState.UpToDate
                         }
                     } else {
                         updateDialogState = UpdateDialogState.UpToDate
