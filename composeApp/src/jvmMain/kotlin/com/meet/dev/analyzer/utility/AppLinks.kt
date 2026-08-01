@@ -30,7 +30,8 @@ object AppLinks {
     const val TWITTER = "https://www.x.com/CodingMeet"
     const val TELEGRAM = "https://www.telegram.me/Meetb26"
     const val HIRE_ME = "https://www.codingmeet.com/service"
-
+    const val DONATE = "https://github.com/sponsors/Coding-Meet"
+    const val DONATE_COFFEE = "https://buymeacoffee.com/codingmeet"
 
     val socialLinks =
         listOf(

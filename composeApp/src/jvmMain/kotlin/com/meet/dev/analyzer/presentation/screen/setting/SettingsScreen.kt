@@ -19,10 +19,12 @@ import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
+import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Lightbulb
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Person
@@ -553,6 +555,20 @@ fun SettingsScreenContent(
                         icon = Icons.Default.Code,
                         url = AppLinks.GITHUB_PROJECT
                     )
+
+                    LinkSettingItem(
+                        label = "Sponsor / Support",
+                        value = "Sponsor on GitHub",
+                        icon = Icons.Default.Favorite,
+                        url = AppLinks.DONATE
+                    )
+
+                    LinkSettingItem(
+                        label = "Buy Me a Coffee",
+                        value = "buymeacoffee.com/codingmeet",
+                        icon = Icons.Default.LocalCafe,
+                        url = AppLinks.DONATE_COFFEE
+                    )
                 }
 
                 HorizontalDivider()
@@ -634,28 +650,81 @@ fun SettingsScreenContent(
 
                             HorizontalDivider()
 
-                            // Hire Me Button
-                            Button(
-                                onClick = { uriHandler.openUri(AppLinks.HIRE_ME) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                                    .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Handshake,
-                                    contentDescription = null
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    "Hire Me",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                // Sponsor Button
+                                Button(
+                                    onClick = { uriHandler.openUri(AppLinks.DONATE) },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(48.dp)
+                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiary,
+                                        contentColor = MaterialTheme.colorScheme.onTertiary
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Favorite,
+                                        contentDescription = null
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Sponsor",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                // Coffee Button
+                                Button(
+                                    onClick = { uriHandler.openUri(AppLinks.DONATE_COFFEE) },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(48.dp)
+                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondary,
+                                        contentColor = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.LocalCafe,
+                                        contentDescription = null
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Coffee",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                // Hire Me Button
+                                Button(
+                                    onClick = { uriHandler.openUri(AppLinks.HIRE_ME) },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(48.dp)
+                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Handshake,
+                                        contentDescription = null
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Hire Me",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
                         }
                     }
