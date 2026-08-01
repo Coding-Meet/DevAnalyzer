@@ -1,6 +1,7 @@
 package com.meet.dev.analyzer.utility.crash_report
 
 import com.meet.dev.analyzer.BuildKonfig
+import com.meet.dev.analyzer.utility.analytics.AnalyticsConfig
 import com.meet.dev.analyzer.utility.platform.AppEnvironment
 import com.meet.dev.analyzer.utility.platform.DesktopConfig
 import java.io.InputStream
@@ -51,5 +52,17 @@ object CustomProperties {
         } else {
             disableLocalLogs()
         }
+    }
+
+    /**
+     * Reads PostHog API key and host from [properties].
+     * Returns [AnalyticsConfig] with blank [AnalyticsConfig.apiKey] when the key is absent,
+     * which causes [NoOpAnalyticsManager] to be selected automatically.
+     */
+    fun createAnalyticsConfig(properties: Properties): AnalyticsConfig {
+        val apiKey = properties["posthog_api_key"]?.toString().orEmpty()
+        val host = properties["posthog_host"]?.toString().orEmpty()
+            .ifBlank { AnalyticsConfig.DEFAULT_HOST }
+        return AnalyticsConfig(apiKey = apiKey, host = host)
     }
 }

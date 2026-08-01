@@ -56,6 +56,9 @@ sentry = "8.31.0"
 # BuildConfig
 buildkonfig = "0.17.1"
 
+# Capture Analytics
+posthog-kmp = "0.2.0"
+
 [libraries]
 components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
 foundation = { module = "org.jetbrains.compose.foundation:foundation", version.ref = "composeMultiplatform" }
@@ -129,6 +132,7 @@ jsystemthemedetector = { module = "com.github.Dansoftowner:jSystemThemeDetector"
 # Crash Report
 sentry = { module = "io.sentry:sentry", version.ref = "sentry" }
 
+posthog-kmp = { group = "com.posthog", name = "posthog-kmp", version.ref = "posthog-kmp" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

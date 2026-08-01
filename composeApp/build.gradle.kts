@@ -91,6 +91,9 @@ kotlin {
 
             // Crash Report
             api(libs.sentry)
+
+            // Capture Analytics
+            implementation(libs.posthog.kmp)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
