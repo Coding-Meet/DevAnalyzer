@@ -102,7 +102,6 @@ kotlin {
             // Coroutines Swing
             implementation(libs.kotlinx.coroutines.swing)      // Swing dispatcher for desktop UI
 
-            implementation("io.github.kdroidfilter:nucleus.updater-runtime:1.0.0")
         }
     }
 }

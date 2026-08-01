@@ -20,6 +20,7 @@ import com.meet.dev.analyzer.di.initKoin
 import com.meet.dev.analyzer.presentation.navigation.AppNavigation
 import com.meet.dev.analyzer.presentation.screen.app.AppUiIntent
 import com.meet.dev.analyzer.presentation.screen.app.AppViewModel
+import com.meet.dev.analyzer.presentation.screen.app.UpdateDialog
 import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
 import com.meet.dev.analyzer.utility.crash_report.CustomProperties
 import com.meet.dev.analyzer.utility.platform.getDesktopOS
@@ -115,19 +116,18 @@ fun main() {
                             )
                         }
                 }
-//
-//                val updateState = appViewModel.updateDialogState
-//                LaunchedEffect(
-//                    Unit
-//                ){
-//                    appViewModel.openUpdateDialog()
-//                }
-//                if (updateState != null) {
-//                    UpdateDialog(
-//                        state = updateState,
-//                        onDismiss = { appViewModel.closeUpdateDialog() }
-//                    )
-//                }
+                val updateState = appViewModel.updateDialogState
+                LaunchedEffect(
+                    Unit
+                ){
+                    appViewModel.openUpdateDialog()
+                }
+                if (updateState != null) {
+                    UpdateDialog(
+                        state = updateState,
+                        onDismiss = { appViewModel.closeUpdateDialog() }
+                    )
+                }
             }
         }
     }

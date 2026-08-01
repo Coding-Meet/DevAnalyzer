@@ -2,19 +2,22 @@ package com.meet.dev.analyzer.presentation.screen.app
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.ErrorOutline
 import androidx.compose.material.icons.filled.NewReleases
 import androidx.compose.material.icons.filled.Sync
@@ -26,18 +29,18 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
@@ -49,14 +52,11 @@ fun UpdateDialog(
     state: UpdateDialogState,
     onDismiss: () -> Unit
 ) {
-    // Only allow dismiss when not actively downloading
-    val isDismissable = state !is UpdateDialogState.Downloading
-
     Dialog(
-        onDismissRequest = { if (isDismissable) onDismiss() },
+        onDismissRequest = onDismiss,
         properties = DialogProperties(
-            dismissOnBackPress = isDismissable,
-            dismissOnClickOutside = isDismissable,
+            dismissOnBackPress = true,
+            dismissOnClickOutside = true,
             usePlatformDefaultWidth = false
         )
     ) {
@@ -88,15 +88,7 @@ fun UpdateDialog(
                             icon = Icons.Default.SystemUpdate,
                             iconTint = MaterialTheme.colorScheme.primary,
                             title = "Update Available",
-                            subtitle = "Version ${state.version} is ready to download"
-                        )
-                    is UpdateDialogState.Downloading ->
-                        HeaderData(
-                            bg = MaterialTheme.colorScheme.primaryContainer,
-                            icon = Icons.Default.Download,
-                            iconTint = MaterialTheme.colorScheme.primary,
-                            title = "Downloading Update",
-                            subtitle = "Installing after download completes..."
+                            subtitle = "Version ${state.version} is ready"
                         )
                     is UpdateDialogState.UpToDate ->
                         HeaderData(
@@ -147,19 +139,17 @@ fun UpdateDialog(
                             )
                         }
                     }
-                    if (isDismissable) {
-                        IconButton(
-                            onClick = onDismiss,
-                            modifier = Modifier.pointerHoverIcon(
-                                PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
-                            )
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Close,
-                                contentDescription = "Close",
-                                tint = MaterialTheme.colorScheme.onSurface
-                            )
-                        }
+                    IconButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.pointerHoverIcon(
+                            PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))
+                        )
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
                     }
                 }
 
@@ -185,56 +175,68 @@ fun UpdateDialog(
                         }
 
                         is UpdateDialogState.Available -> {
+                            val uriHandler = LocalUriHandler.current
                             Icon(
                                 imageVector = Icons.Default.NewReleases,
                                 contentDescription = null,
-                                modifier = Modifier.size(56.dp),
+                                modifier = Modifier.size(48.dp),
                                 tint = MaterialTheme.colorScheme.primary
                             )
                             Text(
-                                text = "A new version (${state.version}) is available.\nIt will download and install automatically.",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                text = "A new version (${state.version}) is available!",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onSurface,
                                 textAlign = TextAlign.Center
                             )
-                        }
 
-                        is UpdateDialogState.Downloading -> {
-                            Column(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                Row(
+                            if (state.releaseNotes.isNotBlank()) {
+                                Text(
+                                    text = "What's New:",
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.onSurface,
                                     modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween
-                                ) {
-                                    Text(
-                                        text = "Downloading...",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurface
-                                    )
-                                    Text(
-                                        text = "${state.percent}%",
-                                        style = MaterialTheme.typography.labelLarge,
-                                        color = MaterialTheme.colorScheme.primary
-                                    )
-                                }
-                                LinearProgressIndicator(
-                                    progress = { state.percent / 100f },
+                                    textAlign = TextAlign.Start
+                                )
+                                Card(
                                     modifier = Modifier
                                         .fillMaxWidth()
-                                        .height(8.dp)
-                                        .clip(RoundedCornerShape(4.dp)),
-                                    color = MaterialTheme.colorScheme.primary,
-                                    trackColor = MaterialTheme.colorScheme.primaryContainer
-                                )
+                                        .heightIn(max = 200.dp),
+                                    colors = CardDefaults.cardColors(
+                                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+                                    ),
+                                    shape = RoundedCornerShape(8.dp)
+                                ) {
+                                    BoxWithConstraints(modifier = Modifier.fillMaxWidth().padding(12.dp)) {
+                                        val scrollState = rememberScrollState()
+                                        Column(
+                                            modifier = Modifier
+                                                .fillMaxWidth()
+                                                .verticalScroll(scrollState)
+                                        ) {
+                                            Text(
+                                                text = state.releaseNotes,
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            )
+                                        }
+                                    }
+                                }
                             }
-                            Text(
-                                text = "Please don't close the app. It will restart automatically after installing.",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                textAlign = TextAlign.Center
-                            )
+
+                            Button(
+                                onClick = { uriHandler.openUri(state.htmlUrl) },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(48.dp)
+                                    .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = MaterialTheme.colorScheme.primary
+                                )
+                            ) {
+                                Text("Open Release Page", style = MaterialTheme.typography.titleSmall)
+                            }
                         }
 
                         is UpdateDialogState.UpToDate -> {
@@ -310,7 +312,6 @@ fun UpdateDialog(
     }
 }
 
-// Helper data class to destructure header properties cleanly
 private data class HeaderData(
     val bg: Color,
     val icon: ImageVector,

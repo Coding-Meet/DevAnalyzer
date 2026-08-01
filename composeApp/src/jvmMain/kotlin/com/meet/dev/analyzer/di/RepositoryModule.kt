@@ -14,6 +14,8 @@ import com.meet.dev.analyzer.data.repository.workspace.WorkspaceRepository
 import com.meet.dev.analyzer.data.repository.workspace.WorkspaceRepositoryImpl
 import com.meet.dev.analyzer.data.repository.feedback.FeedbackRepository
 import com.meet.dev.analyzer.data.repository.feedback.FeedbackRepositoryImpl
+import com.meet.dev.analyzer.data.repository.updater.UpdaterRepository
+import com.meet.dev.analyzer.data.repository.updater.UpdaterRepositoryImpl
 import org.koin.core.module.dsl.singleOf
 import org.koin.dsl.bind
 import org.koin.dsl.module
@@ -41,5 +43,6 @@ val repositoryModule = module {
     singleOf(::SettingsRepositoryImpl).bind(SettingsRepository::class)
     singleOf(::WorkspaceRepositoryImpl).bind(WorkspaceRepository::class)
     singleOf(::FeedbackRepositoryImpl).bind(FeedbackRepository::class)
+    singleOf(::UpdaterRepositoryImpl).bind(UpdaterRepository::class)
 
 }
