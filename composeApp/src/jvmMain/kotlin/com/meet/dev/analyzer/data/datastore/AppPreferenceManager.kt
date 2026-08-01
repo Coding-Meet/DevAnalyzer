@@ -35,6 +35,8 @@ class AppPreferenceManager(private val dataStore: DataStore<Preferences>) {
         val CRASH_REPORTING_ENABLED = booleanPreferencesKey("crash_reporting_enabled")
         val IS_LOCAL_LOGS_ENABLED = booleanPreferencesKey("is_local_logs_enabled")
         val LAST_SUBMITTED_REVIEW_VERSION = stringPreferencesKey("last_submitted_review_version")
+        val ANALYTICS_ENABLED = booleanPreferencesKey("analytics_enabled")
+        val LAST_TRACKED_ANALYTICS_VERSION = stringPreferencesKey("last_tracked_analytics_version")
     }
 
     private val detector = OsThemeDetector.getDetector()
@@ -89,6 +91,14 @@ class AppPreferenceManager(private val dataStore: DataStore<Preferences>) {
         prefs[PreferencesKey.LAST_SUBMITTED_REVIEW_VERSION] ?: ""
     }
 
+    val analyticsEnabled = dataStore.data.map { prefs ->
+        prefs[PreferencesKey.ANALYTICS_ENABLED] ?: true
+    }
+
+    val lastTrackedAnalyticsVersion = dataStore.data.map { prefs ->
+        prefs[PreferencesKey.LAST_TRACKED_ANALYTICS_VERSION] ?: ""
+    }
+
     suspend fun saveLastSubmittedReviewVersion(version: String) =
         withContext(Dispatchers.IO) {
             dataStore.edit { preferences ->
@@ -137,6 +147,20 @@ class AppPreferenceManager(private val dataStore: DataStore<Preferences>) {
         withContext(Dispatchers.IO) {
             dataStore.edit { preferences ->
                 preferences[PreferencesKey.IS_LOCAL_LOGS_ENABLED] = enabled
+            }
+        }
+
+    suspend fun saveAnalyticsEnabled(enabled: Boolean) =
+        withContext(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[PreferencesKey.ANALYTICS_ENABLED] = enabled
+            }
+        }
+
+    suspend fun saveLastTrackedAnalyticsVersion(version: String) =
+        withContext(Dispatchers.IO) {
+            dataStore.edit { preferences ->
+                preferences[PreferencesKey.LAST_TRACKED_ANALYTICS_VERSION] = version
             }
         }
 }
