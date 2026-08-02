@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.data.models.setting.PathPickerType
 import com.meet.dev.analyzer.data.repository.setting.SettingsRepository
+import com.meet.dev.analyzer.utility.analytics.AnalyticsEvent
+import com.meet.dev.analyzer.utility.analytics.AnalyticsManager
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -18,6 +20,7 @@ import java.io.File
 
 class SettingsViewModel(
     private val settingsRepository: SettingsRepository,
+    private val analyticsManager: AnalyticsManager,
 ) : ViewModel() {
 
     private val TAG = tagName(javaClass)
@@ -89,12 +92,22 @@ class SettingsViewModel(
 
             is SettingsUiIntent.ToggleCrashReporting -> toggleCrashReporting(intent.enabled)
             is SettingsUiIntent.ToggleLocalLogs -> toggleLocalLogs(intent.enabled)
+            is SettingsUiIntent.ToggleAnalytics -> toggleAnalytics(intent.enabled)
             is SettingsUiIntent.ShowCrashLogDialog -> showCrashLogDialog()
             is SettingsUiIntent.DismissCrashLogDialog -> dismissCrashLogDialog()
 
             is SettingsUiIntent.CheckForUpdates -> checkForUpdates()
             is SettingsUiIntent.ShowPathPicker -> showPathPicker(intent.path, intent.type)
             is SettingsUiIntent.SaveReviewVersion -> saveReviewVersion(intent.version)
+
+            // Analytics event trackers
+            SettingsUiIntent.TrackSettingsOpened -> analyticsManager.capture(AnalyticsEvent.SettingsOpened)
+            SettingsUiIntent.TrackGitHubSponsor -> analyticsManager.capture(AnalyticsEvent.GitHubSponsorClicked)
+            SettingsUiIntent.TrackBuyMeCoffee -> analyticsManager.capture(AnalyticsEvent.BuyMeCoffeeClicked)
+            SettingsUiIntent.TrackPaypal -> analyticsManager.capture(AnalyticsEvent.PaypalClicked)
+            SettingsUiIntent.TrackReviewPromptShown -> analyticsManager.capture(AnalyticsEvent.ReviewPromptShown)
+            SettingsUiIntent.TrackFeedbackOpened -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
+            SettingsUiIntent.TrackFeedbackCancelled -> analyticsManager.capture(AnalyticsEvent.FeedbackCancelled)
         }
     }
 
@@ -106,18 +119,19 @@ class SettingsViewModel(
             combine(
                 settingsRepository.crashReportingEnabled,
                 settingsRepository.localLogsEnabled,
+                settingsRepository.analyticsEnabled,
                 settingsRepository.lastSubmittedReviewVersion
-            ) { crashReportingEnabled, localLogsEnabled, lastSubmittedReviewVersion ->
-                Triple(crashReportingEnabled, localLogsEnabled, lastSubmittedReviewVersion)
-            }.collect { (crashReportingEnabled, localLogsEnabled, lastSubmittedReviewVersion) ->
+            ) { crashReportingEnabled, localLogsEnabled, analyticsEnabled, lastSubmittedReviewVersion ->
+                SettingsUiState(
+                    crashReportingEnabled = crashReportingEnabled,
+                    localLogsEnabled = localLogsEnabled,
+                    analyticsEnabled = analyticsEnabled,
+                    lastSubmittedReviewVersion = lastSubmittedReviewVersion,
+                )
+            }.collect {
                 _uiState.update {
-                    it.copy(
-                        crashReportingEnabled = crashReportingEnabled,
-                        localLogsEnabled = localLogsEnabled,
-                        lastSubmittedReviewVersion = lastSubmittedReviewVersion
-                    )
+                    it
                 }
-
             }
         }
     }
@@ -125,6 +139,7 @@ class SettingsViewModel(
     private fun saveReviewVersion(version: String) {
         viewModelScope.launch {
             settingsRepository.saveLastSubmittedReviewVersion(version)
+            analyticsManager.capture(AnalyticsEvent.FeedbackSubmitted)
         }
     }
 
@@ -228,6 +243,25 @@ class SettingsViewModel(
         }
     }
 
+    /**
+     * Event order is intentional:
+     * - Disabling: fire [AnalyticsEvent.AnalyticsDisabled] BEFORE saving so the event
+     *   is captured before PostHog.optOut() is triggered by the Flow observer.
+     * - Enabling: fire [AnalyticsEvent.AnalyticsEnabled] AFTER saving so PostHog.optIn()
+     *   happens first via the Flow observer.
+     */
+    private fun toggleAnalytics(enabled: Boolean) {
+        viewModelScope.launch {
+            if (!enabled) {
+                analyticsManager.capture(AnalyticsEvent.AnalyticsDisabled)
+            }
+            settingsRepository.setAnalyticsEnabled(enabled)
+            if (enabled) {
+                analyticsManager.capture(AnalyticsEvent.AnalyticsEnabled)
+            }
+        }
+    }
+
 
     private fun checkForUpdates() {
         viewModelScope.launch {
@@ -254,6 +288,7 @@ class SettingsViewModel(
     private fun showCrashLogDialog() {
         val logFile = settingsRepository.getLatestLogFile()
         _uiState.update { it.copy(logFile = logFile, showCrashLogDialog = true) }
+        analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
     }
 
     private fun dismissCrashLogDialog() {

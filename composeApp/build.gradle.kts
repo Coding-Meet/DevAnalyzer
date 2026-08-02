@@ -1,5 +1,5 @@
-import com.codingfeline.buildkonfig.compiler.FieldSpec
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -7,14 +7,49 @@ plugins {
     alias(libs.plugins.composeCompiler)
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlinSerialization)
-    alias(libs.plugins.buildkonfig)
 }
-apply(from = "../versioning.gradle.kts")
 
 group = "com.meet"
 
-val appVersionName: () -> String by extra
-val appVersionCode: () -> Int by extra
+// Helpers to read version name and code dynamically
+fun resolveAppVersionName(): String {
+    // 1. Check CI/CD environment variable
+    val envVersion = System.getenv("VERSION_NAME") ?: System.getenv("APP_VERSION")
+    if (!envVersion.isNullOrBlank()) {
+        return envVersion
+    }
+
+    // 2. Check Gradle project property (e.g. -PversionName=1.3.0)
+    val propVersion = project.findProperty("versionName")?.toString()
+    if (!propVersion.isNullOrBlank()) {
+        return propVersion
+    }
+
+    // 3. Load from props.properties
+    val propsFile = project.file("src/jvmMain/resources/props.properties")
+    if (propsFile.exists()) {
+        val props = Properties()
+        try {
+            propsFile.inputStream().use { props.load(it) }
+            val version = props.getProperty("version")
+            if (!version.isNullOrBlank()) {
+                return version
+            }
+        } catch (_: Exception) {}
+    }
+
+    // 4. Default fallback
+    return "1.3.0"
+}
+
+fun resolveAppVersionCode(): Int {
+    val ciBuildNumber = System.getenv("GITHUB_RUN_NUMBER") ?: System.getenv("VERSION_CODE")
+    return ciBuildNumber?.toIntOrNull() ?: 1
+}
+
+val appVersionName = resolveAppVersionName()
+val appVersionCode = resolveAppVersionCode()
+
 
 java {
     toolchain {
@@ -128,7 +163,7 @@ compose {
                     TargetFormat.AppImage, TargetFormat.Deb // Linux
                 )
                 packageName = "DevAnalyzer"
-                packageVersion = appVersionName()
+                packageVersion = appVersionName
                 includeAllModules = true
                 description = "Deep insights into your development environment."
                 vendor = "Meet"
@@ -166,18 +201,5 @@ compose {
 
             }
         }
-    }
-}
-
-// BuildConfig
-buildkonfig {
-    packageName = "com.meet.dev.analyzer"
-
-    defaultConfigs {
-        buildConfigField(
-            FieldSpec.Type.STRING,
-            "VERSION_NAME",
-            appVersionName(),
-        )
     }
 }

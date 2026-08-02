@@ -7,12 +7,13 @@ import co.touchlab.kermit.platformLogWriter
 import com.meet.dev.analyzer.utility.crash_report.FileLogWriter
 import com.meet.dev.analyzer.utility.crash_report.SentryLogWriter
 import com.meet.dev.analyzer.utility.platform.AppEnvironment
+import com.meet.dev.analyzer.utility.platform.DesktopConfig
 import org.koin.core.module.Module
 import org.koin.dsl.module
 
 // this method not use. it not need it SentryLogWriter and FileLogWriter move core module, and logger object is not need it to koin
 fun getLoggingModule(
-    appEnvironment: AppEnvironment,
+   desktopConfig: DesktopConfig,
 ): Module =
     module {
         single<SentryLogWriter> { SentryLogWriter() }
@@ -23,11 +24,11 @@ fun getLoggingModule(
             val fileLogWriter = get<FileLogWriter>()
             val sentryWriter = get<SentryLogWriter>()
             val loggers = mutableListOf(platformLogWriter(), fileLogWriter)
-            if (appEnvironment.isRelease()) {
+            if (desktopConfig.enableSentry) {
                 loggers.add(sentryWriter)
             }
 
-            val minSeverity = if (appEnvironment.isRelease()) {
+            val minSeverity = if (desktopConfig.enableSentry) {
                 Severity.Info
             } else {
                 Severity.Verbose

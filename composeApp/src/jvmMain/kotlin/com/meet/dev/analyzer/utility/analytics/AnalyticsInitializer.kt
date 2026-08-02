@@ -2,6 +2,7 @@ package com.meet.dev.analyzer.utility.analytics
 
 import com.meet.dev.analyzer.utility.analytics.AnalyticsInitializer.initialize
 import com.meet.dev.analyzer.utility.analytics.AnalyticsInitializer.initialized
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.posthog.kmp.PersonProfiles
 import com.posthog.kmp.PostHog
 import com.posthog.kmp.PostHogConfig
@@ -17,36 +18,62 @@ import com.posthog.kmp.PostHogContext
  * called more than once (e.g. in future hot-reload or test scenarios).
  */
 object AnalyticsInitializer {
+    val tag = "AnalyticsInitializer"
 
+    @Volatile
     private var initialized = false
 
     /**
      * Must be called once — before entering the Compose [application {}] block.
      * Does nothing if [apiKey] is blank (graceful degradation to no-op).
      */
+    @Synchronized
     fun initialize(
         apiKey: String,
         host: String,
+        isDebug: Boolean,
         appVersion: String,
         operatingSystem: String,
     ) {
-        if (initialized) return
-        if (apiKey.isBlank()) return
+        if (initialized) {
+            AppLogger.w(tag) { "Analytics already initialized, skipping setup." }
+            return
+        }
+        if (apiKey.isBlank()) {
+            AppLogger.w(tag) { "Analytics apiKey is blank! PostHog will NOT be initialized (events will be ignored)." }
+            return
+        }
+        if (host.isBlank()) {
+            AppLogger.w(tag) { "Analytics host is blank! PostHog will NOT be initialized (events will be ignored)." }
+            return
+        }
         try {
             PostHog.setup(
                 config = PostHogConfig(
                     apiKey = apiKey,
                     host = host,
-                    personProfiles = PersonProfiles.NEVER, // fully anonymous, no person profiles created
+                    debug = isDebug,
+                    // Anonymous analytics only
+                    personProfiles = PersonProfiles.NEVER,
+
+                    // Queue
+                    flushAt = 1,
+                    flushIntervalSeconds = 2,
+                    maxQueueSize = 1000,
+                    maxBatchSize = 50,
+
+                    optOut = false,
                 ),
                 context = PostHogContext(),
             )
+            initialized = true
             // Static super properties — attached to every event automatically
             PostHog.register("app_version", appVersion)
             PostHog.register("operating_system", operatingSystem)
-            initialized = true
-        } catch (_: Exception) {
-            // Analytics failures must never crash the app
+
+            AppLogger.i(tag) { "Analytics initialization" }
+        } catch (e: Exception) {
+            AppLogger.e(tag, e, { "Analytics initialization failed" })
         }
     }
 

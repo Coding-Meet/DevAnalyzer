@@ -79,6 +79,14 @@ sealed interface AnalyticsEvent {
 
     // ── Clean Build ───────────────────────────────────────────────────────────
 
+    data class CleanBuildAnalysisCompleted(
+        val projectCount: Int,
+        val buildFolderCount: Int,
+        val durationMs: Long,
+    ) : AnalyticsEvent {
+        override val name = "clean_build_analysis_completed"
+    }
+
     data class CleanBuildCompleted(
         val deletedBuildFolders: Int,
         val reclaimedBytes: Long,

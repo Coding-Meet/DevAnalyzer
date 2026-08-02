@@ -10,6 +10,7 @@ interface SettingsRepository {
 
     val crashReportingEnabled: Flow<Boolean>
     val localLogsEnabled: Flow<Boolean>
+    val analyticsEnabled: Flow<Boolean>
 
     /* ---------- Save Paths ---------- */
 
@@ -36,6 +37,7 @@ interface SettingsRepository {
 
     suspend fun setCrashReporting(enabled: Boolean)
     suspend fun setLocalLogs(enabled: Boolean)
+    suspend fun setAnalyticsEnabled(enabled: Boolean)
     suspend fun saveLastSubmittedReviewVersion(version: String)
 
     fun getLatestLogFile(): LogFile?

@@ -6,21 +6,32 @@ import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import com.meet.dev.analyzer.data.models.workspace.ResourceCategory
 import com.meet.dev.analyzer.data.repository.setting.SettingsRepository
 import com.meet.dev.analyzer.data.repository.workspace.WorkspaceRepository
+import com.meet.dev.analyzer.utility.analytics.AnalyticsEvent
+import com.meet.dev.analyzer.utility.analytics.AnalyticsManager
+import com.meet.dev.analyzer.utility.analytics.FailureReason
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatElapsedTime
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.io.IOException
 import java.io.File
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 class WorkspaceViewModel(
     private val repository: WorkspaceRepository,
     private val pathPreferenceManger: PathPreferenceManger,
     private val settingsRepository: SettingsRepository,
+    private val analyticsManager: AnalyticsManager,
 ) : ViewModel() {
 
     private val TAG = tagName(javaClass)
@@ -94,12 +105,18 @@ class WorkspaceViewModel(
             }
 
             WorkspaceIntent.OnClearHighlights -> _uiState.update { it.copy(highlightedProjectName = null) }
+
+            // Analytics event trackers
+            WorkspaceIntent.TrackFeedbackOpened    -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
+            WorkspaceIntent.TrackFeedbackCancelled -> analyticsManager.capture(AnalyticsEvent.FeedbackCancelled)
+            WorkspaceIntent.TrackReviewPromptShown -> analyticsManager.capture(AnalyticsEvent.ReviewPromptShown)
         }
     }
 
     private fun handleAnalyzeWorkspace() {
         val rootPaths = _uiState.value.selectedPaths
         if (rootPaths.isEmpty()) {
+            analyticsManager.capture(AnalyticsEvent.WorkspaceAnalysisFailed(FailureReason.VALIDATION))
             _uiState.update { it.copy(error = "Please select or add at least one workspace folder path first.") }
             return
         }
@@ -110,13 +127,16 @@ class WorkspaceViewModel(
             !rootDir.exists() || !rootDir.isDirectory
         }
         if (invalidPath != null) {
+            analyticsManager.capture(AnalyticsEvent.WorkspaceAnalysisFailed(FailureReason.VALIDATION))
             _uiState.update { it.copy(error = "Path does not exist or is not a directory: $invalidPath") }
             return
         }
 
         viewModelScope.launch {
+            var timerJob: Job? = null
             try {
                 val startTime = System.currentTimeMillis()
+                val mark = TimeSource.Monotonic.markNow()
                 _uiState.update {
                     it.copy(
                         isAnalyzing = true,
@@ -128,42 +148,96 @@ class WorkspaceViewModel(
                         activeResources = emptyList(),
                         searchQuery = "",
                         resourceFilter = ResourceFilter.ALL,
-                        highlightedProjectName = null
+                        highlightedProjectName = null,
+                        scanElapsedTime = "00:00"
                     )
                 }
 
-                // Retrieve settings paths
-                val sdkPath = pathPreferenceManger.sdkPath.first()
-                val gradleHome = pathPreferenceManger.gradleUserHomePath.first()
-                val konanPath = pathPreferenceManger.konanFolderPath.first()
-
-                val result = repository.analyzeWorkspace(
-                    workspacePaths = rootPaths,
-                    sdkPath = sdkPath,
-                    gradleHomePath = gradleHome,
-                    konanPath = konanPath
-                ) { progress, status ->
-                    _uiState.update {
-                        it.copy(
-                            scanProgress = progress,
-                            scanStatus = status,
-                            scanElapsedTime = formatElapsedTime(startTime)
-                        )
+                // Start elapsed time counter
+                timerJob = launch {
+                    while (isActive) {
+                        delay(1000)
+                        _uiState.update {
+                            it.copy(scanElapsedTime = formatElapsedTime(startTime))
+                        }
                     }
                 }
 
+                try {
+                    // Retrieve settings paths
+                    val sdkPath = pathPreferenceManger.sdkPath.first()
+                    val gradleHome = pathPreferenceManger.gradleUserHomePath.first()
+                    val konanPath = pathPreferenceManger.konanFolderPath.first()
+
+                    val result = repository.analyzeWorkspace(
+                        workspacePaths = rootPaths,
+                        sdkPath = sdkPath,
+                        gradleHomePath = gradleHome,
+                        konanPath = konanPath
+                    ) { progress, status ->
+                        _uiState.update {
+                            it.copy(
+                                scanProgress = progress,
+                                scanStatus = status
+                            )
+                        }
+                    }
+
+                    val durationMs = mark.elapsedNow().inWholeMilliseconds
+
+                    _uiState.update {
+                        it.copy(
+                            isAnalyzing = false,
+                            projects = result.projects,
+                            unusedResources = result.unusedResources,
+                            activeResources = result.activeResources,
+                            scanProgress = 1f,
+                            scanStatus = if (result.unusedResources.isEmpty()) "No unused resources found" else "Scan completed",
+                            scanElapsedTime = formatElapsedTime(startTime)
+                        )
+                    }
+
+                    analyticsManager.capture(
+                        AnalyticsEvent.WorkspaceAnalysisCompleted(
+                            workspaceCount = rootPaths.size,
+                            projectCount = result.projects.size,
+                            potentialSavingsBytes = result.unusedResources.sumOf { it.sizeBytes },
+                            unusedResourceCount = result.unusedResources.size,
+                            durationMs = durationMs,
+                        )
+                    )
+                } finally {
+                    timerJob.cancelAndJoin()
+                }
+            } catch (e: CancellationException) {
+                throw e
+            } catch (e: IOException) {
+                AppLogger.e(TAG, e) { "File read error" }
+                analyticsManager.capture(
+                    AnalyticsEvent.WorkspaceAnalysisFailed(FailureReason.UNEXPECTED)
+                )
                 _uiState.update {
                     it.copy(
                         isAnalyzing = false,
-                        projects = result.projects,
-                        unusedResources = result.unusedResources,
-                        activeResources = result.activeResources,
-                        scanProgress = 1f,
-                        scanStatus = if (result.unusedResources.isEmpty()) "No unused resources found" else "Scan completed"
+                        error = "Failed to access some files"
+                    )
+                }
+            } catch (e: SecurityException) {
+                AppLogger.e(TAG, e) { "Permission denied" }
+                analyticsManager.capture(
+                    AnalyticsEvent.WorkspaceAnalysisFailed(FailureReason.VALIDATION)
+                )
+                _uiState.update {
+                    it.copy(
+                        isAnalyzing = false,
+                        error = "Permission denied for storage access"
                     )
                 }
             } catch (e: Exception) {
                 AppLogger.e(TAG, e) { "Error performing workspace analysis" }
+                analyticsManager.capture(
+                    AnalyticsEvent.WorkspaceAnalysisFailed(FailureReason.UNEXPECTED)
+                )
                 _uiState.update {
                     it.copy(
                         isAnalyzing = false,
@@ -310,6 +384,7 @@ class WorkspaceViewModel(
     fun saveReviewVersion(version: String) {
         viewModelScope.launch {
             settingsRepository.saveLastSubmittedReviewVersion(version)
+            analyticsManager.capture(AnalyticsEvent.FeedbackSubmitted)
         }
     }
 }

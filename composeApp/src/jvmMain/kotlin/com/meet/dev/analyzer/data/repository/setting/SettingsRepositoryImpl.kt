@@ -15,6 +15,7 @@ class SettingsRepositoryImpl(
 
     override val crashReportingEnabled = appPreferenceManager.crashReportingEnabled
     override val localLogsEnabled = appPreferenceManager.isLocalLogsEnabled
+    override val analyticsEnabled = appPreferenceManager.analyticsEnabled
     override val lastSubmittedReviewVersion = appPreferenceManager.lastSubmittedReviewVersion
 
     override suspend fun saveSdkPath(path: String) {
@@ -79,6 +80,10 @@ class SettingsRepositoryImpl(
 
     override suspend fun setLocalLogs(enabled: Boolean) {
         appPreferenceManager.saveLocalLogsEnabled(enabled)
+    }
+
+    override suspend fun setAnalyticsEnabled(enabled: Boolean) {
+        appPreferenceManager.saveAnalyticsEnabled(enabled)
     }
 
     override suspend fun saveLastSubmittedReviewVersion(version: String) {

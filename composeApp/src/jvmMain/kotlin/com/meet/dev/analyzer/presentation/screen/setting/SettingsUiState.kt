@@ -6,6 +6,7 @@ import com.meet.dev.analyzer.data.models.setting.PathPickerType
 data class SettingsUiState(
     val crashReportingEnabled: Boolean = true,
     val localLogsEnabled: Boolean = true,
+    val analyticsEnabled: Boolean = true,
     val isCheckingUpdates: Boolean = false,
     val updateAvailable: Boolean = false,
     val logFile: LogFile? = null,

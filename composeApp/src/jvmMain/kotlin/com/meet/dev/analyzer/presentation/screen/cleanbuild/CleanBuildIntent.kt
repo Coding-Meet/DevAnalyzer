@@ -21,4 +21,9 @@ sealed interface CleanBuildIntent {
     data object OnResultDismissDialog : CleanBuildIntent
     data object OnClearError : CleanBuildIntent
     data object OnToggleProjectSelection : CleanBuildIntent
+
+    // Analytics event trackers
+    data object TrackFeedbackOpened : CleanBuildIntent
+    data object TrackFeedbackCancelled : CleanBuildIntent
+    data object TrackReviewPromptShown : CleanBuildIntent
 }

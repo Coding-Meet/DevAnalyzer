@@ -18,18 +18,25 @@ jobs:
       - name: Grant execute permission
         run: chmod +x gradlew
 
-      - name: Inject release props
+      - name: Inject QA props
         shell: bash
         env:
           SENTRY_DNS: ${{ secrets.SENTRY_DNS }}
+          POSTHOG_API_KEY: ${{ secrets.POSTHOG_API_KEY }}
+
+          POSTHOG_HOST: ${{ vars.POSTHOG_HOST }}
+          UPDATER_URL: ${{ vars.UPDATER_URL }}
+          FEEDBACK_URL: ${{ vars.FEEDBACK_URL }}
         run: |
-          MAJOR=$(grep "MAJOR=" version.properties | cut -d'=' -f2)
-          MINOR=$(grep "MINOR=" version.properties | cut -d'=' -f2)
-          PATCH=$(grep "PATCH=" version.properties | cut -d'=' -f2)
-          VERSION="$MAJOR.$MINOR.$PATCH"
           echo "is_release=true" > composeApp/src/jvmMain/resources/props.properties
           echo "sentry_dns=$SENTRY_DNS" >> composeApp/src/jvmMain/resources/props.properties
-          echo "version=$VERSION" >> composeApp/src/jvmMain/resources/props.properties
+          echo "version=1.2.0" >> composeApp/src/jvmMain/resources/props.properties
+          echo "enable_analytics=true" >> composeApp/src/jvmMain/resources/props.properties
+          echo "enable_sentry=true" >> composeApp/src/jvmMain/resources/props.properties
+          echo "posthog_api_key=$POSTHOG_API_KEY" >> composeApp/src/jvmMain/resources/props.properties
+          echo "posthog_host=$POSTHOG_HOST" >> composeApp/src/jvmMain/resources/props.properties
+          echo "updater_url=$UPDATER_URL" >> composeApp/src/jvmMain/resources/props.properties
+          echo "feedback_url=$FEEDBACK_URL" >> composeApp/src/jvmMain/resources/props.properties
 
       - name: Build macOS ARM DMG
         run: ./gradlew packageReleaseDistributionForCurrentOS --stacktrace

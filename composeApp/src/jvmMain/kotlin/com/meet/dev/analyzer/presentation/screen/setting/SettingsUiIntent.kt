@@ -22,14 +22,22 @@ sealed interface SettingsUiIntent {
     data class UpdateIdeGoogle3(val path: String) : SettingsUiIntent
 
     data class ToggleCrashReporting(val enabled: Boolean) : SettingsUiIntent
-
     data class ToggleLocalLogs(val enabled: Boolean) : SettingsUiIntent
+    data class ToggleAnalytics(val enabled: Boolean) : SettingsUiIntent
 
     data object ShowCrashLogDialog : SettingsUiIntent
     data object DismissCrashLogDialog : SettingsUiIntent
 
-
     data object CheckForUpdates : SettingsUiIntent
     data class ShowPathPicker(val path: String, val type: PathPickerType?) : SettingsUiIntent
     data class SaveReviewVersion(val version: String) : SettingsUiIntent
+
+    // Analytics event trackers
+    data object TrackSettingsOpened     : SettingsUiIntent
+    data object TrackGitHubSponsor      : SettingsUiIntent
+    data object TrackBuyMeCoffee        : SettingsUiIntent
+    data object TrackPaypal             : SettingsUiIntent
+    data object TrackReviewPromptShown  : SettingsUiIntent
+    data object TrackFeedbackOpened     : SettingsUiIntent
+    data object TrackFeedbackCancelled  : SettingsUiIntent
 }

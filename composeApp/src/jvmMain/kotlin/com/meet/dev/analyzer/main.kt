@@ -23,13 +23,21 @@ import com.meet.dev.analyzer.presentation.screen.app.AppViewModel
 import com.meet.dev.analyzer.presentation.screen.app.UpdateDialog
 import com.meet.dev.analyzer.presentation.screen.app.UpdateDialogState
 import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
+import com.meet.dev.analyzer.utility.analytics.AnalyticsEvent
+import com.meet.dev.analyzer.utility.analytics.AnalyticsInitializer
+import com.meet.dev.analyzer.utility.analytics.AnalyticsManager
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.CustomProperties
 import com.meet.dev.analyzer.utility.platform.getDesktopOS
 import com.meet.dev.analyzer.utility.platform.isMacOs
+import com.posthog.kmp.PostHog
 import io.github.vinceglb.filekit.FileKit
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
+import org.koin.core.qualifier.named
 import java.awt.Color
 import java.awt.Dimension
 import java.awt.Toolkit
@@ -37,11 +45,35 @@ import java.awt.Toolkit
 fun main() {
     val properties = CustomProperties.loadProperties()
     val appConfig = CustomProperties.createAppConfig(properties)
-    initKoin()
+    val analyticsConfig = CustomProperties.createAnalyticsConfig(properties)
+    AppLogger.i { "appConfig: ${appConfig}" }
+    AppLogger.i { "analyticsConfig: ${analyticsConfig}" }
+    initKoin(
+        appConfig = appConfig,
+        analyticsConfig = analyticsConfig,
+    )
     FileKit.init(appId = "DevAnalyzer")
     System.setProperty("apple.awt.application.appearance", "system")
+
+    //  Initialize PostHog once — before entering the Compose application block
+    AnalyticsInitializer.initialize(
+        apiKey = analyticsConfig.apiKey,
+        host = analyticsConfig.host,
+        isDebug = appConfig.appEnvironment.isDebug,
+        appVersion = appConfig.version,
+        operatingSystem = getDesktopOS().name,
+    )
+//    PostHog.capture(
+//        event = "button_clicked",
+//        properties = mapOf(
+//            "button_name" to "signup"
+//        )
+//    )
     application {
         val appPreferenceManager = koinInject<AppPreferenceManager>()
+        val analyticsManager = koinInject<AnalyticsManager>()
+        val analyticsScope = koinInject<CoroutineScope>(named("analyticsScope"))
+
         val windowWidth by appPreferenceManager.windowWidth.collectAsState()
         val windowHeight by appPreferenceManager.windowHeight.collectAsState()
         val windowPositionX by appPreferenceManager.windowPositionX.collectAsState()
@@ -56,7 +88,13 @@ fun main() {
             savedPositionY = windowPositionY
         )
         Window(
-            onCloseRequest = ::exitApplication,
+            // Shutdown order: capture → flush → close → cancel scope → exit
+            onCloseRequest = {
+                analyticsManager.capture(AnalyticsEvent.AppClosed)
+                AnalyticsInitializer.flushAndClose()
+                analyticsScope.cancel()
+                exitApplication()
+            },
             state = windowState,
             title = if (getDesktopOS().isMacOs()) {
                 ""
@@ -66,6 +104,17 @@ fun main() {
             window.minimumSize = Dimension(1024, 768)
             val appViewModel = koinViewModel<AppViewModel>()
             val appUiState by appViewModel.appUiState.collectAsState()
+
+            //  app_opened: LaunchedEffect(Unit) fires exactly once per app session
+            LaunchedEffect(Unit) {
+                analyticsManager.capture(AnalyticsEvent.AppOpened)
+            }
+
+            //  Theme super property auto-updates on every dark/light change
+            LaunchedEffect(appUiState.isDarkMode) {
+                AnalyticsInitializer.updateTheme(appUiState.isDarkMode)
+            }
+
             LaunchedEffect(appUiState.crashReportingEnabled) {
                 CustomProperties.setupCrashReporting(
                     appConfig = appConfig,
@@ -103,9 +152,7 @@ fun main() {
                 LaunchedEffect(windowState) {
                     snapshotFlow { windowState.position }
                         .collect { position ->
-                            appViewModel.saveWindowPosition(
-                                position = position
-                            )
+                            appViewModel.saveWindowPosition(position = position)
                         }
                 }
                 LaunchedEffect(windowState) {
@@ -128,6 +175,7 @@ fun main() {
         }
     }
 }
+
 
 @Composable
 private fun windowState(

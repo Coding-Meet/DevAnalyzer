@@ -72,6 +72,8 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 - ✅ Path validation and existence status indicators
 - 🔄 Reset to default paths option
 - 🪵 Crash logging
+- 📊 **Anonymous Analytics** — Optional, privacy-first PostHog integration to monitor scan speeds and usage frequency (completely anonymous; never collects file paths, projects, code, or PII). Can be disabled at any time.
+
 
 ### 💬 Feedback & Review
 
@@ -107,6 +109,7 @@ Built as a **desktop-first tool**, it runs seamlessly across platforms and can b
 | **Semantic Versioning**  | SemVer (z4kn4fein/semver)                       |
 | **Coroutines**           | kotlinx.coroutines + Swing Dispatcher (Desktop) |
 | **Sentry**               | Sentry (Crash Reporting)                        |
+| **Analytics**            | PostHog (Anonymous Usage Analytics)              |
 | **buildConfig**          | Buildkonfig                                     |
 
 ## 🖥️ How to Run DevAnalyzer

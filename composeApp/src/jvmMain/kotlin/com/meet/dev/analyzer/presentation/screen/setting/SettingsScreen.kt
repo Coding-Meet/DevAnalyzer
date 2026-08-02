@@ -43,6 +43,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -90,10 +91,17 @@ fun SettingsScreen(
     )
     val pathUiState by viewModel.pathSettingsState.collectAsStateWithLifecycle()
     val settingsUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // Fires exactly once when the screen is first composed — actual screen impression.
+    // Using LaunchedEffect here (not ViewModel.init) avoids double-fire on ViewModel recreation.
+    LaunchedEffect(Unit) {
+        viewModel.onIntent(SettingsUiIntent.TrackSettingsOpened)
+    }
+
     SettingsScreenContent(
-        pathUiState = pathUiState,
+        pathUiState     = pathUiState,
         settingsUiState = settingsUiState,
-        onEvent = viewModel::onIntent,
+        onEvent         = viewModel::onIntent,
     )
 }
 
@@ -526,21 +534,26 @@ fun SettingsScreenContent(
                     ) {
                         onEvent(SettingsUiIntent.ToggleLocalLogs(it))
                     }
-
+                    SwitchSettingItem(
+                        label = "Analytics",
+                        description = "Send anonymous usage data to help improve the app",
+                        checked = settingsUiState.analyticsEnabled,
+                        icon = Icons.Default.DataObject
+                    ) {
+                        onEvent(SettingsUiIntent.ToggleAnalytics(it))
+                    }
                 }
 
                 HorizontalDivider()
 
                 // About App Section
                 SettingsSection(title = "About App") {
-                    desktopConfig.version?.let { version ->
-                        LinkSettingItem(
-                            label = "Version",
-                            value = version,
-                            icon = Icons.Default.Info,
-                            url = AppLinks.RELEASE_LINK
-                        )
-                    }
+                    LinkSettingItem(
+                        label = "Version",
+                        value = desktopConfig.version,
+                        icon = Icons.Default.Info,
+                        url = AppLinks.RELEASE_LINK
+                    )
                     LinkSettingItem(
                         label = "Environment",
                         value = desktopConfig.appEnvironment.label,
@@ -587,7 +600,7 @@ fun SettingsScreenContent(
 
                 // Feedback Section
                 SettingsSection(title = "Feedback") {
-                    val currentVersion = desktopConfig.version ?: "1.0.0"
+                    val currentVersion = desktopConfig.version
                     val isReviewSubmitted = lastSubmittedVersion == currentVersion
 
                     LinkSettingItem(
@@ -682,7 +695,10 @@ fun SettingsScreenContent(
                             ) {
                                 // Sponsor Button
                                 Button(
-                                    onClick = { uriHandler.openUri(AppLinks.DONATE) },
+                                    onClick = {
+                                        onEvent(SettingsUiIntent.TrackGitHubSponsor)
+                                        uriHandler.openUri(AppLinks.DONATE)
+                                    },
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(48.dp)
@@ -706,7 +722,10 @@ fun SettingsScreenContent(
 
                                 // Coffee Button
                                 Button(
-                                    onClick = { uriHandler.openUri(AppLinks.DONATE_COFFEE) },
+                                    onClick = {
+                                        onEvent(SettingsUiIntent.TrackBuyMeCoffee)
+                                        uriHandler.openUri(AppLinks.DONATE_COFFEE)
+                                    },
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(48.dp)
@@ -730,7 +749,10 @@ fun SettingsScreenContent(
 
                                 // Hire Me Button
                                 Button(
-                                    onClick = { uriHandler.openUri(AppLinks.HIRE_ME) },
+                                    onClick = {
+                                        onEvent(SettingsUiIntent.TrackPaypal)
+                                        uriHandler.openUri(AppLinks.HIRE_ME)
+                                    },
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(48.dp)
@@ -835,10 +857,19 @@ fun SettingsScreenContent(
     }
 
     if (showReviewDialog) {
-        val currentVersion = desktopConfig.version ?: "1.0.0"
+        val currentVersion = desktopConfig.version
+
+        // Fires review_prompt_shown exactly once when the dialog becomes visible
+        LaunchedEffect(showReviewDialog) {
+            if (showReviewDialog) onEvent(SettingsUiIntent.TrackReviewPromptShown)
+        }
+
         ReviewDialog(
             appVersion = currentVersion,
-            onDismiss = { showReviewDialog = false },
+            onDismiss = {
+                showReviewDialog = false
+                onEvent(SettingsUiIntent.TrackFeedbackCancelled)
+            },
             onReviewSubmitted = {
                 onEvent(SettingsUiIntent.SaveReviewVersion(currentVersion))
             }

@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -34,6 +35,7 @@ import com.meet.dev.analyzer.presentation.screen.workspace.components.WorkspaceD
 import com.meet.dev.analyzer.presentation.screen.workspace.components.WorkspaceResultsContent
 import com.meet.dev.analyzer.presentation.screen.workspace.components.WorkspaceSelectionSection
 import com.meet.dev.analyzer.utility.crash_report.CustomProperties
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.path
@@ -55,7 +57,7 @@ fun WorkspaceScreen(
     val desktopConfig = remember {
         CustomProperties.createAppConfig(CustomProperties.loadProperties())
     }
-    val currentVersion = desktopConfig.version ?: "1.0.0"
+    val currentVersion = desktopConfig.version
     val showFeedbackButton = lastSubmittedVersion != currentVersion
     var showReviewDialog by remember { mutableStateOf(false) }
 
@@ -110,7 +112,7 @@ fun WorkspaceScreen(
                         ResourceFilter.ACTIVE -> uiState.activeResources
                     }
                     val size = combined.filter { it.isSelected }.sumOf { it.sizeBytes }
-                    com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize(size)
+                    FolderFileUtils.formatSize(size)
                 }
             }
             val isFabVisible by remember(visibleSelectedCount) {
@@ -190,15 +192,25 @@ fun WorkspaceScreen(
             totalSelectedSizeReadable = uiState.totalSelectedSizeReadable,
             deletionResult = uiState.deletionResult,
             showFeedbackButton = showFeedbackButton,
-            onShareFeedbackClick = { showReviewDialog = true },
+            onShareFeedbackClick = {
+                showReviewDialog = true
+                viewModel.handleIntent(WorkspaceIntent.TrackFeedbackOpened)
+            },
             onDismiss = { viewModel.handleIntent(WorkspaceIntent.OnResultDismissDialog) }
         )
     }
 
     if (showReviewDialog) {
+        LaunchedEffect(showReviewDialog) {
+            if (showReviewDialog) viewModel.handleIntent(WorkspaceIntent.TrackReviewPromptShown)
+        }
+
         ReviewDialog(
             appVersion = currentVersion,
-            onDismiss = { showReviewDialog = false },
+            onDismiss = {
+                showReviewDialog = false
+                viewModel.handleIntent(WorkspaceIntent.TrackFeedbackCancelled)
+            },
             onReviewSubmitted = {
                 coroutineScope.launch {
                     viewModel.saveReviewVersion(currentVersion)

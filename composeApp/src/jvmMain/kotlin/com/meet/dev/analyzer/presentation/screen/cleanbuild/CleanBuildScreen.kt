@@ -19,6 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -64,7 +65,7 @@ fun CleanBuildScreen(
     val desktopConfig = remember {
         CustomProperties.createAppConfig(CustomProperties.loadProperties())
     }
-    val currentVersion = desktopConfig.version ?: "1.0.0"
+    val currentVersion = desktopConfig.version
     val showFeedbackButton = lastSubmittedVersion != currentVersion
     var showReviewDialog by remember { mutableStateOf(false) }
 
@@ -83,7 +84,10 @@ fun CleanBuildScreen(
     CleanBuildScreenContent(
         uiState = uiState,
         showFeedbackButton = showFeedbackButton,
-        onShareFeedbackClick = { showReviewDialog = true },
+        onShareFeedbackClick = {
+            showReviewDialog = true
+            viewModel.handleIntent(CleanBuildIntent.TrackFeedbackOpened)
+        },
         onBrowseClick = {
             directoryPickerLauncher.launch()
         },
@@ -91,9 +95,16 @@ fun CleanBuildScreen(
     )
 
     if (showReviewDialog) {
+        LaunchedEffect(showReviewDialog) {
+            if (showReviewDialog) viewModel.handleIntent(CleanBuildIntent.TrackReviewPromptShown)
+        }
+
         ReviewDialog(
             appVersion = currentVersion,
-            onDismiss = { showReviewDialog = false },
+            onDismiss = {
+                showReviewDialog = false
+                viewModel.handleIntent(CleanBuildIntent.TrackFeedbackCancelled)
+            },
             onReviewSubmitted = {
                 coroutineScope.launch {
                     viewModel.saveReviewVersion(currentVersion)

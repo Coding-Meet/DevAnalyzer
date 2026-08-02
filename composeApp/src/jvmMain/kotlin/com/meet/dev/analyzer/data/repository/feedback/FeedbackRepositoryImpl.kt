@@ -1,6 +1,7 @@
 package com.meet.dev.analyzer.data.repository.feedback
 
 import com.meet.dev.analyzer.data.models.feedback.FeedbackData
+import com.meet.dev.analyzer.utility.platform.DesktopConfig
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.forms.submitForm
@@ -8,13 +9,15 @@ import io.ktor.http.Parameters
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-class FeedbackRepositoryImpl : FeedbackRepository {
+class FeedbackRepositoryImpl(
+    private val appConfig: DesktopConfig,
+) : FeedbackRepository {
 
     override suspend fun submitFeedback(feedback: FeedbackData): Result<Unit> = withContext(Dispatchers.IO) {
         val client = HttpClient(CIO)
         try {
             val response = client.submitForm(
-                url = "https://docs.google.com/forms/d/e/1FAIpQLSdOHO0JTv7hSpV2OQp8DRqKVhN2ac5pRHQ_QyGI2ZJGEh_VuA/formResponse",
+                url = appConfig.feedbackUrl,
                 formParameters = Parameters.build {
                     append("entry.1761072179", feedback.rating.toString())
                     append("entry.1087708121", feedback.name)

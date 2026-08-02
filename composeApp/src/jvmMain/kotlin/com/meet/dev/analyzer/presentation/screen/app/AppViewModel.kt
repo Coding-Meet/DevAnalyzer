@@ -6,17 +6,22 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.window.WindowPosition
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.meet.dev.analyzer.BuildKonfig
 import com.meet.dev.analyzer.data.datastore.AppPreferenceManager
 import com.meet.dev.analyzer.data.repository.updater.UpdaterRepository
+import com.meet.dev.analyzer.utility.analytics.AnalyticsEvent
+import com.meet.dev.analyzer.utility.analytics.AnalyticsManager
+import com.meet.dev.analyzer.utility.platform.DesktopConfig
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
 class AppViewModel(
     private val appPreferenceManager: AppPreferenceManager,
-    private val updaterRepository: UpdaterRepository
+    private val updaterRepository: UpdaterRepository,
+    private val analyticsManager: AnalyticsManager,
+    private val appConfig: DesktopConfig,
 ) : ViewModel() {
 
     val appUiState = combine(
@@ -42,10 +47,38 @@ class AppViewModel(
 
     init {
         openUpdateDialog()
+        reportAppUpdateIfNeeded()
     }
+
     fun openUpdateDialog() {
         updateDialogState = UpdateDialogState.Checking
         checkUpdate()
+    }
+
+    /**
+     * Fires [AnalyticsEvent.AppUpdated] only when the app version genuinely changes.
+     * Skipped on first install (blank -> current version).
+     * The stored version is always synchronized after the check.
+     */
+    private fun reportAppUpdateIfNeeded() {
+        viewModelScope.launch {
+            val lastVersion = appPreferenceManager.lastTrackedAnalyticsVersion.first()
+            val currentVersion = appConfig.version
+
+            if (lastVersion.isNotBlank() && lastVersion != currentVersion) {
+                analyticsManager.capture(
+                    AnalyticsEvent.AppUpdated(
+                        fromVersion = lastVersion,
+                        toVersion = currentVersion,
+                    )
+                )
+            }
+
+            // Always sync stored version (first install sets it for future updates)
+            if (lastVersion != currentVersion) {
+                appPreferenceManager.saveLastTrackedAnalyticsVersion(currentVersion)
+            }
+        }
     }
 
     fun closeUpdateDialog() {
@@ -58,7 +91,7 @@ class AppViewModel(
                 .onSuccess { release ->
                     if (release != null) {
                         val latestVersion = release.tagName.removePrefix("v").trim()
-                        val currentVersion = BuildKonfig.VERSION_NAME.removePrefix("v").trim()
+                        val currentVersion = appConfig.version.removePrefix("v").trim()
 
                         updateDialogState = if (isNewerVersion(currentVersion, latestVersion)) {
                             UpdateDialogState.Available(

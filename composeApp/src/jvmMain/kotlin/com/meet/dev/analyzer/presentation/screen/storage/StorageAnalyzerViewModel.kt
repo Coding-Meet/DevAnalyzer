@@ -12,6 +12,9 @@ import com.meet.dev.analyzer.data.models.storage.StorageBreakdown
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItem
 import com.meet.dev.analyzer.data.models.storage.StorageBreakdownItemColor
 import com.meet.dev.analyzer.data.repository.storage.StorageAnalyzerRepository
+import com.meet.dev.analyzer.utility.analytics.AnalyticsEvent
+import com.meet.dev.analyzer.utility.analytics.AnalyticsManager
+import com.meet.dev.analyzer.utility.analytics.FailureReason
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils
@@ -26,12 +29,14 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
-import kotlin.time.measureTime
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 class StorageAnalyzerViewModel(
-    private val storageAnalyzerRepository: StorageAnalyzerRepository
+    private val storageAnalyzerRepository: StorageAnalyzerRepository,
+    private val analyticsManager: AnalyticsManager,
 ) : ViewModel() {
 
     private val TAG = tagName(javaClass = javaClass)
@@ -77,20 +82,20 @@ class StorageAnalyzerViewModel(
         loadAllJob = viewModelScope.launch(Dispatchers.IO) {
             try {
                 val startTime = System.currentTimeMillis()
+                val mark = TimeSource.Monotonic.markNow()
 
                 // Start elapsed time counter
                 val timerJob = launch {
                     while (isActive) {
-                        val formatted = formatElapsedTime(
-                            startTime = startTime
-                        )
-                        _uiState.update { it.copy(scanElapsedTime = formatted) }
-                        delay(1000)
+                        _uiState.update {
+                            it.copy(
+                                scanElapsedTime = formatElapsedTime(startTime)
+                            )
+                        }
+                        delay(1.seconds)
                     }
                 }
-
-                val measureTime = measureTime {
-
+                try {
                     _uiState.update {
                         it.copy(
                             scanStatus = "Loading AVDs...",
@@ -197,46 +202,53 @@ class StorageAnalyzerViewModel(
                             )
                         },
                     )
-                    timerJob.cancelAndJoin()
-
-                    withContext(Dispatchers.Main) {
-                        _uiState.update {
-                            it.copy(
-                                isScanning = false,
-                                scanProgress = 1f,
-                                scanStatus = "Scan completed successfully!",
-                                storageAnalyzerInfo = StorageAnalyzerInfo(
-                                    ideDataInfo = ideDataInfo,
-                                    konanInfo = konanInfo,
-                                    androidAvdInfo = androidAvdInfo,
-                                    androidSdkInfo = androidSdkInfo,
-                                    gradleInfo = gradleInfo,
-                                    totalStorageUsed = totalStorageUsed,
-                                    totalStorageBytes = totalBytes,
-                                    storageBreakdown = storageBreakdown,
-                                    storageBreakdownItemList = storageBreakdownItemList
-                                ),
-                                error = null
-                            )
-                        }
+                    val durationMs = mark.elapsedNow().inWholeMilliseconds
+                    _uiState.update {
+                        it.copy(
+                            isScanning = false,
+                            scanProgress = 1f,
+                            scanStatus = "Scan completed successfully!",
+                            storageAnalyzerInfo = StorageAnalyzerInfo(
+                                ideDataInfo = ideDataInfo,
+                                konanInfo = konanInfo,
+                                androidAvdInfo = androidAvdInfo,
+                                androidSdkInfo = androidSdkInfo,
+                                gradleInfo = gradleInfo,
+                                totalStorageUsed = totalStorageUsed,
+                                totalStorageBytes = totalBytes,
+                                storageBreakdown = storageBreakdown,
+                                storageBreakdownItemList = storageBreakdownItemList
+                            ),
+                            error = null
+                        )
                     }
+
+                    analyticsManager.capture(
+                        AnalyticsEvent.StorageAnalysisCompleted(
+                            sdkSizeBytes = androidSdkInfo.totalSizeBytes,
+                            gradleSizeBytes = gradleInfo.totalSizeBytes,
+                            konanSizeBytes = konanInfo.totalSizeBytes,
+                            durationMs = durationMs,
+                        )
+                    )
 
                     AppLogger.i(tag = TAG) {
                         "All data loaded successfully. Total storage: ${
-                            FolderFileUtils.formatSize(
-                                totalBytes
-                            )
+                            FolderFileUtils.formatSize(totalBytes)
                         }"
                     }
+                    val totalSeconds = durationMs / 1000
+                    val minutes = totalSeconds / 60
+                    val seconds = totalSeconds % 60
+                    AppLogger.i(tag = TAG) { "All data loaded in ${minutes}m ${seconds}s" }
+                } finally {
+                    timerJob.cancelAndJoin()
                 }
-
-                val totalSeconds = measureTime.inWholeSeconds
-                val minutes = totalSeconds / 60
-                val seconds = totalSeconds % 60
-                AppLogger.i(tag = TAG) { "All data loaded in ${minutes}m ${seconds}s" }
-
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: IOException) {
                 AppLogger.e(tag = TAG, throwable = e) { "File read error" }
+                analyticsManager.capture(AnalyticsEvent.StorageAnalysisFailed(FailureReason.UNEXPECTED))
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -246,6 +258,7 @@ class StorageAnalyzerViewModel(
                 }
             } catch (e: SecurityException) {
                 AppLogger.e(tag = TAG, throwable = e) { "Permission denied" }
+                analyticsManager.capture(AnalyticsEvent.StorageAnalysisFailed(FailureReason.VALIDATION))
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -255,6 +268,7 @@ class StorageAnalyzerViewModel(
                 }
             } catch (e: Exception) {
                 AppLogger.e(tag = TAG, throwable = e) { "Error loading all data" }
+                analyticsManager.capture(AnalyticsEvent.StorageAnalysisFailed(FailureReason.UNEXPECTED))
                 _uiState.update {
                     it.copy(
                         isScanning = false,
