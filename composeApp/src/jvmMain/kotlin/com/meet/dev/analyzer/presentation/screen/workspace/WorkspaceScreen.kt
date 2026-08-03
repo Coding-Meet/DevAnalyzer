@@ -160,9 +160,9 @@ fun WorkspaceScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     EmptyStateCardLayout(
-                        title = "Analyze Development Workspace",
-                        description = "Select your projects root folder (e.g. AndroidStudioProjects) to discover unused SDK platforms, old build tools, Gradle wrapper caches, dependency libraries, and Kotlin Native prebuilts.",
-                        actionText = "Select Folder",
+                        title = "Select Workspace Folders",
+                        description = "Choose one or more workspace folders to identify unused Android SDKs, Gradle versions, Kotlin/Native distributions, NDKs, CMake installations, and other development resources.",
+                        actionText = "Select Workspace",
                         onAction = { directoryPickerLauncher.launch() },
                         icon = Icons.Default.Workspaces
                     )

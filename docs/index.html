@@ -523,6 +523,54 @@
         .fade-in-up {
             animation: fadeInUp 0.8s ease-out;
         }
+
+        /* Privacy Section */
+        .privacy {
+            padding: 4rem 2rem;
+            background: white;
+            text-align: center;
+        }
+
+        .privacy-container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        .privacy-subtitle {
+            color: var(--text-secondary);
+            font-size: 1.1rem;
+            max-width: 700px;
+            margin: 0 auto 3rem;
+        }
+
+        .privacy-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 2rem;
+            text-align: left;
+        }
+
+        .privacy-card {
+            background: var(--surface);
+            padding: 1.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
+        }
+
+        .privacy-card h4 {
+            font-size: 1.2rem;
+            color: var(--primary);
+            margin-bottom: 0.75rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .privacy-card p {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            line-height: 1.6;
+        }
     </style>
 </head>
 
@@ -536,6 +584,7 @@
         </div>
         <ul class="nav-links">
             <li><a href="#features">Features</a></li>
+            <li><a href="#privacy">Privacy</a></li>
             <li><a href="#platforms">Platforms</a></li>
             <li><a href="#developer">Developer</a></li>
         </ul>
@@ -584,10 +633,10 @@
             <h3>Project Analyzer</h3>
             <p>Get comprehensive insights into your Kotlin and Android projects</p>
             <ul class="feature-list">
-                <li>Module inspection & configuration</li>
-                <li>Plugin analysis across project</li>
-                <li>Dependency overview with versions</li>
-                <li>Direct build file access</li>
+                <li>Analyze Gradle modules, plugins, and dependencies</li>
+                <li>List applied plugins and Version Catalog libraries</li>
+                <li>Browse Gradle build files and project configuration scripts</li>
+                <li>Inspect Kotlin, AGP, Gradle, SDK, NDK, and CMake versions</li>
             </ul>
         </div>
 
@@ -596,22 +645,24 @@
             <h3>Clean Build</h3>
             <p>Free up disk space by cleaning build folders across all projects</p>
             <ul class="feature-list">
-                <li>Multi-project & module scanning</li>
-                <li>Real-time size calculation</li>
-                <li>Selective & batch deletion</li>
-                <li>Expandable project groups</li>
+                <li>Scan Android Studio projects for module build folders</li>
+                <li>Display expandable project and module layout</li>
+                <li>Compute folder sizes in real-time</li>
+                <li>Batch delete selected build folders safely</li>
+                <li>View space recovery summaries after cleaning</li>
             </ul>
         </div>
 
         <div class="feature-card">
             <div class="feature-icon">🏢</div>
             <h3>Workspace Analyzer</h3>
-            <p>Combine multiple project directories to audit and clean shared developer resources safely</p>
+            <p>Combine multiple project directories to audit and clean shared developer resources
+                safely</p>
             <ul class="feature-list">
-                <li>Multi-workspace paths persistence</li>
-                <li>Cross-reference dependency parsing</li>
-                <li>Protected active system resources protection</li>
-                <li>Unused platforms & Gradle caches cleanup</li>
+                <li>Analyze multiple workspace directories simultaneously</li>
+                <li>Cross-reference installed SDK, NDK, CMake, and Gradle wrappers</li>
+                <li>Automatically protect active resource versions currently in use</li>
+                <li>Detect unused Platforms, Build Tools, Sources, NDK, and CMake</li>
             </ul>
         </div>
 
@@ -620,44 +671,42 @@
             <h3>Storage Analyzer</h3>
             <p>Track and manage disk space used by your development tools</p>
             <ul class="feature-list">
-                <li>Android SDK, Gradle & build caches</li>
-                <li>JetBrains & Google IDE data</li>
-                <li>JDK, Kotlin/Native & AVD storage</li>
+                <li>View allocations across Android SDK, Gradle, AVD, and IDEs</li>
+                <li>Supports custom, non-standard JDK and IDE locations</li>
+                <li>Reclaim gigabytes of workspace and system storage cache</li>
             </ul>
         </div>
 
         <div class="feature-card">
             <div class="feature-icon">📁</div>
             <h3>Multi-Path Support</h3>
-            <p>Configure and analyze multiple locations simultaneously</p>
+            <p>Configure and analyze multiple development locations simultaneously</p>
             <ul class="feature-list">
-                <li>Multiple JDK & IDE paths</li>
-                <li>Auto-detect common locations</li>
-                <li>Custom path validation</li>
+                <li>Configure custom paths for toolchains and IDE locations</li>
+                <li>Supports multiple JDK and Android Studio path installations</li>
+                <li>Save workspace selections locally for instant retrieval</li>
             </ul>
         </div>
 
         <div class="feature-card">
             <div class="feature-icon">⚡</div>
-            <h3>Real-Time Insights</h3>
-            <p>Track scan progress with live feedback</p>
+            <h3>Real-Time scan feedback</h3>
+            <p>Track scan progress dynamically with active feedback</p>
             <ul class="feature-list">
-                <li>Live progress tracking</li>
-                <li>Elapsed scan time display</li>
-                <li>Detailed scan status updates</li>
+                <li>Live progress percentage calculation during analysis scans</li>
+                <li>Track total elapsed scanning duration in real time</li>
+                <li>Inspect detailed scanning status updates dynamically</li>
             </ul>
         </div>
 
         <div class="feature-card">
             <div class="feature-icon">⚙️</div>
-            <h3>Flexible Configuration</h3>
-            <p>Customize the app to your workflow</p>
+            <h3>Flexible Settings</h3>
+            <p>Customize the application behavior to your workflow</p>
             <ul class="feature-list">
-                <li>Centralized settings management</li>
-                <li>Crash logs & diagnostics</li>
-                <li>Optional Sentry integration</li>
-                <li>Privacy-first anonymous analytics</li>
-                <li>Cross-platform (Windows, macOS, Linux)</li>
+                <li>Automatic path validation with quick-reset options</li>
+                <li>Toggle local crash logging, crash reporting, and usage analytics</li>
+                <li>Clean cache configurations and reset to system tool defaults</li>
             </ul>
         </div>
 
@@ -666,10 +715,9 @@
             <h3>Feedback & Reviews</h3>
             <p>Share your experience and suggest features directly from the app</p>
             <ul class="feature-list">
-                <li>Touch-friendly 5-star rating selector</li>
-                <li>Feature checkmarks and wishlist suggestions</li>
-                <li>Local version lock to prevent duplicate ratings</li>
-                <li>Privacy first & anonymous submissions</li>
+                <li>Interactive rating dialog with feature wishlist checkmarks</li>
+                <li>Local version-aware lock to prevent duplicate ratings</li>
+                <li>Fully anonymous submissions to protect privacy</li>
             </ul>
         </div>
 
@@ -678,9 +726,9 @@
             <h3>Silent Update Checks</h3>
             <p>Stay up to date with the latest features and optimizations automatically</p>
             <ul class="feature-list">
-                <li>Automatic background check on app launch</li>
-                <li>Displays scrollable "What's New" release notes dialog</li>
-                <li>One-click link to open latest GitHub releases page</li>
+                <li>Automatic background releases check on app startup</li>
+                <li>View markdown release notes in a dedicated dialog</li>
+                <li>One-click link to latest GitHub releases downloads</li>
             </ul>
         </div>
 
@@ -702,6 +750,39 @@
         <div class="stat-item">
             <h3>🌍</h3>
             <p>Cross-Platform</p>
+        </div>
+    </div>
+</section>
+
+<!-- Privacy Section -->
+<section class="privacy" id="privacy">
+    <div class="privacy-container">
+        <h2 class="section-title">Privacy First</h2>
+        <p class="privacy-subtitle">DevAnalyzer is designed with privacy as a core principle. Your
+            source code and data belong entirely to you.</p>
+        <div class="privacy-grid">
+            <div class="privacy-card">
+                <h4>🔒 Local Processing</h4>
+                <p>All project scanning and environment analysis runs completely locally on your
+                    computer. Your file paths, project names, and source code are never uploaded
+                    anywhere.</p>
+            </div>
+            <div class="privacy-card">
+                <h4>📊 Optional Analytics</h4>
+                <p>Anonymous usage tracking can be enabled or disabled at any time. It measures
+                    layout performance and feature adoption to help us improve the app.</p>
+            </div>
+            <div class="privacy-card">
+                <h4>🛡️ Zero PII</h4>
+                <p>No email addresses, personal identification, or sensitive credentials are ever
+                    collected or tracked by the application.</p>
+            </div>
+            <div class="privacy-card">
+                <h4>👤 Anonymous Profiles</h4>
+                <p>We configure the analytics SDK to keep all usage data anonymous. Since the app
+                    never calls identification methods, no individual profiles are ever tracked or
+                    linked.</p>
+            </div>
         </div>
     </div>
 </section>
@@ -782,6 +863,7 @@
     <div class="footer-links">
         <a href="https://github.com/Coding-Meet/DevAnalyzer" rel="noopener noreferrer"
            target="_blank">GitHub</a>
+        <a href="#privacy">Privacy</a>
         <a href="https://github.com/Coding-Meet/DevAnalyzer/issues/new?template=bug_report.md"
            rel="noopener noreferrer" target="_blank">Report Bug</a>
         <a href="https://github.com/Coding-Meet/DevAnalyzer/issues/new?template=feature_request.md"

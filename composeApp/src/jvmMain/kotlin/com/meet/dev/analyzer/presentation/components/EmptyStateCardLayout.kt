@@ -86,7 +86,7 @@ fun EmptyStateCardLayout(
                     )
                 ) {
                     Icon(
-                        Icons.Default.Search,
+                        icon,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp)
                     )
