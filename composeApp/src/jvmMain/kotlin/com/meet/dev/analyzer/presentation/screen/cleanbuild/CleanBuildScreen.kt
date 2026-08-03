@@ -61,6 +61,11 @@ fun CleanBuildScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.handleIntent(CleanBuildIntent.TrackCleanBuildOpened)
+    }
+
     val lastSubmittedVersion by uiState.lastSubmittedReviewVersion.collectAsStateWithLifecycle(initialValue = "")
     val desktopConfig = remember {
         CustomProperties.createAppConfig(CustomProperties.loadProperties())
@@ -105,9 +110,9 @@ fun CleanBuildScreen(
                 showReviewDialog = false
                 viewModel.handleIntent(CleanBuildIntent.TrackFeedbackCancelled)
             },
-            onReviewSubmitted = {
+            onReviewSubmitted = { rating ->
                 coroutineScope.launch {
-                    viewModel.saveReviewVersion(currentVersion)
+                    viewModel.saveReviewVersion(currentVersion, rating)
                 }
             }
         )

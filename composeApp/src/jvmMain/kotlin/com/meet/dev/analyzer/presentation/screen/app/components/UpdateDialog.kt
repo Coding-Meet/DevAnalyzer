@@ -44,7 +44,8 @@ import java.awt.Cursor
 @Composable
 fun UpdateDialog(
     state: UpdateDialogState.Available,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    onUpdateClicked: () -> Unit
 ) {
     Dialog(
         onDismissRequest = onDismiss,
@@ -177,7 +178,10 @@ fun UpdateDialog(
                     }
 
                     Button(
-                        onClick = { uriHandler.openUri(state.htmlUrl) },
+                        onClick = {
+                            onUpdateClicked()
+                            uriHandler.openUri(state.htmlUrl)
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp)

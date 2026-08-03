@@ -46,7 +46,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.data.models.feedback.FeedbackData
 import com.meet.dev.analyzer.data.repository.feedback.FeedbackRepository
-import com.meet.dev.analyzer.data.repository.setting.SettingsRepository
 import org.koin.compose.koinInject
 import java.awt.Cursor
 import kotlinx.coroutines.launch
@@ -55,7 +54,7 @@ import kotlinx.coroutines.launch
 fun ReviewDialog(
     appVersion: String,
     onDismiss: () -> Unit,
-    onReviewSubmitted: () -> Unit
+    onReviewSubmitted: (Int) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
     val feedbackRepository = koinInject<FeedbackRepository>()
@@ -81,14 +80,24 @@ fun ReviewDialog(
 
     AlertDialog(
         onDismissRequest = { if (!isSubmitting) onDismiss() },
-        modifier = Modifier.width(620.dp),
+        modifier = if (!submitSuccess) Modifier.height(700.dp) else Modifier,
         title = {
             if (!submitSuccess) {
-                Text(
-                    text = "Share Your Feedback",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    DevAnalyzerAnimatedLogo(
+                        modifier = Modifier.size(36.dp),
+                        animateDraw = true,
+                        drawDurationMillis = 1200
+                    )
+                    Text(
+                        text = "Share Your Feedback",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
         },
         text = {
@@ -118,13 +127,12 @@ fun ReviewDialog(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Icon(
-                        imageVector = Icons.Default.CheckCircle,
-                        contentDescription = "Success",
-                        tint = MaterialTheme.colorScheme.primary,
+                    DevAnalyzerAnimatedLogo(
                         modifier = Modifier
-                            .size(72.dp)
-                            .scale(scale.value)
+                            .size(120.dp)
+                            .scale(scale.value),
+                        animateDraw = true,
+                        drawDurationMillis = 1500
                     )
 
                     Spacer(Modifier.height(4.dp))
@@ -317,12 +325,6 @@ fun ReviewDialog(
                         )
                     }
 
-                    Text(
-                        text = "Your feedback is sent anonymously unless you choose to provide your email.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-
                     submitError?.let { error ->
                         Text(
                             text = "Error: $error",
@@ -372,7 +374,7 @@ fun ReviewDialog(
                                         )
                                     )
                                     if (result.isSuccess) {
-                                        onReviewSubmitted()
+                                        onReviewSubmitted(rating)
                                         submitSuccess = true
                                     } else {
                                         submitError = result.exceptionOrNull()?.message ?: "Unknown network error"

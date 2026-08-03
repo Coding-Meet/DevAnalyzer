@@ -22,6 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -111,7 +112,7 @@ fun OnboardingScreen(
                     previousTabIndex = uiState.previousPage,
                     targetState = uiState.pages[uiState.currentPage],
                 ) { page ->
-                    OnboardingPageContent(page = page)
+                    OnboardingPageContent(page = page, currentPage = uiState.currentPage)
                 }
             }
         }
@@ -119,8 +120,13 @@ fun OnboardingScreen(
 }
 
 @Composable
-fun OnboardingPageContent(page: OnboardingPageData) {
+fun OnboardingPageContent(page: OnboardingPageData, currentPage: Int) {
     var titleVisible by remember { mutableStateOf(false) }
+    val isFirstPage by remember(currentPage) {
+        derivedStateOf {
+            currentPage == 0
+        }
+    }
 
     LaunchedEffect(page) {
         titleVisible = false
@@ -136,7 +142,7 @@ fun OnboardingPageContent(page: OnboardingPageData) {
         verticalArrangement = Arrangement.Center
     ) {
         // Animated Icon
-        AnimatedIcon(icon = page.icon)
+        AnimatedIcon(icon = page.icon, isFirstPage = isFirstPage)
 
         Spacer(Modifier.height(24.dp))
 

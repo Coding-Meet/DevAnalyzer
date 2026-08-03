@@ -58,6 +58,10 @@ class ProjectAnalyzerViewModel(
                     )
                 }
             }
+
+            ProjectAnalyzerIntent.TrackProjectAnalyzerOpened -> {
+                analyticsManager.capture(AnalyticsEvent.ProjectAnalyzerOpened)
+            }
         }
     }
 

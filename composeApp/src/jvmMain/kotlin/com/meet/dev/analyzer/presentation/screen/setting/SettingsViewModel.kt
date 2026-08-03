@@ -98,7 +98,7 @@ class SettingsViewModel(
 
             is SettingsUiIntent.CheckForUpdates -> checkForUpdates()
             is SettingsUiIntent.ShowPathPicker -> showPathPicker(intent.path, intent.type)
-            is SettingsUiIntent.SaveReviewVersion -> saveReviewVersion(intent.version)
+            is SettingsUiIntent.SaveReviewVersion -> saveReviewVersion(intent.version, intent.rating)
 
             // Analytics event trackers
             SettingsUiIntent.TrackSettingsOpened -> analyticsManager.capture(AnalyticsEvent.SettingsOpened)
@@ -136,10 +136,10 @@ class SettingsViewModel(
         }
     }
 
-    private fun saveReviewVersion(version: String) {
+    private fun saveReviewVersion(version: String, rating: Int) {
         viewModelScope.launch {
             settingsRepository.saveLastSubmittedReviewVersion(version)
-            analyticsManager.capture(AnalyticsEvent.FeedbackSubmitted)
+            analyticsManager.capture(AnalyticsEvent.ReviewSubmitted(rating))
         }
     }
 
@@ -243,22 +243,10 @@ class SettingsViewModel(
         }
     }
 
-    /**
-     * Event order is intentional:
-     * - Disabling: fire [AnalyticsEvent.AnalyticsDisabled] BEFORE saving so the event
-     *   is captured before PostHog.optOut() is triggered by the Flow observer.
-     * - Enabling: fire [AnalyticsEvent.AnalyticsEnabled] AFTER saving so PostHog.optIn()
-     *   happens first via the Flow observer.
-     */
     private fun toggleAnalytics(enabled: Boolean) {
         viewModelScope.launch {
-            if (!enabled) {
-                analyticsManager.capture(AnalyticsEvent.AnalyticsDisabled)
-            }
             settingsRepository.setAnalyticsEnabled(enabled)
-            if (enabled) {
-                analyticsManager.capture(AnalyticsEvent.AnalyticsEnabled)
-            }
+            _uiState.update { it.copy(analyticsEnabled = enabled) }
         }
     }
 

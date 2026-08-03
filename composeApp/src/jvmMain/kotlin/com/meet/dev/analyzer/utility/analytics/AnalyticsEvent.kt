@@ -99,20 +99,40 @@ sealed interface AnalyticsEvent {
         override val name = "clean_build_failed"
     }
 
-    // ── Settings ──────────────────────────────────────────────────────────────
+    // ── Onboarding ────────────────────────────────────────────────────────────
+
+    data object OnboardingStarted : AnalyticsEvent {
+        override val name = "onboarding_started"
+    }
+
+    data object OnboardingCompleted : AnalyticsEvent {
+        override val name = "onboarding_completed"
+    }
+
+    data object OnboardingSkipped : AnalyticsEvent {
+        override val name = "onboarding_skipped"
+    }
+
+    // ── Screen Impressions ─────────────────────────────────────────────────────
+
+    data object ProjectAnalyzerOpened : AnalyticsEvent {
+        override val name = "project_analyzer_opened"
+    }
+
+    data object StorageAnalyzerOpened : AnalyticsEvent {
+        override val name = "storage_analyzer_opened"
+    }
+
+    data object WorkspaceAnalyzerOpened : AnalyticsEvent {
+        override val name = "workspace_analyzer_opened"
+    }
+
+    data object CleanBuildOpened : AnalyticsEvent {
+        override val name = "clean_build_opened"
+    }
 
     data object SettingsOpened : AnalyticsEvent {
         override val name = "settings_opened"
-    }
-
-    /** Fired when the user explicitly enables analytics. */
-    data object AnalyticsEnabled : AnalyticsEvent {
-        override val name = "analytics_enabled"
-    }
-
-    /** Fired when the user explicitly disables analytics. */
-    data object AnalyticsDisabled : AnalyticsEvent {
-        override val name = "analytics_disabled"
     }
 
     // ── Feedback ──────────────────────────────────────────────────────────────
@@ -133,8 +153,8 @@ sealed interface AnalyticsEvent {
     }
 
     /** Fired when the user submits feedback / review. */
-    data object FeedbackSubmitted : AnalyticsEvent {
-        override val name = "feedback_submitted"
+    data class ReviewSubmitted(val rating: Int) : AnalyticsEvent {
+        override val name = "review_submitted"
     }
 
     // ── Support / Monetization ────────────────────────────────────────────────
@@ -149,5 +169,19 @@ sealed interface AnalyticsEvent {
 
     data object PaypalClicked : AnalyticsEvent {
         override val name = "paypal_clicked"
+    }
+
+    // ── Updates ────────────────────────────────────────────────────────────────
+
+    data object UpdateDialogShown : AnalyticsEvent {
+        override val name = "update_dialog_shown"
+    }
+
+    data object UpdateClicked : AnalyticsEvent {
+        override val name = "update_clicked"
+    }
+
+    data object UpdateDismissed : AnalyticsEvent {
+        override val name = "update_dismissed"
     }
 }

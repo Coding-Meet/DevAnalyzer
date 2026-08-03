@@ -11,4 +11,6 @@ sealed interface StorageAnalyzerIntent {
         val currentTabIndex: Int,
         val storageAnalyzerTabs: StorageAnalyzerTabs
     ) : StorageAnalyzerIntent
+
+    data object TrackStorageAnalyzerOpened : StorageAnalyzerIntent
 }

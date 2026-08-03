@@ -24,7 +24,8 @@ sealed interface WorkspaceIntent {
     data object OnClearHighlights : WorkspaceIntent
 
     // Analytics event trackers
-    data object TrackFeedbackOpened : WorkspaceIntent
-    data object TrackFeedbackCancelled : WorkspaceIntent
-    data object TrackReviewPromptShown : WorkspaceIntent
+    data object TrackFeedbackOpened     : WorkspaceIntent
+    data object TrackReviewPromptShown  : WorkspaceIntent
+    data object TrackFeedbackCancelled  : WorkspaceIntent
+    data object TrackWorkspaceAnalyzerOpened : WorkspaceIntent
 }

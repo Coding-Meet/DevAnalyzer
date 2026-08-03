@@ -35,7 +35,7 @@ val onboardingPages = listOf(
     OnboardingPageData(
         icon = Icons.Default.AccountTree,
         title = "Project Analyzer",
-        subtitle = "Understand Your Project Structure",
+        subtitle = "Analyze Your Project Structure",
         description = "Get comprehensive insights into your Kotlin and Android projects",
         features = listOf(
             "Module inspection & configuration",
@@ -47,7 +47,7 @@ val onboardingPages = listOf(
     OnboardingPageData(
         icon = Icons.Default.Storage,
         title = "Storage Analyzer",
-        subtitle = "Optimize Your Development Storage",
+        subtitle = "Analyze Development Storage",
         description = "Analyze and manage disk space used by your development tools.",
         features = listOf(
             "Android SDK platforms & build tools",
@@ -61,7 +61,7 @@ val onboardingPages = listOf(
     OnboardingPageData(
         icon = Icons.Default.Workspaces,
         title = "Workspace Analyzer",
-        subtitle = "Find Unused Development Resources",
+        subtitle = "Find Unused SDKs & Tools",
         description = "Scan multiple workspaces to identify which SDKs, Gradle, NDK, CMake, and Kotlin/Native versions are actively used, helping you safely remove unused resources.",
         features = listOf(
             "Analyze multiple workspace folders",
@@ -87,7 +87,7 @@ val onboardingPages = listOf(
     OnboardingPageData(
         icon = Icons.Default.FolderOpen,
         title = "Multi-Path Support",
-        subtitle = "Scan Multiple Locations",
+        subtitle = "Configure Multiple Development Paths",
         description = "Configure multiple JDK and IDE locations for more comprehensive analysis.",
         features = listOf(
             "Multiple JDK paths support",
@@ -100,7 +100,7 @@ val onboardingPages = listOf(
     OnboardingPageData(
         icon = Icons.Default.Speed,
         title = "Real-Time Insights",
-        subtitle = "Live Scanning Progress",
+        subtitle = "Track Analysis in Real Time",
         description = "Monitor scan progress in real time with detailed status updates and elapsed time tracking.",
         highlights = listOf(
             "Live progress" to Icons.AutoMirrored.Filled.TrendingUp,
@@ -111,7 +111,7 @@ val onboardingPages = listOf(
     OnboardingPageData(
         icon = Icons.Default.Settings,
         title = "Flexible Configuration",
-        subtitle = "Customize Your Analysis",
+        subtitle = "Customize Your Development Environment",
         description = "Configure scan locations, validate paths, and personalize your analysis experience",
         features = listOf(
             "Path validation & verification",
@@ -123,7 +123,7 @@ val onboardingPages = listOf(
     OnboardingPageData(
         icon = Icons.Default.Rocket,
         title = "Ready to Analyze",
-        subtitle = "Start optimizing your development environment",
+        subtitle = "Start Optimizing Your Development Environment",
         description = "Explore your projects, optimize development resources, and keep your workspace organized with DevAnalyzer.",
         highlights = listOf(
             "Save disk space" to Icons.Default.Storage,

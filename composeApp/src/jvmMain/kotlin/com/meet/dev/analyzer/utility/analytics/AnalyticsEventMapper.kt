@@ -66,16 +66,25 @@ internal fun AnalyticsEvent.toProperties(): Map<String, Any> = when (this) {
     is AnalyticsEvent.CleanBuildFailed -> mapOf("reason" to reason.value)
 
 
+    is AnalyticsEvent.ReviewSubmitted -> mapOf("rating" to rating)
+
     // ── All zero-property events ──────────────────────────────────────────────
+    AnalyticsEvent.OnboardingStarted,
+    AnalyticsEvent.OnboardingCompleted,
+    AnalyticsEvent.OnboardingSkipped,
+    AnalyticsEvent.ProjectAnalyzerOpened,
+    AnalyticsEvent.StorageAnalyzerOpened,
+    AnalyticsEvent.WorkspaceAnalyzerOpened,
+    AnalyticsEvent.CleanBuildOpened,
     AnalyticsEvent.SettingsOpened,
-    AnalyticsEvent.AnalyticsEnabled,
-    AnalyticsEvent.AnalyticsDisabled,
     AnalyticsEvent.ReviewPromptShown,
     AnalyticsEvent.FeedbackOpened,
     AnalyticsEvent.FeedbackCancelled,
-    AnalyticsEvent.FeedbackSubmitted,
     AnalyticsEvent.GitHubSponsorClicked,
     AnalyticsEvent.BuyMeCoffeeClicked,
     AnalyticsEvent.PaypalClicked,
+    AnalyticsEvent.UpdateDialogShown,
+    AnalyticsEvent.UpdateClicked,
+    AnalyticsEvent.UpdateDismissed,
         -> emptyMap()
 }

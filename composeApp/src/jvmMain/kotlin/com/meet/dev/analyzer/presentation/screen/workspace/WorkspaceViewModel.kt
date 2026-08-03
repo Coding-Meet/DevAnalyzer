@@ -110,6 +110,7 @@ class WorkspaceViewModel(
             WorkspaceIntent.TrackFeedbackOpened    -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
             WorkspaceIntent.TrackFeedbackCancelled -> analyticsManager.capture(AnalyticsEvent.FeedbackCancelled)
             WorkspaceIntent.TrackReviewPromptShown -> analyticsManager.capture(AnalyticsEvent.ReviewPromptShown)
+            WorkspaceIntent.TrackWorkspaceAnalyzerOpened -> analyticsManager.capture(AnalyticsEvent.WorkspaceAnalyzerOpened)
         }
     }
 
@@ -381,10 +382,10 @@ class WorkspaceViewModel(
         }
     }
 
-    fun saveReviewVersion(version: String) {
+    fun saveReviewVersion(version: String, rating: Int) {
         viewModelScope.launch {
             settingsRepository.saveLastSubmittedReviewVersion(version)
-            analyticsManager.capture(AnalyticsEvent.FeedbackSubmitted)
+            analyticsManager.capture(AnalyticsEvent.ReviewSubmitted(rating))
         }
     }
 }

@@ -64,6 +64,10 @@ class StorageAnalyzerViewModel(
                     )
                 }
             }
+
+            StorageAnalyzerIntent.TrackStorageAnalyzerOpened -> {
+                analyticsManager.capture(AnalyticsEvent.StorageAnalyzerOpened)
+            }
         }
     }
 
