@@ -40,7 +40,7 @@ class SplashViewModel(
     private fun startAnimation() {
         viewModelScope.launch {
             repeat(100) { number ->
-                delay(5)
+                delay(25)
                 _uiState.update {
                     it.copy(progress = number / 100f)
                 }

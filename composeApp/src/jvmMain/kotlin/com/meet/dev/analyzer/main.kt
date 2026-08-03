@@ -26,11 +26,9 @@ import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
 import com.meet.dev.analyzer.utility.analytics.AnalyticsEvent
 import com.meet.dev.analyzer.utility.analytics.AnalyticsInitializer
 import com.meet.dev.analyzer.utility.analytics.AnalyticsManager
-import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.CustomProperties
 import com.meet.dev.analyzer.utility.platform.getDesktopOS
 import com.meet.dev.analyzer.utility.platform.isMacOs
-import com.posthog.kmp.PostHog
 import io.github.vinceglb.filekit.FileKit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
@@ -46,8 +44,6 @@ fun main() {
     val properties = CustomProperties.loadProperties()
     val appConfig = CustomProperties.createAppConfig(properties)
     val analyticsConfig = CustomProperties.createAnalyticsConfig(properties)
-    AppLogger.i { "appConfig: ${appConfig}" }
-    AppLogger.i { "analyticsConfig: ${analyticsConfig}" }
     initKoin(
         appConfig = appConfig,
         analyticsConfig = analyticsConfig,
@@ -63,12 +59,6 @@ fun main() {
         appVersion = appConfig.version,
         operatingSystem = getDesktopOS().name,
     )
-//    PostHog.capture(
-//        event = "button_clicked",
-//        properties = mapOf(
-//            "button_name" to "signup"
-//        )
-//    )
     application {
         val appPreferenceManager = koinInject<AppPreferenceManager>()
         val analyticsManager = koinInject<AnalyticsManager>()
@@ -87,6 +77,7 @@ fun main() {
             savedPositionX = windowPositionX,
             savedPositionY = windowPositionY
         )
+        val isDarkMode by appPreferenceManager.isDarkMode.collectAsState(true)
         Window(
             // Shutdown order: capture → flush → close → cancel scope → exit
             onCloseRequest = {
@@ -99,7 +90,9 @@ fun main() {
             title = if (getDesktopOS().isMacOs()) {
                 ""
             } else "DevAnalyzer",
-            icon = painterResource(Res.drawable.app_logo)
+            icon = if (isDarkMode) painterResource(Res.drawable.dark_mode_logo) else painterResource(
+                Res.drawable.light_mode_logo
+            )
         ) {
             window.minimumSize = Dimension(1024, 768)
             val appViewModel = koinViewModel<AppViewModel>()
@@ -166,9 +159,18 @@ fun main() {
                 }
                 val updateState = appViewModel.updateDialogState
                 if (updateState is UpdateDialogState.Available) {
+                    LaunchedEffect(updateState) {
+                        appViewModel.trackUpdateDialogShown()
+                    }
                     UpdateDialog(
                         state = updateState,
-                        onDismiss = { appViewModel.closeUpdateDialog() }
+                        onDismiss = {
+                            appViewModel.trackUpdateDismissed()
+                            appViewModel.closeUpdateDialog()
+                        },
+                        onUpdateClicked = {
+                            appViewModel.trackUpdateClicked()
+                        }
                     )
                 }
             }

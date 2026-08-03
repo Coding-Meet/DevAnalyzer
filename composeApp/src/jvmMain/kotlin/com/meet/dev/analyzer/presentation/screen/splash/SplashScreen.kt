@@ -9,7 +9,6 @@ import androidx.compose.animation.core.animateDp
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.rememberTransition
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -32,11 +31,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.meet.dev.analyzer.Res
-import com.meet.dev.analyzer.app_logo
+import com.meet.dev.analyzer.presentation.components.DevAnalyzerAnimatedLogo
 import com.meet.dev.analyzer.presentation.navigation.AppRoute
 import com.meet.dev.analyzer.utility.ui.ObserveAsEvents
-import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
 
 @Composable
@@ -103,16 +100,15 @@ fun SplashScreen(
     ) {
 
         // LOGO
-        Image(
-            painter = painterResource(Res.drawable.app_logo),
-            contentDescription = "DevAnalyzer Logo",
+        DevAnalyzerAnimatedLogo(
             modifier = Modifier
                 .size(250.dp)
                 .graphicsLayer {
                     scaleX = logoScale
                     scaleY = logoScale
                     alpha = logoAlpha
-                }
+                },
+            drawDurationMillis = 3000
         )
 
         Spacer(Modifier.height(20.dp))
@@ -134,7 +130,7 @@ fun SplashScreen(
 
         // TAGLINE
         Text(
-            text = "Deep insights into your development environment",
+            text = "Analyze, optimize, and clean your development environment",
             fontSize = 14.sp,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier

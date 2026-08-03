@@ -78,6 +78,8 @@ import com.meet.dev.analyzer.utility.getDefaultGradleHomePath
 import com.meet.dev.analyzer.utility.getDefaultJdkFolderPaths
 import com.meet.dev.analyzer.utility.getDefaultJetbrainsFolderPaths
 import com.meet.dev.analyzer.utility.getDefaultKonanFolderPath
+import com.meet.dev.analyzer.utility.platform.DesktopConfig
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import java.awt.Cursor
 
@@ -92,8 +94,6 @@ fun SettingsScreen(
     val pathUiState by viewModel.pathSettingsState.collectAsStateWithLifecycle()
     val settingsUiState by viewModel.uiState.collectAsStateWithLifecycle()
 
-    // Fires exactly once when the screen is first composed — actual screen impression.
-    // Using LaunchedEffect here (not ViewModel.init) avoids double-fire on ViewModel recreation.
     LaunchedEffect(Unit) {
         viewModel.onIntent(SettingsUiIntent.TrackSettingsOpened)
     }
@@ -110,9 +110,7 @@ fun SettingsScreenContent(
     pathUiState: PathUiState, settingsUiState: SettingsUiState, onEvent: (SettingsUiIntent) -> Unit
 ) {
     var showReviewDialog by remember { mutableStateOf(false) }
-    val desktopConfig = remember {
-        CustomProperties.createAppConfig(CustomProperties.loadProperties())
-    }
+    val desktopConfig = koinInject<DesktopConfig>()
     val lastSubmittedVersion = settingsUiState.lastSubmittedReviewVersion
 
     Scaffold(
@@ -870,8 +868,8 @@ fun SettingsScreenContent(
                 showReviewDialog = false
                 onEvent(SettingsUiIntent.TrackFeedbackCancelled)
             },
-            onReviewSubmitted = {
-                onEvent(SettingsUiIntent.SaveReviewVersion(currentVersion))
+            onReviewSubmitted = { rating ->
+                onEvent(SettingsUiIntent.SaveReviewVersion(currentVersion, rating))
             }
         )
     }

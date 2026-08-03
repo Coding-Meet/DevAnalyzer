@@ -70,6 +70,7 @@ class CleanBuildViewModel(
             CleanBuildIntent.TrackFeedbackOpened    -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
             CleanBuildIntent.TrackFeedbackCancelled -> analyticsManager.capture(AnalyticsEvent.FeedbackCancelled)
             CleanBuildIntent.TrackReviewPromptShown -> analyticsManager.capture(AnalyticsEvent.ReviewPromptShown)
+            CleanBuildIntent.TrackCleanBuildOpened  -> analyticsManager.capture(AnalyticsEvent.CleanBuildOpened)
         }
     }
 
@@ -416,10 +417,10 @@ class CleanBuildViewModel(
             .any { it.isDirectory && it.name == "build" }
     }
 
-    fun saveReviewVersion(version: String) {
+    fun saveReviewVersion(version: String, rating: Int) {
         viewModelScope.launch {
             settingsRepository.saveLastSubmittedReviewVersion(version)
-            analyticsManager.capture(AnalyticsEvent.FeedbackSubmitted)
+            analyticsManager.capture(AnalyticsEvent.ReviewSubmitted(rating))
         }
     }
 }

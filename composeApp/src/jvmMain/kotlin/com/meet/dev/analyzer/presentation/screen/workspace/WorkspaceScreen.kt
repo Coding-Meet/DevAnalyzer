@@ -53,6 +53,11 @@ fun WorkspaceScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.handleIntent(WorkspaceIntent.TrackWorkspaceAnalyzerOpened)
+    }
+
     val lastSubmittedVersion by uiState.lastSubmittedReviewVersion.collectAsStateWithLifecycle(initialValue = "")
     val desktopConfig = remember {
         CustomProperties.createAppConfig(CustomProperties.loadProperties())
@@ -211,9 +216,9 @@ fun WorkspaceScreen(
                 showReviewDialog = false
                 viewModel.handleIntent(WorkspaceIntent.TrackFeedbackCancelled)
             },
-            onReviewSubmitted = {
+            onReviewSubmitted = { rating ->
                 coroutineScope.launch {
-                    viewModel.saveReviewVersion(currentVersion)
+                    viewModel.saveReviewVersion(currentVersion, rating)
                 }
             }
         )

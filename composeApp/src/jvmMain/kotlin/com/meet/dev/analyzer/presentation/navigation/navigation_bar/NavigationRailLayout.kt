@@ -1,7 +1,6 @@
 package com.meet.dev.analyzer.presentation.navigation.navigation_bar
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -23,7 +22,6 @@ import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.NavigationRailItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
-import com.meet.dev.analyzer.utility.AppLinks
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -35,10 +33,9 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.Res
-import com.meet.dev.analyzer.app_logo
 import com.meet.dev.analyzer.presentation.components.CustomToolTip
-import org.jetbrains.compose.resources.painterResource
+import com.meet.dev.analyzer.presentation.components.DevAnalyzerAnimatedLogo
+import com.meet.dev.analyzer.utility.AppLinks
 import java.awt.Cursor
 
 @Composable
@@ -58,13 +55,14 @@ fun NavigationRailLayout(
         ) {
             Spacer(Modifier.height(30.dp))
 
-            // App Logo
-            Image(
-                painter = painterResource(Res.drawable.app_logo),
-                contentDescription = "DevAnalyzer Logo",
-                modifier = Modifier
-                    .size(48.dp)
-            )
+            if (currentNavigationItem != null) {
+                // App Logo
+                DevAnalyzerAnimatedLogo(
+                    modifier = Modifier
+                        .size(64.dp),
+                    drawDurationMillis = 2000
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 

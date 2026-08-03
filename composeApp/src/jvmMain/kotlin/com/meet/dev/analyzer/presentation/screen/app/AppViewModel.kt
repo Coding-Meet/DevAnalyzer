@@ -85,6 +85,18 @@ class AppViewModel(
         updateDialogState = null
     }
 
+    fun trackUpdateDialogShown() {
+        analyticsManager.capture(AnalyticsEvent.UpdateDialogShown)
+    }
+
+    fun trackUpdateClicked() {
+        analyticsManager.capture(AnalyticsEvent.UpdateClicked)
+    }
+
+    fun trackUpdateDismissed() {
+        analyticsManager.capture(AnalyticsEvent.UpdateDismissed)
+    }
+
     fun checkUpdate() {
         viewModelScope.launch {
             updaterRepository.checkForUpdates()

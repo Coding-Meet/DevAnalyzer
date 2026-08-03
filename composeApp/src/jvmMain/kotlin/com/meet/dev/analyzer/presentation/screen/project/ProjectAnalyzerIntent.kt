@@ -14,4 +14,5 @@ sealed interface ProjectAnalyzerIntent {
         val projectScreenTabs: ProjectScreenTabs
     ) : ProjectAnalyzerIntent
 
+    data object TrackProjectAnalyzerOpened : ProjectAnalyzerIntent
 }

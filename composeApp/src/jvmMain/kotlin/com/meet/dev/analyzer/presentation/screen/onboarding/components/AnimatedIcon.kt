@@ -28,10 +28,11 @@ import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
+import com.meet.dev.analyzer.presentation.components.DevAnalyzerAnimatedLogo
 import kotlinx.coroutines.delay
 
 @Composable
-fun AnimatedIcon(icon: ImageVector) {
+fun AnimatedIcon(icon: ImageVector, isFirstPage: Boolean) {
     var visible by remember { mutableStateOf(false) }
 
     LaunchedEffect(icon) {
@@ -73,13 +74,21 @@ fun AnimatedIcon(icon: ImageVector) {
             ),
         contentAlignment = Alignment.Center
     ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            modifier = Modifier
-                .size(100.dp)
-                .scale(1f + rotation * 0.02f),
-            tint = MaterialTheme.colorScheme.primary
-        )
+        if (isFirstPage) {
+            DevAnalyzerAnimatedLogo(
+                modifier = Modifier
+                    .size(150.dp)
+                    .scale(1f + rotation * 0.02f),
+            )
+        } else {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier
+                    .size(100.dp)
+                    .scale(1f + rotation * 0.02f),
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
     }
 }

@@ -53,8 +53,8 @@ object AnalyticsInitializer {
                     apiKey = apiKey,
                     host = host,
                     debug = isDebug,
-                    // Anonymous analytics only
-                    personProfiles = PersonProfiles.NEVER,
+
+                    personProfiles = PersonProfiles.IDENTIFIED_ONLY,
 
                     // Queue
                     flushAt = 1,

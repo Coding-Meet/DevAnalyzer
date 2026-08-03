@@ -23,7 +23,8 @@ sealed interface CleanBuildIntent {
     data object OnToggleProjectSelection : CleanBuildIntent
 
     // Analytics event trackers
-    data object TrackFeedbackOpened : CleanBuildIntent
-    data object TrackFeedbackCancelled : CleanBuildIntent
-    data object TrackReviewPromptShown : CleanBuildIntent
+    data object TrackFeedbackOpened     : CleanBuildIntent
+    data object TrackReviewPromptShown  : CleanBuildIntent
+    data object TrackFeedbackCancelled  : CleanBuildIntent
+    data object TrackCleanBuildOpened : CleanBuildIntent
 }
