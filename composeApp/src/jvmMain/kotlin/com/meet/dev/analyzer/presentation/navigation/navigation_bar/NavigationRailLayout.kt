@@ -1,7 +1,6 @@
 package com.meet.dev.analyzer.presentation.navigation.navigation_bar
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,6 +11,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.outlined.DarkMode
 import androidx.compose.material.icons.outlined.LightMode
 import androidx.compose.material3.Icon
@@ -33,10 +33,9 @@ import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.Res
-import com.meet.dev.analyzer.app_logo
 import com.meet.dev.analyzer.presentation.components.CustomToolTip
-import org.jetbrains.compose.resources.painterResource
+import com.meet.dev.analyzer.presentation.components.DevAnalyzerAnimatedLogo
+import com.meet.dev.analyzer.utility.AppLinks
 import java.awt.Cursor
 
 @Composable
@@ -56,13 +55,14 @@ fun NavigationRailLayout(
         ) {
             Spacer(Modifier.height(30.dp))
 
-            // App Logo
-            Image(
-                painter = painterResource(Res.drawable.app_logo),
-                contentDescription = "DevAnalyzer Logo",
-                modifier = Modifier
-                    .size(48.dp)
-            )
+            if (currentNavigationItem != null) {
+                // App Logo
+                DevAnalyzerAnimatedLogo(
+                    modifier = Modifier
+                        .size(64.dp),
+                    drawDurationMillis = 2000
+                )
+            }
 
             Spacer(Modifier.weight(1f))
 
@@ -117,6 +117,7 @@ fun NavigationRailLayout(
             }
 
             Spacer(Modifier.weight(1f))
+//            SponsorButton()
             ThemeSwitch(
                 isDarkMode = isDarkTheme,
                 onThemeChange = onThemeChange
@@ -129,6 +130,35 @@ fun NavigationRailLayout(
         )
     }
 
+}
+
+@Composable
+fun SponsorButton(
+    modifier: Modifier = Modifier
+) {
+    val uriHandler = androidx.compose.ui.platform.LocalUriHandler.current
+
+    CustomToolTip(
+        title = "Sponsor Project",
+        description = "Support the development of DevAnalyzer on GitHub Sponsors",
+    ) {
+        IconButton(
+            onClick = { uriHandler.openUri(AppLinks.DONATE) },
+            modifier = modifier
+                .padding(8.dp)
+                .size(42.dp)
+                .clip(CircleShape)
+                .background(MaterialTheme.colorScheme.surfaceVariant)
+                .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+        ) {
+            Icon(
+                imageVector = Icons.Default.Favorite,
+                contentDescription = "Sponsor Project",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f),
+                modifier = Modifier.size(22.dp)
+            )
+        }
+    }
 }
 
 @Composable

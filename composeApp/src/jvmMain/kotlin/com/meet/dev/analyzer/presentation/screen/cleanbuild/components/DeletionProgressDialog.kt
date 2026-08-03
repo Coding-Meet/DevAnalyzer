@@ -39,6 +39,7 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.meet.dev.analyzer.presentation.components.SponsorTipCard
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.cleanbuild.DeletionProgress
 import com.meet.dev.analyzer.presentation.screen.cleanbuild.DeletionStatus
@@ -55,6 +56,8 @@ fun DeletionProgressDialog(
     totalSelectedCount: Int,
     totalSelectedSizeReadable: String,
     deletionResult: String,
+    showFeedbackButton: Boolean,
+    onShareFeedbackClick: () -> Unit,
     onDismiss: () -> Unit
 ) {
     val scrollState = rememberLazyListState()
@@ -205,6 +208,14 @@ fun DeletionProgressDialog(
                             )
                         }
                     }
+                }
+
+                if (isDeletionComplete && failedCount == 0 && successCount > 0) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    SponsorTipCard(
+                        showFeedbackButton = showFeedbackButton,
+                        onShareFeedbackClick = onShareFeedbackClick
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))

@@ -12,7 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.dev.analyzer.presentation.components.TabLayout
@@ -50,8 +51,12 @@ fun ProjectAnalyzerScreen(
     val viewModel = koinViewModel<ProjectAnalyzerViewModel>(
         viewModelStoreOwner = parentEntry
     )
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.handleIntent(ProjectAnalyzerIntent.TrackProjectAnalyzerOpened)
+    }
 
     // Directory picker launcher
     val directoryPickerLauncher = rememberDirectoryPickerLauncher(
@@ -215,8 +220,10 @@ fun ProjectAnalyzerContent(
                 }
             } else {
                 EmptyStateCardLayout(
-                    title = "No Project Selected",
-                    description = "Browse and select an Android Studio project folder, then click Analyze to view modules, plugins, and dependencies.",
+                    title = "Select an Android Project",
+                    description = "Choose an Android Studio project to analyze its modules, Gradle configuration, plugins, dependencies, SDK versions, and build files.",
+                    actionText = "Select Project",
+                    onAction = onBrowseClick,
                     icon = Icons.Default.FolderOpen,
                     modifier = Modifier.padding(10.dp).fillMaxSize()
                 )

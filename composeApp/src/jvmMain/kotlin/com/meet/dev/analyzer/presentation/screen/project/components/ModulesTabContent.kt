@@ -24,9 +24,11 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccountTree
+import androidx.compose.material.icons.filled.DataObject
 import androidx.compose.material.icons.filled.ExpandLess
 import androidx.compose.material.icons.filled.ExpandMore
 import androidx.compose.material.icons.filled.Extension
+import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Plumbing
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -47,6 +49,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.data.models.project.Dependency
@@ -54,6 +57,7 @@ import com.meet.dev.analyzer.data.models.project.ModuleBuildFileInfo
 import com.meet.dev.analyzer.data.models.project.Plugin
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
+import com.meet.dev.analyzer.utility.platform.FolderFileUtils
 import java.awt.Cursor
 
 
@@ -66,12 +70,18 @@ fun ModulesTabContent(
         val scrollState = rememberLazyGridState()
         LazyVerticalGrid(
             state = scrollState,
-            columns = GridCells.Adaptive(minSize = 400.dp),
+            columns = GridCells.Adaptive(minSize = 360.dp),
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
+            if (moduleBuildFileInfos.isNotEmpty()) {
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    ModulesSummaryCard(moduleBuildFileInfos = moduleBuildFileInfos)
+                }
+            }
+
             items(
                 items = moduleBuildFileInfos,
                 key = { module -> module.uniqueId }
@@ -82,7 +92,9 @@ fun ModulesTabContent(
                     plugins = module.plugins,
                     fileName = module.type.fileName,
                     dependencies = module.dependencies,
-                    projectName = projectName
+                    projectName = projectName,
+                    modulePath = module.modulePath,
+                    isRootBuildFile = module.isRootBuildFile
                 )
             }
 
@@ -100,6 +112,126 @@ fun ModulesTabContent(
     }
 }
 
+@Composable
+private fun ModulesSummaryCard(moduleBuildFileInfos: List<ModuleBuildFileInfo>) {
+    val totalSize = FolderFileUtils.formatSize(moduleBuildFileInfos.sumOf { it.sizeBytes })
+    val pluginCount = moduleBuildFileInfos.sumOf { it.plugins.size }
+    val dependencyCount = moduleBuildFileInfos.sumOf { it.dependencies.size }
+    val configurationCount = moduleBuildFileInfos
+        .flatMap { module -> module.plugins.map { it.configuration } + module.dependencies.map { it.configuration } }
+        .distinct()
+        .size
+
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    Icons.Default.AccountTree,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    "Modules Overview",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                ModuleSummaryTile(
+                    label = "Modules",
+                    value = moduleBuildFileInfos.size.toString(),
+                    icon = Icons.Default.AccountTree,
+                    modifier = Modifier.weight(1f)
+                )
+                ModuleSummaryTile(
+                    label = "Total Size",
+                    value = totalSize,
+                    icon = Icons.Default.Folder,
+                    modifier = Modifier.weight(1f)
+                )
+                ModuleSummaryTile(
+                    label = "Plugins",
+                    value = pluginCount.toString(),
+                    icon = Icons.Default.Plumbing,
+                    modifier = Modifier.weight(1f)
+                )
+                ModuleSummaryTile(
+                    label = "Dependencies",
+                    value = dependencyCount.toString(),
+                    icon = Icons.Default.DataObject,
+                    modifier = Modifier.weight(1f)
+                )
+                ModuleSummaryTile(
+                    label = "Configurations",
+                    value = configurationCount.toString(),
+                    icon = Icons.Default.Extension,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModuleSummaryTile(
+    label: String,
+    value: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier,
+        color = MaterialTheme.colorScheme.surfaceVariant,
+        shape = MaterialTheme.shapes.medium
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.size(18.dp)
+            )
+            Column {
+                Text(
+                    value,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    label,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+        }
+    }
+}
+
 
 @Composable
 fun DetailedModuleCard(
@@ -109,6 +241,8 @@ fun DetailedModuleCard(
     plugins: List<Plugin>,
     dependencies: List<Dependency>,
     projectName: String,
+    modulePath: String,
+    isRootBuildFile: Boolean,
 ) {
 
     OutlinedCard(
@@ -119,9 +253,8 @@ fun DetailedModuleCard(
     ) {
         Column(
             modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            // Module header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically
@@ -131,7 +264,14 @@ fun DetailedModuleCard(
                     imageVector = getModuleIcon(moduleName = moduleName, projectName = projectName),
                     contentDescription = moduleName,
                     tint = getModuleColor(moduleName = moduleName, projectName = projectName),
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier
+                        .size(34.dp)
+                        .background(
+                            getModuleColor(moduleName = moduleName, projectName = projectName)
+                                .copy(alpha = 0.12f),
+                            CircleShape
+                        )
+                        .padding(7.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Column(modifier = Modifier.weight(1f)) {
@@ -140,27 +280,48 @@ fun DetailedModuleCard(
                             .replaceFirstChar { it.uppercase() },
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Bold,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                     Text(
-                        text = fileName.replaceFirstChar { it.uppercase() },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = getModuleColor(moduleName = moduleName, projectName = projectName)
+                        text = modulePath.ifBlank { fileName }.replaceFirstChar { it.uppercase() },
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        textDecoration = TextDecoration.Underline,
+                        modifier = Modifier.pointerHoverIcon(
+                            PointerIcon(
+                                Cursor.getPredefinedCursor(
+                                    Cursor.HAND_CURSOR
+                                )
+                            )
+                        )
                     )
                 }
-                Surface(
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    shape = MaterialTheme.shapes.medium
-                ) {
-                    Text(
-                        text = sizeReadable,
-                        style = MaterialTheme.typography.labelLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                    )
+                Column(horizontalAlignment = Alignment.End) {
+                    Surface(
+                        color = MaterialTheme.colorScheme.primaryContainer,
+                        shape = MaterialTheme.shapes.medium
+                    ) {
+                        Text(
+                            text = sizeReadable,
+                            style = MaterialTheme.typography.labelLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp)
+                        )
+                    }
+                    if (isRootBuildFile) {
+                        Text(
+                            "Root",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
                 }
             }
 
-            // Module stats in grid
             if (plugins.isNotEmpty() || dependencies.isNotEmpty()) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

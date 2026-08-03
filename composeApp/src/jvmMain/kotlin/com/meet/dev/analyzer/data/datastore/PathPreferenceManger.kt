@@ -25,6 +25,7 @@ class PathPreferenceManger(private val dataStore: DataStore<Preferences>) {
         val AVD_LOCATION_PATH_KEY = stringPreferencesKey("avd_location_path")
         val ANDROID_FOLDER_PATH_KEY = stringPreferencesKey("android_folder_path")
         val KONAN_FOLDER_PATH_KEY = stringPreferencesKey("konan_folder_path")
+        val RECENT_WORKSPACES_KEY = stringPreferencesKey("recent_workspaces")
 
         val JDK_PATH_1_KEY = stringPreferencesKey("jdk_path_1")
         val JDK_PATH_2_KEY = stringPreferencesKey("jdk_path_2")
@@ -70,6 +71,13 @@ class PathPreferenceManger(private val dataStore: DataStore<Preferences>) {
             ideGoogle2 = prefs[PreferencesKey.IDE_GOOGLE_2_KEY] ?: defaultGoogleIde[1],
             ideGoogle3 = prefs[PreferencesKey.IDE_GOOGLE_3_KEY] ?: defaultGoogleIde[2],
         )
+    }
+
+    val recentWorkspaces = dataStore.data.map { prefs ->
+        prefs[PreferencesKey.RECENT_WORKSPACES_KEY]
+            ?.split("\n")
+            ?.filter { it.isNotBlank() }
+            ?: emptyList()
     }
 
     val sdkPath = dataStore.data.map { prefs ->
@@ -178,5 +186,31 @@ class PathPreferenceManger(private val dataStore: DataStore<Preferences>) {
         dataStore.edit { it[PreferencesKey.IDE_GOOGLE_3_KEY] = path }
     }
 
+    suspend fun saveRecentWorkspace(path: String) = withContext(Dispatchers.IO) {
+        dataStore.edit { prefs ->
+            val currentList = prefs[PreferencesKey.RECENT_WORKSPACES_KEY]
+                ?.split("\n")
+                ?.filter { it.isNotBlank() }
+                ?: emptyList()
+            val newList = (listOf(path) + currentList).distinct().take(5)
+            prefs[PreferencesKey.RECENT_WORKSPACES_KEY] = newList.joinToString("\n")
+        }
+    }
 
+    suspend fun removeRecentWorkspace(path: String) = withContext(Dispatchers.IO) {
+        dataStore.edit { prefs ->
+            val currentList = prefs[PreferencesKey.RECENT_WORKSPACES_KEY]
+                ?.split("\n")
+                ?.filter { it.isNotBlank() }
+                ?: emptyList()
+            val newList = currentList.filter { it != path }
+            prefs[PreferencesKey.RECENT_WORKSPACES_KEY] = newList.joinToString("\n")
+        }
+    }
+
+    suspend fun clearRecentWorkspaces() = withContext(Dispatchers.IO) {
+        dataStore.edit { prefs ->
+            prefs.remove(PreferencesKey.RECENT_WORKSPACES_KEY)
+        }
+    }
 }

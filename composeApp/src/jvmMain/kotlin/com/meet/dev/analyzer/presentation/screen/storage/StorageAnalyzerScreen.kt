@@ -14,12 +14,13 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.presentation.components.ErrorLayout
 import com.meet.dev.analyzer.presentation.components.ProgressStatusLayout
@@ -44,7 +45,11 @@ fun StorageAnalyzerScreen(
     val viewModel = koinViewModel<StorageAnalyzerViewModel>(
         viewModelStoreOwner = parentEntry
     )
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.handleIntent(StorageAnalyzerIntent.TrackStorageAnalyzerOpened)
+    }
 
     StorageAnalyzerContent(
         uiState = uiState,

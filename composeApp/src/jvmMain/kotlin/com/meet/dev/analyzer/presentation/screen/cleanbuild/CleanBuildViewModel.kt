@@ -3,6 +3,10 @@ package com.meet.dev.analyzer.presentation.screen.cleanbuild
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.data.repository.cleanbuild.CleanBuildRepository
+import com.meet.dev.analyzer.data.repository.setting.SettingsRepository
+import com.meet.dev.analyzer.utility.analytics.AnalyticsEvent
+import com.meet.dev.analyzer.utility.analytics.AnalyticsManager
+import com.meet.dev.analyzer.utility.analytics.FailureReason
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatElapsedTime
@@ -13,13 +17,22 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 class CleanBuildViewModel(
-    private val repository: CleanBuildRepository
+    private val cleanBuildRepository: CleanBuildRepository,
+    private val settingsRepository: SettingsRepository,
+    private val analyticsManager: AnalyticsManager,
 ) : ViewModel() {
     private val TAG = tagName(javaClass)
 
-    private val _uiState = MutableStateFlow(CleanBuildUiState())
+    private val _uiState = MutableStateFlow(
+        CleanBuildUiState(
+            lastSubmittedReviewVersion = settingsRepository.lastSubmittedReviewVersion
+        )
+    )
     val uiState = _uiState.asStateFlow()
 
     fun handleIntent(intent: CleanBuildIntent) {
@@ -52,6 +65,12 @@ class CleanBuildViewModel(
             CleanBuildIntent.OnResultDismissDialog -> handleResultDismissDialog()
             CleanBuildIntent.OnClearError -> handleClearError()
             CleanBuildIntent.OnToggleProjectSelection -> handleToggleProjectSelection()
+
+            // Analytics event trackers
+            CleanBuildIntent.TrackFeedbackOpened    -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
+            CleanBuildIntent.TrackFeedbackCancelled -> analyticsManager.capture(AnalyticsEvent.FeedbackCancelled)
+            CleanBuildIntent.TrackReviewPromptShown -> analyticsManager.capture(AnalyticsEvent.ReviewPromptShown)
+            CleanBuildIntent.TrackCleanBuildOpened  -> analyticsManager.capture(AnalyticsEvent.CleanBuildOpened)
         }
     }
 
@@ -160,7 +179,7 @@ class CleanBuildViewModel(
                     deletionProgressList = emptyList()
                 )
             }
-
+            val mark = TimeSource.Monotonic.markNow()
             val selectedProjects = _uiState.value.projectBuildInfoList
             var deletedCount = 0
             var failedCount = 0
@@ -181,7 +200,7 @@ class CleanBuildViewModel(
                     }
 
                     // Perform deletion
-                    val (success, errorMessage) = repository.deleteBuildFolder(module.path)
+                    val (success, errorMessage) = cleanBuildRepository.deleteBuildFolder(module.path)
                     // Update status to SUCCESS or FAILED
                     _uiState.update { state ->
                         state.copy(
@@ -199,7 +218,7 @@ class CleanBuildViewModel(
                     if (success) deletedCount++ else failedCount++
 
                     // Small delay to show progress
-                    delay(100)
+                    delay(1.seconds)
                 }
             }
 
@@ -208,6 +227,24 @@ class CleanBuildViewModel(
                 it.copy(
                     isDeletionComplete = true,
                     deletionResult = buildDeletionResult(deletedCount, failedCount)
+                )
+            }
+            val durationMs = mark.elapsedNow().inWholeMilliseconds
+            val reclaimedBytes = _uiState.value.deletionProgressList
+                .filter { it.status == DeletionStatus.SUCCESS }
+                .sumOf { it.moduleBuild.sizeBytes }
+
+            if (deletedCount > 0) {
+                analyticsManager.capture(
+                    AnalyticsEvent.CleanBuildCompleted(
+                        deletedBuildFolders = deletedCount,
+                        reclaimedBytes = reclaimedBytes,
+                        durationMs = durationMs,
+                    )
+                )
+            } else if (failedCount > 0) {
+                analyticsManager.capture(
+                    AnalyticsEvent.CleanBuildFailed(FailureReason.UNEXPECTED)
                 )
             }
         }
@@ -257,7 +294,6 @@ class CleanBuildViewModel(
             try {
                 val rootPath = _uiState.value.selectedPath
                 if (!validateRootPath(rootPath)) {
-                    AppLogger.e(tag = TAG) { "Invalid root path: $rootPath" }
                     _uiState.update {
                         it.copy(
                             isAnalyzing = false,
@@ -268,10 +304,14 @@ class CleanBuildViewModel(
                             expandedProjects = emptySet(),
                         )
                     }
+                    analyticsManager.capture(
+                        AnalyticsEvent.CleanBuildFailed(FailureReason.VALIDATION)
+                    )
                     return@launch
                 }
 
                 val startTime = System.currentTimeMillis()
+                val mark = TimeSource.Monotonic.markNow()
 
                 _uiState.update {
                     it.copy(
@@ -283,7 +323,8 @@ class CleanBuildViewModel(
                     )
                 }
 
-                val result = repository.scanProjects(
+
+                val result = cleanBuildRepository.scanProjects(
                     rootPath = rootPath
                 ) { progress, status ->
                     _uiState.update {
@@ -306,13 +347,25 @@ class CleanBuildViewModel(
                         expandedProjects = expandedProjects
                     )
                 }
-
+                val durationMs = mark.elapsedNow().inWholeMilliseconds
+                analyticsManager.capture(
+                    AnalyticsEvent.CleanBuildAnalysisCompleted(
+                        projectCount = result.size,
+                        buildFolderCount = result.sumOf { it.modules.size },
+                        durationMs = durationMs,
+                    )
+                )
                 AppLogger.i(TAG) {
                     "Clean build analysis completed successfully in ${formatElapsedTime(startTime)}"
                 }
 
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: IOException) {
                 AppLogger.e(tag = TAG, throwable = e) { "File read error" }
+                analyticsManager.capture(
+                    AnalyticsEvent.CleanBuildFailed(FailureReason.UNEXPECTED)
+                )
                 _uiState.update {
                     it.copy(
                         isAnalyzing = false,
@@ -325,6 +378,9 @@ class CleanBuildViewModel(
                 }
             } catch (e: SecurityException) {
                 AppLogger.e(tag = TAG, throwable = e) { "Permission denied" }
+                analyticsManager.capture(
+                    AnalyticsEvent.CleanBuildFailed(FailureReason.VALIDATION)
+                )
                 _uiState.update {
                     it.copy(
                         isAnalyzing = false,
@@ -337,6 +393,9 @@ class CleanBuildViewModel(
                 }
             } catch (e: Exception) {
                 AppLogger.e(tag = TAG, throwable = e) { "Error analyzing project" }
+                analyticsManager.capture(
+                    AnalyticsEvent.CleanBuildFailed(FailureReason.UNEXPECTED)
+                )
                 _uiState.update {
                     it.copy(
                         isAnalyzing = false,
@@ -356,5 +415,12 @@ class CleanBuildViewModel(
         return rootDir.walkTopDown()
             .maxDepth(3)
             .any { it.isDirectory && it.name == "build" }
+    }
+
+    fun saveReviewVersion(version: String, rating: Int) {
+        viewModelScope.launch {
+            settingsRepository.saveLastSubmittedReviewVersion(version)
+            analyticsManager.capture(AnalyticsEvent.ReviewSubmitted(rating))
+        }
     }
 }

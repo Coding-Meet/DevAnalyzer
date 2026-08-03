@@ -5,6 +5,9 @@ import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.data.models.project.BuildFileType
 import com.meet.dev.analyzer.data.models.project.SettingsGradleFileType
 import com.meet.dev.analyzer.data.repository.project.ProjectAnalyzerRepository
+import com.meet.dev.analyzer.utility.analytics.AnalyticsEvent
+import com.meet.dev.analyzer.utility.analytics.AnalyticsManager
+import com.meet.dev.analyzer.utility.analytics.FailureReason
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatElapsedTime
@@ -16,12 +19,15 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 import kotlinx.io.IOException
 import java.io.File
+import kotlin.coroutines.cancellation.CancellationException
+import kotlin.time.Duration.Companion.seconds
+import kotlin.time.TimeSource
 
 class ProjectAnalyzerViewModel(
-    private val repository: ProjectAnalyzerRepository
+    private val repository: ProjectAnalyzerRepository,
+    private val analyticsManager: AnalyticsManager,
 ) : ViewModel() {
 
     private val TAG = tagName(javaClass = javaClass)
@@ -52,15 +58,17 @@ class ProjectAnalyzerViewModel(
                     )
                 }
             }
+
+            ProjectAnalyzerIntent.TrackProjectAnalyzerOpened -> {
+                analyticsManager.capture(AnalyticsEvent.ProjectAnalyzerOpened)
+            }
         }
     }
 
     private fun analyzeProject() {
         val currentPath = _uiState.value.selectedPath
         if (currentPath.isEmpty()) {
-            _uiState.update {
-                it.copy(error = "Please select a project directory first")
-            }
+            updateError("Please select a project directory first")
             return
         }
 
@@ -77,20 +85,27 @@ class ProjectAnalyzerViewModel(
                         scanElapsedTime = "00:00"
                     )
                 }
-                // 🧩 Main analysis logic
-                if (validateProject(currentPath)) {
-                    val startTime = System.currentTimeMillis()
+                // Main analysis logic
+                if (!validateProject(currentPath)) {
+                    return@launch
+                }
 
-                    // Start elapsed time counter
-                    val timerJob = launch {
-                        while (isActive) {
-                            val formatted = formatElapsedTime(
-                                startTime = startTime
+                val startTime = System.currentTimeMillis()
+                val mark = TimeSource.Monotonic.markNow()
+
+                // Start elapsed time counter
+                val timerJob = launch {
+                    while (isActive) {
+                        _uiState.update {
+                            it.copy(
+                                scanElapsedTime = formatElapsedTime(startTime)
                             )
-                            _uiState.update { it.copy(scanElapsedTime = formatted) }
-                            delay(1000)
                         }
+                        delay(1.seconds)
                     }
+                }
+
+                try {
                     val projectInfo = repository.analyzeProject(currentPath) { progress, status ->
                         AppLogger.d(tag = TAG) { "Progress: $progress, Status: $status" }
                         _uiState.update {
@@ -100,24 +115,37 @@ class ProjectAnalyzerViewModel(
                             )
                         }
                     }
-                    timerJob.cancelAndJoin()
-                    withContext(Dispatchers.Main) {
-                        _uiState.update {
-                            it.copy(
-                                isScanning = false,
-                                projectInfo = projectInfo,
-                                scanProgress = 1f,
-                                scanStatus = "Analysis complete"
-                            )
-                        }
-                    }
 
-                    // 🕓 Final elapsed log
+                    val durationMs = mark.elapsedNow().inWholeMilliseconds
+
+                    _uiState.update {
+                        it.copy(
+                            isScanning = false,
+                            projectInfo = projectInfo,
+                            scanProgress = 1f,
+                            scanStatus = "Analysis complete"
+                        )
+                    }
+                    analyticsManager.capture(
+                        AnalyticsEvent.ProjectAnalysisCompleted(
+                            moduleCount = projectInfo.moduleBuildFileInfos.size,
+                            dependencyCount = projectInfo.dependencies.size,
+                            pluginCount = projectInfo.plugins.size,
+                            durationMs = durationMs,
+                        )
+                    )
+
+                    //  Final elapsed log
                     val formatted = formatElapsedTime(startTime)
                     AppLogger.i(tag = TAG) { "Project analysis completed successfully in $formatted" }
+                } finally {
+                    timerJob.cancelAndJoin()
                 }
+            } catch (e: CancellationException) {
+                throw e
             } catch (e: IOException) {
                 AppLogger.e(tag = TAG, throwable = e) { "File read error" }
+                analyticsManager.capture(AnalyticsEvent.ProjectAnalysisFailed(FailureReason.UNEXPECTED))
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -127,6 +155,7 @@ class ProjectAnalyzerViewModel(
                 }
             } catch (e: SecurityException) {
                 AppLogger.e(tag = TAG, throwable = e) { "Permission denied" }
+                analyticsManager.capture(AnalyticsEvent.ProjectAnalysisFailed(FailureReason.VALIDATION))
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -136,6 +165,7 @@ class ProjectAnalyzerViewModel(
                 }
             } catch (e: Exception) {
                 AppLogger.e(tag = TAG, throwable = e) { "Error analyzing project" }
+                analyticsManager.capture(AnalyticsEvent.ProjectAnalysisFailed(FailureReason.UNEXPECTED))
                 _uiState.update {
                     it.copy(
                         isScanning = false,
@@ -183,6 +213,9 @@ class ProjectAnalyzerViewModel(
     }
 
     private fun updateError(message: String) {
+        analyticsManager.capture(
+            AnalyticsEvent.ProjectAnalysisFailed(FailureReason.VALIDATION)
+        )
         _uiState.update {
             it.copy(
                 isScanning = false,

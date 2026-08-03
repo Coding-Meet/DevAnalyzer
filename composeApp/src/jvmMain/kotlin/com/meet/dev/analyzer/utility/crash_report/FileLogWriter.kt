@@ -35,7 +35,7 @@ class FileLogWriter(
             Started: ${LocalDateTime.now()}
             OS: ${System.getProperty("os.name")}
             Environment: ${desktopConfig.appEnvironment}
-            App Version: ${desktopConfig.version ?: "unknown"}
+            App Version: ${desktopConfig.version}
             Java: ${System.getProperty("java.version")}
             Arch: ${System.getProperty("os.arch")}
             =========================================

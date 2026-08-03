@@ -19,7 +19,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -27,7 +27,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
+import com.meet.dev.analyzer.presentation.components.ReviewDialog
+import com.meet.dev.analyzer.utility.crash_report.CustomProperties
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
 import com.meet.dev.analyzer.presentation.components.TopAppBar
@@ -54,8 +59,20 @@ fun CleanBuildScreen(
     val viewModel = koinViewModel<CleanBuildViewModel>(
         viewModelStoreOwner = parentEntry
     )
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val coroutineScope = rememberCoroutineScope()
+
+    LaunchedEffect(Unit) {
+        viewModel.handleIntent(CleanBuildIntent.TrackCleanBuildOpened)
+    }
+
+    val lastSubmittedVersion by uiState.lastSubmittedReviewVersion.collectAsStateWithLifecycle(initialValue = "")
+    val desktopConfig = remember {
+        CustomProperties.createAppConfig(CustomProperties.loadProperties())
+    }
+    val currentVersion = desktopConfig.version
+    val showFeedbackButton = lastSubmittedVersion != currentVersion
+    var showReviewDialog by remember { mutableStateOf(false) }
 
     // Directory picker launcher
     val directoryPickerLauncher = rememberDirectoryPickerLauncher(
@@ -71,16 +88,42 @@ fun CleanBuildScreen(
 
     CleanBuildScreenContent(
         uiState = uiState,
+        showFeedbackButton = showFeedbackButton,
+        onShareFeedbackClick = {
+            showReviewDialog = true
+            viewModel.handleIntent(CleanBuildIntent.TrackFeedbackOpened)
+        },
         onBrowseClick = {
             directoryPickerLauncher.launch()
         },
         onIntent = viewModel::handleIntent
     )
+
+    if (showReviewDialog) {
+        LaunchedEffect(showReviewDialog) {
+            if (showReviewDialog) viewModel.handleIntent(CleanBuildIntent.TrackReviewPromptShown)
+        }
+
+        ReviewDialog(
+            appVersion = currentVersion,
+            onDismiss = {
+                showReviewDialog = false
+                viewModel.handleIntent(CleanBuildIntent.TrackFeedbackCancelled)
+            },
+            onReviewSubmitted = { rating ->
+                coroutineScope.launch {
+                    viewModel.saveReviewVersion(currentVersion, rating)
+                }
+            }
+        )
+    }
 }
 
 @Composable
 fun CleanBuildScreenContent(
     uiState: CleanBuildUiState,
+    showFeedbackButton: Boolean,
+    onShareFeedbackClick: () -> Unit,
     onBrowseClick: () -> Unit,
     onIntent: (CleanBuildIntent) -> Unit,
 ) {
@@ -221,8 +264,10 @@ fun CleanBuildScreenContent(
                 }
             } else {
                 EmptyStateCardLayout(
-                    title = "No Projects Selected",
-                    description = "Browse and select Android Studio projects to clean",
+                    title = "Select a Project Directory",
+                    description = "Choose a folder containing your Android Studio projects to scan for build folders and safely remove them to reclaim disk space.",
+                    actionText = "Select Folder",
+                    onAction = onBrowseClick,
                     icon = Icons.Default.FolderOpen,
                     modifier = Modifier.padding(10.dp).fillMaxSize()
                 )
@@ -252,6 +297,8 @@ fun CleanBuildScreenContent(
             totalSelectedCount = uiState.totalSelectedCount,
             totalSelectedSizeReadable = uiState.totalSelectedSizeReadable,
             deletionResult = uiState.deletionResult,
+            showFeedbackButton = showFeedbackButton,
+            onShareFeedbackClick = onShareFeedbackClick,
             onDismiss = {
                 if (uiState.isDeletionComplete) {
                     onIntent(CleanBuildIntent.OnResultDismissDialog)

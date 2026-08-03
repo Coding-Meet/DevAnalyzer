@@ -30,6 +30,7 @@ datastore = "1.2.0"
 
 # Image Loading
 coil3 = "3.3.0"
+ktor = "3.0.3"
 
 # Dependency Injection
 koin = "4.1.1"
@@ -54,6 +55,9 @@ sentry = "8.31.0"
 
 # BuildConfig
 buildkonfig = "0.17.1"
+
+# Capture Analytics
+posthog-kmp = "0.2.0"
 
 [libraries]
 components-resources = { module = "org.jetbrains.compose.components:components-resources", version.ref = "composeMultiplatform" }
@@ -108,6 +112,10 @@ coil-compose-core = { module = "io.coil-kt.coil3:coil-compose-core", version.ref
 coil-network-ktor3 = { module = "io.coil-kt.coil3:coil-network-ktor3", version.ref = "coil3" }
 coil-mp = { module = "io.coil-kt.coil3:coil", version.ref = "coil3" }
 
+# Ktor Client
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-cio = { module = "io.ktor:ktor-client-cio", version.ref = "ktor" }
+
 # File
 filekit-dialogs = { module = "io.github.vinceglb:filekit-dialogs", version.ref = "filekit" }
 filekit-dialogs-compose = { module = "io.github.vinceglb:filekit-dialogs-compose", version.ref = "filekit" }
@@ -124,6 +132,7 @@ jsystemthemedetector = { module = "com.github.Dansoftowner:jSystemThemeDetector"
 # Crash Report
 sentry = { module = "io.sentry:sentry", version.ref = "sentry" }
 
+posthog-kmp = { group = "com.posthog", name = "posthog-kmp", version.ref = "posthog-kmp" }
 
 [plugins]
 composeHotReload = { id = "org.jetbrains.compose.hot-reload", version.ref = "composeHotReload" }

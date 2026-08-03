@@ -8,6 +8,7 @@ data class ProjectOverviewInfo(
     val gradleVersion: String?,
     val kotlinVersion: String?,
     val androidGradlePluginVersion: String?,
+    val buildToolsSdk: String?,
     val compileSdkVersion: String?,
     val targetSdkVersion: String?,
     val minSdkVersion: String?,

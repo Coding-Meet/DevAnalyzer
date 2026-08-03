@@ -22,11 +22,13 @@ import com.meet.dev.analyzer.presentation.screen.project.ProjectAnalyzerScreen
 import com.meet.dev.analyzer.presentation.screen.setting.SettingsScreen
 import com.meet.dev.analyzer.presentation.screen.splash.SplashScreen
 import com.meet.dev.analyzer.presentation.screen.storage.StorageAnalyzerScreen
+import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceScreen
 
 @Composable
 fun AppNavigation(
     isDarkMode: Boolean,
     onThemeChange: () -> Unit,
+    updateDialogWithNavigation: @Composable (NavigationItem?)  -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
@@ -125,7 +127,16 @@ fun AppNavigation(
                         parentEntry = parentEntry
                     )
                 }
+                composable<AppRoute.Workspace> {
+                    val parentEntry = remember(navController) {
+                        navController.getBackStackEntry(AppRoute.MainGraph)
+                    }
+                    WorkspaceScreen(
+                        parentEntry = parentEntry
+                    )
+                }
             }
         }
     }
+    updateDialogWithNavigation(currentNavigationItem)
 }

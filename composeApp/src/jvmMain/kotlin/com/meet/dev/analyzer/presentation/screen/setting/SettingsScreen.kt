@@ -18,16 +18,20 @@ import androidx.compose.material.icons.filled.BugReport
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.CloudUpload
 import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.CreditCard
 import androidx.compose.material.icons.filled.DataObject
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Handshake
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Language
 import androidx.compose.material.icons.filled.Lightbulb
+import androidx.compose.material.icons.filled.LocalCafe
 import androidx.compose.material.icons.filled.Memory
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -39,9 +43,11 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
@@ -52,6 +58,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.data.models.setting.PathPickerType
+import com.meet.dev.analyzer.presentation.components.ReviewDialog
 import com.meet.dev.analyzer.presentation.components.TopAppBar
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.setting.components.CrashLogDialog
@@ -71,6 +78,8 @@ import com.meet.dev.analyzer.utility.getDefaultGradleHomePath
 import com.meet.dev.analyzer.utility.getDefaultJdkFolderPaths
 import com.meet.dev.analyzer.utility.getDefaultJetbrainsFolderPaths
 import com.meet.dev.analyzer.utility.getDefaultKonanFolderPath
+import com.meet.dev.analyzer.utility.platform.DesktopConfig
+import org.koin.compose.koinInject
 import org.koin.compose.viewmodel.koinViewModel
 import java.awt.Cursor
 
@@ -84,10 +93,15 @@ fun SettingsScreen(
     )
     val pathUiState by viewModel.pathSettingsState.collectAsStateWithLifecycle()
     val settingsUiState by viewModel.uiState.collectAsStateWithLifecycle()
+
+    LaunchedEffect(Unit) {
+        viewModel.onIntent(SettingsUiIntent.TrackSettingsOpened)
+    }
+
     SettingsScreenContent(
-        pathUiState = pathUiState,
+        pathUiState     = pathUiState,
         settingsUiState = settingsUiState,
-        onEvent = viewModel::onIntent,
+        onEvent         = viewModel::onIntent,
     )
 }
 
@@ -95,6 +109,10 @@ fun SettingsScreen(
 fun SettingsScreenContent(
     pathUiState: PathUiState, settingsUiState: SettingsUiState, onEvent: (SettingsUiIntent) -> Unit
 ) {
+    var showReviewDialog by remember { mutableStateOf(false) }
+    val desktopConfig = koinInject<DesktopConfig>()
+    val lastSubmittedVersion = settingsUiState.lastSubmittedReviewVersion
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -105,11 +123,6 @@ fun SettingsScreenContent(
             modifier = Modifier.fillMaxSize().padding(paddingValues)
         ) {
             val scrollState = rememberScrollState()
-            val desktopConfig by rememberSaveable {
-                mutableStateOf(
-                    CustomProperties.createAppConfig(CustomProperties.loadProperties())
-                )
-            }
 
             Column(
                 modifier = Modifier.fillMaxSize().verticalScroll(scrollState).padding(16.dp),
@@ -519,21 +532,26 @@ fun SettingsScreenContent(
                     ) {
                         onEvent(SettingsUiIntent.ToggleLocalLogs(it))
                     }
-
+                    SwitchSettingItem(
+                        label = "Analytics",
+                        description = "Send anonymous usage data to help improve the app",
+                        checked = settingsUiState.analyticsEnabled,
+                        icon = Icons.Default.DataObject
+                    ) {
+                        onEvent(SettingsUiIntent.ToggleAnalytics(it))
+                    }
                 }
 
                 HorizontalDivider()
 
                 // About App Section
                 SettingsSection(title = "About App") {
-                    desktopConfig.version?.let { version ->
-                        LinkSettingItem(
-                            label = "Version",
-                            value = version,
-                            icon = Icons.Default.Info,
-                            url = AppLinks.RELEASE_LINK
-                        )
-                    }
+                    LinkSettingItem(
+                        label = "Version",
+                        value = desktopConfig.version,
+                        icon = Icons.Default.Info,
+                        url = AppLinks.RELEASE_LINK
+                    )
                     LinkSettingItem(
                         label = "Environment",
                         value = desktopConfig.appEnvironment.label,
@@ -553,12 +571,47 @@ fun SettingsScreenContent(
                         icon = Icons.Default.Code,
                         url = AppLinks.GITHUB_PROJECT
                     )
+
+                    LinkSettingItem(
+                        label = "Sponsor / Support",
+                        value = "Sponsor on GitHub",
+                        icon = Icons.Default.Favorite,
+                        url = AppLinks.DONATE
+                    )
+
+                    LinkSettingItem(
+                        label = "Buy Me a Coffee",
+                        value = "buymeacoffee.com/codingmeet",
+                        icon = Icons.Default.LocalCafe,
+                        url = AppLinks.DONATE_COFFEE
+                    )
+
+                    LinkSettingItem(
+                        label = "Donate via PayPal",
+                        value = "paypal.me/meetb26",
+                        icon = Icons.Default.CreditCard,
+                        url = AppLinks.DONATE_PAYPAL
+                    )
                 }
 
                 HorizontalDivider()
 
                 // Feedback Section
                 SettingsSection(title = "Feedback") {
+                    val currentVersion = desktopConfig.version
+                    val isReviewSubmitted = lastSubmittedVersion == currentVersion
+
+                    LinkSettingItem(
+                        label = "Rate DevAnalyzer",
+                        value = if (isReviewSubmitted) "Feedback submitted (Thank you! 💙)" else "Share your experience and suggestions for $currentVersion",
+                        icon = Icons.Default.Star,
+                        url = null
+                    ) {
+                        if (!isReviewSubmitted) {
+                            showReviewDialog = true
+                        }
+                    }
+
                     LinkSettingItem(
                         label = "Report Bug with Logs",
                         value = "Copy crash log and open GitHub issue",
@@ -634,28 +687,90 @@ fun SettingsScreenContent(
 
                             HorizontalDivider()
 
-                            // Hire Me Button
-                            Button(
-                                onClick = { uriHandler.openUri(AppLinks.HIRE_ME) },
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .height(48.dp)
-                                    .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = MaterialTheme.colorScheme.primary,
-                                    contentColor = MaterialTheme.colorScheme.onPrimary
-                                )
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
                             ) {
-                                Icon(
-                                    imageVector = Icons.Default.Handshake,
-                                    contentDescription = null
-                                )
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    "Hire Me",
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = FontWeight.Bold
-                                )
+                                // Sponsor Button
+                                Button(
+                                    onClick = {
+                                        onEvent(SettingsUiIntent.TrackGitHubSponsor)
+                                        uriHandler.openUri(AppLinks.DONATE)
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(48.dp)
+                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.tertiary,
+                                        contentColor = MaterialTheme.colorScheme.onTertiary
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Favorite,
+                                        contentDescription = null
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Sponsor",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                // Coffee Button
+                                Button(
+                                    onClick = {
+                                        onEvent(SettingsUiIntent.TrackBuyMeCoffee)
+                                        uriHandler.openUri(AppLinks.DONATE_COFFEE)
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(48.dp)
+                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.secondary,
+                                        contentColor = MaterialTheme.colorScheme.onSecondary
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.LocalCafe,
+                                        contentDescription = null
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Coffee",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
+
+                                // Hire Me Button
+                                Button(
+                                    onClick = {
+                                        onEvent(SettingsUiIntent.TrackPaypal)
+                                        uriHandler.openUri(AppLinks.HIRE_ME)
+                                    },
+                                    modifier = Modifier
+                                        .weight(1f)
+                                        .height(48.dp)
+                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = MaterialTheme.colorScheme.primary,
+                                        contentColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Handshake,
+                                        contentDescription = null
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Hire Me",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                }
                             }
                         }
                     }
@@ -737,6 +852,26 @@ fun SettingsScreenContent(
                 }
                 onEvent(SettingsUiIntent.ShowPathPicker("", null))
             })
+    }
+
+    if (showReviewDialog) {
+        val currentVersion = desktopConfig.version
+
+        // Fires review_prompt_shown exactly once when the dialog becomes visible
+        LaunchedEffect(showReviewDialog) {
+            if (showReviewDialog) onEvent(SettingsUiIntent.TrackReviewPromptShown)
+        }
+
+        ReviewDialog(
+            appVersion = currentVersion,
+            onDismiss = {
+                showReviewDialog = false
+                onEvent(SettingsUiIntent.TrackFeedbackCancelled)
+            },
+            onReviewSubmitted = { rating ->
+                onEvent(SettingsUiIntent.SaveReviewVersion(currentVersion, rating))
+            }
+        )
     }
 
 }

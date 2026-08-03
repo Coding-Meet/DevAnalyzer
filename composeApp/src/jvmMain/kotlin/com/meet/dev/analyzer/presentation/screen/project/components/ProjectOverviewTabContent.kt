@@ -22,21 +22,21 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.LibraryBooks
 import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Android
+import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Extension
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedCard
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.data.models.project.Dependency
 import com.meet.dev.analyzer.data.models.project.ModuleBuildFileInfo
@@ -56,7 +56,7 @@ fun ProjectOverviewTabContent(
             state = scrollState,
             modifier = Modifier.fillMaxSize(),
             contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             item {
                 ProjectOverviewCard(
@@ -66,6 +66,12 @@ fun ProjectOverviewTabContent(
                     moduleBuildFileInfos = projectInfo.moduleBuildFileInfos,
                     projectFilesSize = projectInfo.projectFiles.size
                 )
+            }
+            item {
+                ProjectConfigurationCard(projectOverviewInfo = projectInfo.projectOverviewInfo)
+            }
+            item {
+                ProjectPlatformsCard(projectOverviewInfo = projectInfo.projectOverviewInfo)
             }
         }
 
@@ -153,47 +159,105 @@ fun ProjectOverviewCard(
                     )
                 }
             }
+        }
+        }
+}
 
-            // Version information if available
-            val versions =
-                remember {
-                    buildList {
-                        projectOverviewInfo.gradleVersion?.let { add("Gradle $it") }
-                        projectOverviewInfo.kotlinVersion?.let { add("Kotlin $it") }
-                        projectOverviewInfo.androidGradlePluginVersion?.let { add("AGP $it") }
-                        projectOverviewInfo.minSdkVersion?.let { add("Min SDK $it") }
-                        projectOverviewInfo.compileSdkVersion?.let { add("Compile SDK $it") }
-                        projectOverviewInfo.targetSdkVersion?.let { add("Target SDK $it") }
-                        if (projectOverviewInfo.isMultiModule) {
-                            add("Multi-Module")
-                        }
-                        projectOverviewInfo.ndkVersion?.let { add("NDK $it") }
-                        projectOverviewInfo.cmakeVersion?.let { add("CMake $it") }
-                        projectOverviewInfo.platformList.forEach {
-                            add(it)
-                        }
+@Composable
+private fun ProjectConfigurationCard(projectOverviewInfo: ProjectOverviewInfo) {
+    val configurationItems = listOf(
+        ProjectDetail("Gradle", projectOverviewInfo.gradleVersion),
+        ProjectDetail("Kotlin", projectOverviewInfo.kotlinVersion),
+        ProjectDetail("AGP", projectOverviewInfo.androidGradlePluginVersion),
+        ProjectDetail("Min SDK", projectOverviewInfo.minSdkVersion),
+        ProjectDetail("Compile SDK", projectOverviewInfo.compileSdkVersion),
+        ProjectDetail("Target SDK", projectOverviewInfo.targetSdkVersion),
+        ProjectDetail("Build Tools", projectOverviewInfo.buildToolsSdk),
+        ProjectDetail("Multi-Module", if (projectOverviewInfo.isMultiModule) "Yes" else "No"),
+        ProjectDetail("NDK", projectOverviewInfo.ndkVersion),
+        ProjectDetail("CMake", projectOverviewInfo.cmakeVersion)
+    )
+
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                SectionTitle(
+                    title = "Build Configuration",
+                    icon = Icons.Default.Code
+                )
+                DetailGrid(
+                    items = configurationItems,
+                    columnCount = 5
+                )
+            }
+
+    }
+}
+
+@Composable
+private fun ProjectPlatformsCard(
+    projectOverviewInfo: ProjectOverviewInfo
+) {
+    OutlinedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.outlinedCardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SectionTitle(
+                title = "Platforms",
+                icon = Icons.Default.Android
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if (projectOverviewInfo.platformList.isEmpty()) {
+                    ProjectPill(text = "No platform detected")
+                } else {
+                    projectOverviewInfo.platformList.forEach { platform ->
+                        ProjectPill(text = platform)
                     }
                 }
+            }
+        }
+    }
+}
 
-            if (versions.isNotEmpty()) {
-                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.2f))
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    versions.forEach { version ->
-                        Surface(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = MaterialTheme.shapes.small
-                        ) {
-                            Text(
-                                version,
-                                style = MaterialTheme.typography.labelMedium,
-                                modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
-                            )
-                        }
-                    }
+
+@Composable
+private fun DetailGrid(
+    items: List<ProjectDetail>,
+    columnCount: Int
+) {
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        items.chunked(columnCount).forEach { rowItems ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                rowItems.forEach { item ->
+                    DetailTile(
+                        label = item.label,
+                        value = item.value.orEmpty().ifBlank { "Not found" },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                repeat(columnCount - rowItems.size) {
+                    Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
@@ -213,8 +277,11 @@ fun ProjectStatItem(
         shape = MaterialTheme.shapes.medium
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
         ) {
             Icon(
                 icon,
@@ -226,7 +293,9 @@ fun ProjectStatItem(
             Text(
                 value,
                 style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold
+                fontWeight = FontWeight.Bold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 label,
@@ -236,3 +305,79 @@ fun ProjectStatItem(
         }
     }
 }
+
+@Composable
+private fun DetailTile(
+    label: String,
+    value: String,
+    modifier: Modifier = Modifier
+) {
+    Surface(
+        modifier = modifier.height(72.dp),
+        color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f),
+        shape = MaterialTheme.shapes.small
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(horizontal = 12.dp, vertical = 10.dp),
+            verticalArrangement = Arrangement.Center
+        ) {
+            Text(
+                label,
+                style = MaterialTheme.typography.labelSmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                value,
+                style = MaterialTheme.typography.titleSmall,
+                fontWeight = FontWeight.SemiBold,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+    }
+}
+
+@Composable
+private fun SectionTitle(
+    title: String,
+    icon: ImageVector
+) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Icon(
+            icon,
+            contentDescription = null,
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp)
+        )
+        Text(
+            title,
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.Bold
+        )
+    }
+}
+
+@Composable
+private fun ProjectPill(text: String) {
+    Surface(
+        color = MaterialTheme.colorScheme.primaryContainer,
+        shape = MaterialTheme.shapes.small
+    ) {
+        Text(
+            text,
+            style = MaterialTheme.typography.labelMedium,
+            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+            maxLines = 1
+        )
+    }
+}
+
+private data class ProjectDetail(
+    val label: String,
+    val value: String?
+)

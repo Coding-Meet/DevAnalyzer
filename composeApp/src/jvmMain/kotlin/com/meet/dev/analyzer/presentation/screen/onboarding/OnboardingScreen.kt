@@ -22,7 +22,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +32,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.meet.dev.analyzer.data.models.onboarding.OnboardingPageData
 import com.meet.dev.analyzer.presentation.components.TabSlideAnimation
 import com.meet.dev.analyzer.presentation.screen.onboarding.components.AnimatedIcon
@@ -47,7 +48,7 @@ fun OnboardingScreen(
     onComplete: () -> Unit,
 ) {
     val viewModel = koinViewModel<OnboardingViewModel>()
-    val uiState by viewModel.uiState.collectAsState()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     viewModel.effect.ObserveAsEvents { onBoardingUiEffect ->
         when (onBoardingUiEffect) {
@@ -111,7 +112,7 @@ fun OnboardingScreen(
                     previousTabIndex = uiState.previousPage,
                     targetState = uiState.pages[uiState.currentPage],
                 ) { page ->
-                    OnboardingPageContent(page = page)
+                    OnboardingPageContent(page = page, currentPage = uiState.currentPage)
                 }
             }
         }
@@ -119,8 +120,13 @@ fun OnboardingScreen(
 }
 
 @Composable
-fun OnboardingPageContent(page: OnboardingPageData) {
+fun OnboardingPageContent(page: OnboardingPageData, currentPage: Int) {
     var titleVisible by remember { mutableStateOf(false) }
+    val isFirstPage by remember(currentPage) {
+        derivedStateOf {
+            currentPage == 0
+        }
+    }
 
     LaunchedEffect(page) {
         titleVisible = false
@@ -136,7 +142,7 @@ fun OnboardingPageContent(page: OnboardingPageData) {
         verticalArrangement = Arrangement.Center
     ) {
         // Animated Icon
-        AnimatedIcon(icon = page.icon)
+        AnimatedIcon(icon = page.icon, isFirstPage = isFirstPage)
 
         Spacer(Modifier.height(24.dp))
 
