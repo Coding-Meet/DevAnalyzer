@@ -160,7 +160,7 @@ fun ProjectOverviewCard(
                 }
             }
         }
-        }
+    }
 }
 
 @Composable
@@ -185,19 +185,19 @@ private fun ProjectConfigurationCard(projectOverviewInfo: ProjectOverviewInfo) {
         )
     ) {
 
-            Column(
-                modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                SectionTitle(
-                    title = "Build Configuration",
-                    icon = Icons.Default.Code
-                )
-                DetailGrid(
-                    items = configurationItems,
-                    columnCount = 5
-                )
-            }
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            SectionTitle(
+                title = "Build Configuration",
+                icon = Icons.Default.Code
+            )
+            DetailGrid(
+                items = configurationItems,
+                columnCount = 5
+            )
+        }
 
     }
 }

@@ -58,7 +58,9 @@ fun WorkspaceScreen(
         viewModel.handleIntent(WorkspaceIntent.TrackWorkspaceAnalyzerOpened)
     }
 
-    val lastSubmittedVersion by uiState.lastSubmittedReviewVersion.collectAsStateWithLifecycle(initialValue = "")
+    val lastSubmittedVersion by uiState.lastSubmittedReviewVersion.collectAsStateWithLifecycle(
+        initialValue = ""
+    )
     val desktopConfig = remember {
         CustomProperties.createAppConfig(CustomProperties.loadProperties())
     }
@@ -86,7 +88,13 @@ fun WorkspaceScreen(
                 actions = {
                     if (uiState.projects.isNotEmpty() || uiState.unusedResources.isNotEmpty() || uiState.activeResources.isNotEmpty()) {
                         IconButton(
-                            modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                            modifier = Modifier.pointerHoverIcon(
+                                PointerIcon(
+                                    Cursor.getPredefinedCursor(
+                                        Cursor.HAND_CURSOR
+                                    )
+                                )
+                            ),
                             onClick = { isSelectionPanelExpanded = !isSelectionPanelExpanded }
                         ) {
                             Icon(
@@ -99,7 +107,11 @@ fun WorkspaceScreen(
             )
         },
         floatingActionButton = {
-            val visibleSelectedCount by remember(uiState.resourceFilter, uiState.unusedResources, uiState.activeResources) {
+            val visibleSelectedCount by remember(
+                uiState.resourceFilter,
+                uiState.unusedResources,
+                uiState.activeResources
+            ) {
                 derivedStateOf {
                     val combined = when (uiState.resourceFilter) {
                         ResourceFilter.ALL -> uiState.unusedResources + uiState.activeResources
@@ -109,7 +121,11 @@ fun WorkspaceScreen(
                     combined.count { it.isSelected }
                 }
             }
-            val visibleSelectedSizeReadable by remember(uiState.resourceFilter, uiState.unusedResources, uiState.activeResources) {
+            val visibleSelectedSizeReadable by remember(
+                uiState.resourceFilter,
+                uiState.unusedResources,
+                uiState.activeResources
+            ) {
                 derivedStateOf {
                     val combined = when (uiState.resourceFilter) {
                         ResourceFilter.ALL -> uiState.unusedResources + uiState.activeResources

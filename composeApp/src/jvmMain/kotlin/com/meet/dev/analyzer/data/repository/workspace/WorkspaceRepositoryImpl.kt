@@ -1,22 +1,23 @@
 package com.meet.dev.analyzer.data.repository.workspace
 
-import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import com.meet.dev.analyzer.data.models.project.ProjectOverviewInfo
 import com.meet.dev.analyzer.data.models.workspace.ResourceCategory
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
 import com.meet.dev.analyzer.data.models.workspace.WorkspaceAnalysisResult
-import com.meet.dev.analyzer.data.repository.project.helpers.*
-import com.meet.dev.analyzer.data.repository.storage.helpers.*
+import com.meet.dev.analyzer.data.repository.project.helpers.ProjectFileScanner
+import com.meet.dev.analyzer.data.repository.project.helpers.ProjectOverviewAnalyzer
+import com.meet.dev.analyzer.data.repository.project.helpers.VersionCatalogParser
+import com.meet.dev.analyzer.data.repository.storage.helpers.AndroidSdkAnalyzer
+import com.meet.dev.analyzer.data.repository.storage.helpers.GradleAnalyzer
+import com.meet.dev.analyzer.data.repository.storage.helpers.KonanAnalyzer
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
-import kotlin.random.Random
 
 class WorkspaceRepositoryImpl(
-    private val pathPreferenceManger: PathPreferenceManger,
     private val projectFileScanner: ProjectFileScanner,
     private val versionCatalogParser: VersionCatalogParser,
     private val projectOverviewAnalyzer: ProjectOverviewAnalyzer,
@@ -64,7 +65,8 @@ class WorkspaceRepositoryImpl(
 
                 val moduleBuildFileInfos = projectFileScanner.findModuleBuildFiles(projectDir)
                 val settingsGradleFileInfo = projectFileScanner.findSettingsGradleFiles(projectDir)
-                val gradleWrapperPropertiesFileInfo = projectFileScanner.findGradleWrapperProFile(projectDir)
+                val gradleWrapperPropertiesFileInfo =
+                    projectFileScanner.findGradleWrapperProFile(projectDir)
                 val versionCatalogFileInfo = projectFileScanner.findVersionCatalogFile(projectDir)
 
                 val versionCatalog = versionCatalogParser.findVersionCatalog(versionCatalogFileInfo)
@@ -79,7 +81,7 @@ class WorkspaceRepositoryImpl(
 
                 projects.add(overview)
 
-                overview.compileSdkVersion?.let { 
+                overview.compileSdkVersion?.let {
                     usedCompileSdks.add(it)
                     // Auto-infer primary build-tools version matching compileSdk
                     usedBuildTools.add("$it.0.0")
@@ -112,15 +114,22 @@ class WorkspaceRepositoryImpl(
             val sdkInfo = androidSdkAnalyzer.analyzeAndroidSdkData()
             val apiRegex = Regex("""android-(\d+)""")
             sdkInfo.platformInfo.platforms.forEach { item ->
-                val apiVal = apiRegex.find(item.name)?.groupValues?.get(1) ?: item.name.substringAfter("android-")
+                val apiVal = apiRegex.find(item.name)?.groupValues?.get(1)
+                    ?: item.name.substringAfter("android-")
                 val isUsed =
                     usedCompileSdks.contains(apiVal) || usedCompileSdks.any { it.contains(apiVal) } ||
-                            usedTargetSdks.contains(apiVal) || usedTargetSdks.any { it.contains(apiVal) } ||
+                            usedTargetSdks.contains(apiVal) || usedTargetSdks.any {
+                        it.contains(
+                            apiVal
+                        )
+                    } ||
                             usedMinSdks.contains(apiVal) || usedMinSdks.any { it.contains(apiVal) }
                 val usingProjects = if (isUsed) {
                     projects.filter {
                         it.compileSdkVersion == apiVal || it.compileSdkVersion?.contains(apiVal) == true ||
-                                it.targetSdkVersion == apiVal || it.targetSdkVersion?.contains(apiVal) == true ||
+                                it.targetSdkVersion == apiVal || it.targetSdkVersion?.contains(
+                            apiVal
+                        ) == true ||
                                 it.minSdkVersion == apiVal || it.minSdkVersion?.contains(apiVal) == true
                     }.map { it.projectName }
                 } else emptyList()
@@ -140,11 +149,14 @@ class WorkspaceRepositoryImpl(
             onProgress(0.7f, "Scanning installed Android SDK Build Tools...")
             sdkInfo.buildToolInfo.buildTools.forEach { item ->
                 val buildToolsVersion = item.name
-                val isUsed = usedBuildTools.contains(buildToolsVersion) || usedCompileSdks.any { sdk -> buildToolsVersion.startsWith("$sdk.") }
+                val isUsed =
+                    usedBuildTools.contains(buildToolsVersion) || usedCompileSdks.any { sdk ->
+                        buildToolsVersion.startsWith("$sdk.")
+                    }
                 val usingProjects = if (isUsed) {
                     projects.filter {
                         it.buildToolsSdk == buildToolsVersion ||
-                        it.compileSdkVersion?.let { sdk -> buildToolsVersion.startsWith("$sdk.") } == true
+                                it.compileSdkVersion?.let { sdk -> buildToolsVersion.startsWith("$sdk.") } == true
                     }.map { it.projectName }
                 } else emptyList()
                 val resource = UnusedResourceItem(
@@ -180,7 +192,8 @@ class WorkspaceRepositoryImpl(
                 if (isUsed) activeResources.add(resource) else unusedResources.add(resource)
 
                 // Check for matching version cache folder
-                val cacheItem = gradleInfo.cachesGradleWrapperInfo.cachesGradleWrapperItems.find { it.version == version }
+                val cacheItem =
+                    gradleInfo.cachesGradleWrapperInfo.cachesGradleWrapperItems.find { it.version == version }
                 if (cacheItem != null) {
                     val cacheResource = UnusedResourceItem(
                         name = "Gradle Cache $version",
@@ -191,7 +204,9 @@ class WorkspaceRepositoryImpl(
                         sizeFormatted = cacheItem.sizeReadable,
                         usedByProjects = usingProjects
                     )
-                    if (isUsed) activeResources.add(cacheResource) else unusedResources.add(cacheResource)
+                    if (isUsed) activeResources.add(cacheResource) else unusedResources.add(
+                        cacheResource
+                    )
                 }
             }
 
@@ -280,9 +295,14 @@ class WorkspaceRepositoryImpl(
             onProgress(0.96f, "Scanning Android SDK Sources...")
             sdkInfo.sourcesInfo.sources.forEach { item ->
                 val version = item.name
-                val isUsed = usedCompileSdks.contains(version) || usedCompileSdks.any { it.contains(version) }
+                val isUsed =
+                    usedCompileSdks.contains(version) || usedCompileSdks.any { it.contains(version) }
                 val usingProjects = if (isUsed) {
-                    projects.filter { it.compileSdkVersion == version || it.compileSdkVersion?.contains(version) == true }.map { it.projectName }
+                    projects.filter {
+                        it.compileSdkVersion == version || it.compileSdkVersion?.contains(
+                            version
+                        ) == true
+                    }.map { it.projectName }
                 } else emptyList()
                 val resource = UnusedResourceItem(
                     name = "Android SDK Sources $version",
@@ -308,22 +328,26 @@ class WorkspaceRepositoryImpl(
         }
     }
 
-    override suspend fun deleteResource(path: String): Pair<Boolean, String?> = withContext(Dispatchers.IO) {
-        return@withContext try {
-            val file = File(path)
-            if (!file.exists()) {
-                Pair(false, "Path does not exist: $path")
-            } else {
-                val success = file.deleteRecursively()
-                if (success) {
-                    Pair(true, null)
+    override suspend fun deleteResource(path: String): Pair<Boolean, String?> =
+        withContext(Dispatchers.IO) {
+            return@withContext try {
+                val file = File(path)
+                if (!file.exists()) {
+                    Pair(false, "Path does not exist: $path")
                 } else {
-                    Pair(false, "Failed to delete files recursively. Check permissions or file usage lock.")
+                    val success = file.deleteRecursively()
+                    if (success) {
+                        Pair(true, null)
+                    } else {
+                        Pair(
+                            false,
+                            "Failed to delete files recursively. Check permissions or file usage lock."
+                        )
+                    }
                 }
+            } catch (e: Exception) {
+                AppLogger.e(TAG, e) { "Exception deleting path: $path" }
+                Pair(false, e.message)
             }
-        } catch (e: Exception) {
-            AppLogger.e(TAG, e) { "Exception deleting path: $path" }
-            Pair(false, e.message)
         }
-    }
 }

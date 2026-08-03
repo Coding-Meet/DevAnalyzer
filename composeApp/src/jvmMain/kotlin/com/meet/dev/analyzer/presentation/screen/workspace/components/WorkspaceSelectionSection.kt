@@ -65,8 +65,16 @@ fun WorkspaceSelectionSection(
 ) {
     AnimatedVisibility(
         visible = isExpanded,
-        enter = expandVertically(animationSpec = tween(durationMillis = 300)) + fadeIn(animationSpec = tween(durationMillis = 300)),
-        exit = shrinkVertically(animationSpec = tween(durationMillis = 250)) + fadeOut(animationSpec = tween(durationMillis = 250))
+        enter = expandVertically(animationSpec = tween(durationMillis = 300)) + fadeIn(
+            animationSpec = tween(
+                durationMillis = 300
+            )
+        ),
+        exit = shrinkVertically(animationSpec = tween(durationMillis = 250)) + fadeOut(
+            animationSpec = tween(
+                durationMillis = 250
+            )
+        )
     ) {
         Column(
             modifier = Modifier.fillMaxWidth().padding(10.dp),
@@ -199,7 +207,8 @@ fun WorkspaceSelectionSection(
                                     modifier = Modifier.size(16.dp)
                                 )
                                 Text(
-                                    text = path.split(File.separatorChar).lastOrNull()?.takeIf { it.isNotEmpty() } ?: path,
+                                    text = path.split(File.separatorChar).lastOrNull()
+                                        ?.takeIf { it.isNotEmpty() } ?: path,
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Medium,
                                     color = MaterialTheme.colorScheme.onSurface
@@ -211,7 +220,13 @@ fun WorkspaceSelectionSection(
                                     modifier = Modifier
                                         .size(14.dp)
                                         .clip(RoundedCornerShape(2.dp))
-                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                                        .pointerHoverIcon(
+                                            PointerIcon(
+                                                Cursor.getPredefinedCursor(
+                                                    Cursor.HAND_CURSOR
+                                                )
+                                            )
+                                        )
                                         .clickable { onRemovePath(path) }
                                 )
                             }

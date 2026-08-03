@@ -1,12 +1,7 @@
 package com.meet.dev.analyzer.utility.platform
 
-import com.meet.dev.analyzer.data.models.storage.GradleLibraryInfo
-import com.meet.dev.analyzer.data.models.storage.GradleModulesInfo
-import com.meet.dev.analyzer.data.models.storage.GradleVersionInfo
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
-import io.github.z4kn4fein.semver.VersionFormatException
-import io.github.z4kn4fein.semver.toVersion
 import java.awt.Desktop
 import java.awt.Toolkit
 import java.awt.datatransfer.StringSelection
@@ -116,6 +111,7 @@ object FolderFileUtils {
         val file = File(this)
         file.openFile()
     }
+
     fun copyToClipboard(content: String) {
         try {
             val clipboard = Toolkit.getDefaultToolkit().systemClipboard
