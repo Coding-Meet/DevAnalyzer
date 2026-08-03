@@ -24,7 +24,6 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlinx.io.IOException
 import java.io.File
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.TimeSource
 
 class WorkspaceViewModel(
@@ -107,7 +106,7 @@ class WorkspaceViewModel(
             WorkspaceIntent.OnClearHighlights -> _uiState.update { it.copy(highlightedProjectName = null) }
 
             // Analytics event trackers
-            WorkspaceIntent.TrackFeedbackOpened    -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
+            WorkspaceIntent.TrackFeedbackOpened -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
             WorkspaceIntent.TrackFeedbackCancelled -> analyticsManager.capture(AnalyticsEvent.FeedbackCancelled)
             WorkspaceIntent.TrackReviewPromptShown -> analyticsManager.capture(AnalyticsEvent.ReviewPromptShown)
             WorkspaceIntent.TrackWorkspaceAnalyzerOpened -> analyticsManager.capture(AnalyticsEvent.WorkspaceAnalyzerOpened)

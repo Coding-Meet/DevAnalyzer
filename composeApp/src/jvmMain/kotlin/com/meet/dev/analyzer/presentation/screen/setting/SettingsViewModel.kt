@@ -98,7 +98,10 @@ class SettingsViewModel(
 
             is SettingsUiIntent.CheckForUpdates -> checkForUpdates()
             is SettingsUiIntent.ShowPathPicker -> showPathPicker(intent.path, intent.type)
-            is SettingsUiIntent.SaveReviewVersion -> saveReviewVersion(intent.version, intent.rating)
+            is SettingsUiIntent.SaveReviewVersion -> saveReviewVersion(
+                intent.version,
+                intent.rating
+            )
 
             // Analytics event trackers
             SettingsUiIntent.TrackSettingsOpened -> analyticsManager.capture(AnalyticsEvent.SettingsOpened)

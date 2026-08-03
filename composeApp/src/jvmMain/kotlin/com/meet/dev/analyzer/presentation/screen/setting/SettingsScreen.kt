@@ -70,7 +70,6 @@ import com.meet.dev.analyzer.presentation.screen.setting.components.SocialLinkBu
 import com.meet.dev.analyzer.presentation.screen.setting.components.SwitchSettingItem
 import com.meet.dev.analyzer.utility.AppLinks
 import com.meet.dev.analyzer.utility.AppLinks.socialLinks
-import com.meet.dev.analyzer.utility.crash_report.CustomProperties
 import com.meet.dev.analyzer.utility.getDefaultAndroidSdkPath
 import com.meet.dev.analyzer.utility.getDefaultAvdLocationPath
 import com.meet.dev.analyzer.utility.getDefaultGoogleFolderPaths
@@ -99,9 +98,9 @@ fun SettingsScreen(
     }
 
     SettingsScreenContent(
-        pathUiState     = pathUiState,
+        pathUiState = pathUiState,
         settingsUiState = settingsUiState,
-        onEvent         = viewModel::onIntent,
+        onEvent = viewModel::onIntent,
     )
 }
 
@@ -700,7 +699,13 @@ fun SettingsScreenContent(
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(48.dp)
-                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                        .pointerHoverIcon(
+                                            PointerIcon(
+                                                Cursor.getPredefinedCursor(
+                                                    Cursor.HAND_CURSOR
+                                                )
+                                            )
+                                        ),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.tertiary,
                                         contentColor = MaterialTheme.colorScheme.onTertiary
@@ -727,7 +732,13 @@ fun SettingsScreenContent(
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(48.dp)
-                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                        .pointerHoverIcon(
+                                            PointerIcon(
+                                                Cursor.getPredefinedCursor(
+                                                    Cursor.HAND_CURSOR
+                                                )
+                                            )
+                                        ),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.secondary,
                                         contentColor = MaterialTheme.colorScheme.onSecondary
@@ -754,7 +765,13 @@ fun SettingsScreenContent(
                                     modifier = Modifier
                                         .weight(1f)
                                         .height(48.dp)
-                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                        .pointerHoverIcon(
+                                            PointerIcon(
+                                                Cursor.getPredefinedCursor(
+                                                    Cursor.HAND_CURSOR
+                                                )
+                                            )
+                                        ),
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = MaterialTheme.colorScheme.primary,
                                         contentColor = MaterialTheme.colorScheme.onPrimary

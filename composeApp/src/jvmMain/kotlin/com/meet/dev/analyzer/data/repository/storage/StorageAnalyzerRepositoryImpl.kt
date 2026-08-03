@@ -31,7 +31,8 @@ class StorageAnalyzerRepositoryImpl(
 
     override suspend fun analyzeAvdData(): AndroidAvdInfo = avdAnalyzer.analyzeAvdData()
 
-    override suspend fun analyzeAndroidSdkData(): AndroidSdkInfo = androidSdkAnalyzer.analyzeAndroidSdkData()
+    override suspend fun analyzeAndroidSdkData(): AndroidSdkInfo =
+        androidSdkAnalyzer.analyzeAndroidSdkData()
 
     override suspend fun analyzeGradleData(): GradleInfo = gradleAnalyzer.analyzeGradleData()
 

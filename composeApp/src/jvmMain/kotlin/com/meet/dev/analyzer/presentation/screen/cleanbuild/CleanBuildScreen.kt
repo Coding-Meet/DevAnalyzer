@@ -22,19 +22,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.mutableStateOf
-import com.meet.dev.analyzer.presentation.components.ReviewDialog
-import com.meet.dev.analyzer.utility.crash_report.CustomProperties
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavBackStackEntry
 import com.meet.dev.analyzer.presentation.components.EmptyStateCardLayout
+import com.meet.dev.analyzer.presentation.components.ReviewDialog
 import com.meet.dev.analyzer.presentation.components.TopAppBar
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.cleanbuild.components.ActionsCardLayout
@@ -43,6 +42,7 @@ import com.meet.dev.analyzer.presentation.screen.cleanbuild.components.DeleteFlo
 import com.meet.dev.analyzer.presentation.screen.cleanbuild.components.DeletionProgressDialog
 import com.meet.dev.analyzer.presentation.screen.cleanbuild.components.ProjectGroupItemLayout
 import com.meet.dev.analyzer.presentation.screen.cleanbuild.components.ProjectsSelectionSection
+import com.meet.dev.analyzer.utility.crash_report.CustomProperties
 import io.github.vinceglb.filekit.PlatformFile
 import io.github.vinceglb.filekit.dialogs.compose.rememberDirectoryPickerLauncher
 import io.github.vinceglb.filekit.path
@@ -66,7 +66,9 @@ fun CleanBuildScreen(
         viewModel.handleIntent(CleanBuildIntent.TrackCleanBuildOpened)
     }
 
-    val lastSubmittedVersion by uiState.lastSubmittedReviewVersion.collectAsStateWithLifecycle(initialValue = "")
+    val lastSubmittedVersion by uiState.lastSubmittedReviewVersion.collectAsStateWithLifecycle(
+        initialValue = ""
+    )
     val desktopConfig = remember {
         CustomProperties.createAppConfig(CustomProperties.loadProperties())
     }

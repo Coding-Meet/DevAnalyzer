@@ -40,7 +40,6 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceIntent
-import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
 import java.awt.Cursor
 
@@ -136,7 +135,7 @@ fun ResourceItemCard(
                                 imageVector = Icons.Default.Lock,
                                 contentDescription = "Active / Protected",
                                 tint = if (isSelectedActive) MaterialTheme.colorScheme.error
-                                       else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
+                                else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
                                 modifier = Modifier.size(14.dp)
                             )
                         }
@@ -147,7 +146,7 @@ fun ResourceItemCard(
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Bold,
                         color = if (isSelectedActive) MaterialTheme.colorScheme.error
-                                else MaterialTheme.colorScheme.primary,
+                        else MaterialTheme.colorScheme.primary,
                         textAlign = TextAlign.End
                     )
                 }
@@ -162,7 +161,12 @@ fun ResourceItemCard(
                     modifier = Modifier
                         .clip(RoundedCornerShape(4.dp))
                         .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-                        .clickable { try { resource.path.openFile() } catch (_: Exception) {} }
+                        .clickable {
+                            try {
+                                resource.path.openFile()
+                            } catch (_: Exception) {
+                            }
+                        }
                 )
 
                 // "Used By" tags for active resources

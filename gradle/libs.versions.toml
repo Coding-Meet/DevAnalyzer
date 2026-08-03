@@ -1,18 +1,18 @@
 [versions]
 # Core Kotlin
-kotlin = "2.3.0"
+kotlin = "2.4.10"
 
 # Coroutines & Serialization & Datetime
-kotlinx-coroutines = "1.10.2"
-kotlinx-serialization = "1.10.0"
-kotlinx-datetime = "0.7.1"
+kotlinx-coroutines = "1.11.0"
+kotlinx-serialization = "1.11.0"
+kotlinx-datetime = "0.8.0"
 
 # Compose Multiplatform
-composeMultiplatform = "1.10.0"
+composeMultiplatform = "1.11.1"
 composeHotReload = "1.0.0"
 
 # Androidx Core
-androidx-lifecycle = "2.9.6"
+androidx-lifecycle = "2.11.0-beta01"
 
 # Testing
 junit = "4.13.2"
@@ -21,37 +21,38 @@ junit = "4.13.2"
 androidx-navigation = "2.9.1"
 
 # Material Design
-material3-adaptive = "1.2.0"
+material3 = "1.11.0-alpha07"
 materialIconsExtended = "1.7.3"
 material3WindowSizeClass = "1.9.0"
+material3-adaptive = "1.2.0"
 
 # DataStore
-datastore = "1.2.0"
+datastore = "1.2.1"
 
 # Image Loading
-coil3 = "3.3.0"
-ktor = "3.0.3"
+coil3 = "3.5.0"
+ktor = "3.5.2"
 
 # Dependency Injection
-koin = "4.1.1"
+koin = "4.2.2"
 
 # Logging
-kermit = "2.0.8"
+kermit = "2.1.0"
 
 # File
-filekit = "0.12.0"
+filekit = "0.14.2"
 
 # parse for toml
 akuleshov7 = "0.7.1"
 
 # Semantic version
-github-z4kn4fein = "3.0.0"
+github-z4kn4fein = "3.1.0"
 
 # Theme Changer
 jsystemthemedetector = "3.6"
 
 # Crash Report
-sentry = "8.31.0"
+sentry = "8.51.0"
 
 # BuildConfig
 buildkonfig = "0.17.1"
@@ -83,10 +84,10 @@ kotlinx-datetime = { module = "org.jetbrains.kotlinx:kotlinx-datetime", version.
 
 # Material 3 Adaptive
 material-icons-extended = { module = "org.jetbrains.compose.material:material-icons-extended", version.ref = "materialIconsExtended" }
-material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3WindowSizeClass" }
+material3 = { module = "org.jetbrains.compose.material3:material3", version.ref = "material3" }
 material3-adaptive = { module = "org.jetbrains.compose.material3.adaptive:adaptive", version.ref = "material3-adaptive" }
-material3-adaptive-navigation-suite = { module = "org.jetbrains.compose.material3:material3-adaptive-navigation-suite", version.ref = "material3WindowSizeClass" }
-material3-window-size-class1 = { module = "org.jetbrains.compose.material3:material3-window-size-class", version.ref = "material3WindowSizeClass" }
+material3-adaptive-navigation-suite = { module = "org.jetbrains.compose.material3:material3-adaptive-navigation-suite", version.ref = "material3" }
+material3-window-size-class1 = { module = "org.jetbrains.compose.material3:material3-window-size-class", version.ref = "material3" }
 material3-adaptive-layout = { group = "org.jetbrains.compose.material3.adaptive", name = "adaptive-layout", version.ref = "material3-adaptive" }
 material3-adaptive-navigation = { group = "org.jetbrains.compose.material3.adaptive", name = "adaptive-navigation", version.ref = "material3-adaptive" }
 

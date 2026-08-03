@@ -29,7 +29,7 @@ class AppPreferenceManager(private val dataStore: DataStore<Preferences>) {
         val DARK_MODE_KEY = booleanPreferencesKey("dark_mode")
         val ONBOARDING_DONE_KEY = booleanPreferencesKey("onboarding_done")
         val WINDOW_WIDTH_KEY = floatPreferencesKey("window_width")
-        val WINDOW_HEIGHT_KEY    = floatPreferencesKey("window_height")
+        val WINDOW_HEIGHT_KEY = floatPreferencesKey("window_height")
         val WINDOW_POSITION_X_KEY = floatPreferencesKey("window_position_x")
         val WINDOW_POSITION_Y_KEY = floatPreferencesKey("window_position_y")
         val CRASH_REPORTING_ENABLED = booleanPreferencesKey("crash_reporting_enabled")
