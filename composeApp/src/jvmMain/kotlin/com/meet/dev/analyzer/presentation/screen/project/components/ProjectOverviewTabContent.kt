@@ -24,7 +24,6 @@ import androidx.compose.material.icons.filled.AccountTree
 import androidx.compose.material.icons.filled.Android
 import androidx.compose.material.icons.filled.Code
 import androidx.compose.material.icons.filled.Extension
-import androidx.compose.material.icons.filled.Folder
 import androidx.compose.material.icons.filled.Storage
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -377,12 +376,6 @@ private fun ProjectPill(text: String) {
         )
     }
 }
-
-private data class ProjectStat(
-    val label: String,
-    val value: String,
-    val icon: ImageVector
-)
 
 private data class ProjectDetail(
     val label: String,
