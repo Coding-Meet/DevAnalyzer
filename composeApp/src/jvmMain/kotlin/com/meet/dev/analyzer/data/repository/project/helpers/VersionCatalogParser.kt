@@ -1,16 +1,20 @@
 package com.meet.dev.analyzer.data.repository.project.helpers
 
-import com.meet.dev.analyzer.data.models.project.*
-import com.meet.dev.analyzer.utility.crash_report.AppLogger
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
 import com.akuleshov7.ktoml.Toml
 import com.akuleshov7.ktoml.TomlInputConfig
+import com.meet.dev.analyzer.data.models.project.Bundle
+import com.meet.dev.analyzer.data.models.project.Library
+import com.meet.dev.analyzer.data.models.project.Plugin
+import com.meet.dev.analyzer.data.models.project.Version
+import com.meet.dev.analyzer.data.models.project.VersionCatalog
+import com.meet.dev.analyzer.data.models.project.VersionCatalogFileInfo
+import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
-import kotlinx.serialization.Serializable
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
-import java.io.File
 
 class VersionCatalogParser {
     private val tag = tagName(javaClass = javaClass)

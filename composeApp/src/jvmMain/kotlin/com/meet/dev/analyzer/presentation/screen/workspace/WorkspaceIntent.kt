@@ -8,8 +8,12 @@ sealed interface WorkspaceIntent {
     data class OnRemovePath(val path: String) : WorkspaceIntent
     data object OnClearPaths : WorkspaceIntent
     data object OnAnalyzeWorkspace : WorkspaceIntent
-    data class OnResourceSelectionChange(val uniqueId: String, val isSelected: Boolean) : WorkspaceIntent
-    data class OnCategorySelectionChange(val category: ResourceCategory, val isSelected: Boolean) : WorkspaceIntent
+    data class OnResourceSelectionChange(val uniqueId: String, val isSelected: Boolean) :
+        WorkspaceIntent
+
+    data class OnCategorySelectionChange(val category: ResourceCategory, val isSelected: Boolean) :
+        WorkspaceIntent
+
     data object OnSelectAll : WorkspaceIntent
     data object OnDeselectAll : WorkspaceIntent
     data object OnDeleteClicked : WorkspaceIntent
@@ -24,8 +28,8 @@ sealed interface WorkspaceIntent {
     data object OnClearHighlights : WorkspaceIntent
 
     // Analytics event trackers
-    data object TrackFeedbackOpened     : WorkspaceIntent
-    data object TrackReviewPromptShown  : WorkspaceIntent
-    data object TrackFeedbackCancelled  : WorkspaceIntent
+    data object TrackFeedbackOpened : WorkspaceIntent
+    data object TrackReviewPromptShown : WorkspaceIntent
+    data object TrackFeedbackCancelled : WorkspaceIntent
     data object TrackWorkspaceAnalyzerOpened : WorkspaceIntent
 }

@@ -22,13 +22,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.data.models.project.ProjectOverviewInfo
-import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
 import java.awt.Cursor
 
@@ -99,7 +97,8 @@ fun ProjectInfoCard(
                     "Compile SDK" to project.compileSdkVersion,
                     "Target SDK" to project.targetSdkVersion,
                     "Min SDK" to project.minSdkVersion,
-                    "Build Tools" to (project.buildToolsSdk ?: project.compileSdkVersion?.let { "$it.0.0 (Auto)" }),
+                    "Build Tools" to (project.buildToolsSdk
+                        ?: project.compileSdkVersion?.let { "$it.0.0 (Auto)" }),
                     "Gradle Version" to project.gradleVersion,
                     "Kotlin version" to project.kotlinVersion,
                     "AGP version" to project.androidGradlePluginVersion,

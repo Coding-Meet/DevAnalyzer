@@ -1,7 +1,20 @@
 package com.meet.dev.analyzer.data.repository.storage.helpers
 
 import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
-import com.meet.dev.analyzer.data.models.storage.*
+import com.meet.dev.analyzer.data.models.storage.CachesGradleWrapperInfo
+import com.meet.dev.analyzer.data.models.storage.CachesGradleWrapperItem
+import com.meet.dev.analyzer.data.models.storage.DaemonInfo
+import com.meet.dev.analyzer.data.models.storage.DaemonItem
+import com.meet.dev.analyzer.data.models.storage.GradleInfo
+import com.meet.dev.analyzer.data.models.storage.GradleLibraryInfo
+import com.meet.dev.analyzer.data.models.storage.GradleModulesInfo
+import com.meet.dev.analyzer.data.models.storage.GradleVersionInfo
+import com.meet.dev.analyzer.data.models.storage.JdkInfo
+import com.meet.dev.analyzer.data.models.storage.JdkItem
+import com.meet.dev.analyzer.data.models.storage.OtherGradleFolderInfo
+import com.meet.dev.analyzer.data.models.storage.OtherGradleFolderItem
+import com.meet.dev.analyzer.data.models.storage.WrapperInfo
+import com.meet.dev.analyzer.data.models.storage.WrapperItem
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils
@@ -55,7 +68,8 @@ class GradleAnalyzer(
                 val versionInfos = try {
                     versions.map { version ->
                         val versionDir = File(artifactDir, version)
-                        val versionSizeBytes = FolderFileUtils.calculateFolderSize(versionDir, isCommend = false)
+                        val versionSizeBytes =
+                            FolderFileUtils.calculateFolderSize(versionDir, isCommend = false)
                         GradleVersionInfo(
                             version = version,
                             path = versionDir.absolutePath,
@@ -66,7 +80,8 @@ class GradleAnalyzer(
                 } catch (e: VersionFormatException) {
                     versions.map { version ->
                         val versionDir = File(artifactDir, version)
-                        val versionSizeBytes = FolderFileUtils.calculateFolderSize(versionDir, isCommend = false)
+                        val versionSizeBytes =
+                            FolderFileUtils.calculateFolderSize(versionDir, isCommend = false)
                         GradleVersionInfo(
                             version = version,
                             path = versionDir.absolutePath,
@@ -81,7 +96,7 @@ class GradleAnalyzer(
                     artifactId = artifactId,
                     versions = versionInfos,
                     path = artifactDir.absolutePath,
-                    sizeReadable =  FolderFileUtils.formatSize(artifactSizeBytes),
+                    sizeReadable = FolderFileUtils.formatSize(artifactSizeBytes),
                     totalSizeBytes = artifactSizeBytes
                 )
             }
@@ -231,6 +246,7 @@ class GradleAnalyzer(
                     it.sizeBytes
                 } ?: emptyList()
         }
+
     suspend fun analyzeGradleData(): GradleInfo = withContext(Dispatchers.IO) {
         val emptyGradleInfo = GradleInfo(
             sizeReadable = "0 B",

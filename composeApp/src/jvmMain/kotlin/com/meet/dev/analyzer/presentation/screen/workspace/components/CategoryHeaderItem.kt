@@ -30,7 +30,6 @@ import com.meet.dev.analyzer.data.models.workspace.ResourceCategory
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
 import com.meet.dev.analyzer.presentation.components.CustomToolTip
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceIntent
-import com.meet.dev.analyzer.presentation.theme.DevAnalyzerTheme
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
 import java.awt.Cursor
 
@@ -66,7 +65,8 @@ fun CategoryHeaderItem(
         ) {
             if (!isReadOnly) {
                 val allCategorySelected = remember(items) { items.all { it.isSelected } }
-                val someCategorySelected = remember(items) { items.any { it.isSelected } && !allCategorySelected }
+                val someCategorySelected =
+                    remember(items) { items.any { it.isSelected } && !allCategorySelected }
 
                 val categorySelectState = remember(allCategorySelected, someCategorySelected) {
                     when {
@@ -79,9 +79,20 @@ fun CategoryHeaderItem(
                 TriStateCheckbox(
                     state = categorySelectState,
                     onClick = {
-                        onIntent(WorkspaceIntent.OnCategorySelectionChange(category, !allCategorySelected))
+                        onIntent(
+                            WorkspaceIntent.OnCategorySelectionChange(
+                                category,
+                                !allCategorySelected
+                            )
+                        )
                     },
-                    modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    )
                 )
             }
             Text(

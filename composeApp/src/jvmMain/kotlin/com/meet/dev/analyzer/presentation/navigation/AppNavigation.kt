@@ -28,7 +28,7 @@ import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceScreen
 fun AppNavigation(
     isDarkMode: Boolean,
     onThemeChange: () -> Unit,
-    updateDialogWithNavigation: @Composable (NavigationItem?)  -> Unit
+    updateDialogWithNavigation: @Composable (NavigationItem?) -> Unit
 ) {
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()

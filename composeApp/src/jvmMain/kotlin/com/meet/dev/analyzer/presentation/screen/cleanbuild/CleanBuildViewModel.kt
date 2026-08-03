@@ -67,10 +67,10 @@ class CleanBuildViewModel(
             CleanBuildIntent.OnToggleProjectSelection -> handleToggleProjectSelection()
 
             // Analytics event trackers
-            CleanBuildIntent.TrackFeedbackOpened    -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
+            CleanBuildIntent.TrackFeedbackOpened -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
             CleanBuildIntent.TrackFeedbackCancelled -> analyticsManager.capture(AnalyticsEvent.FeedbackCancelled)
             CleanBuildIntent.TrackReviewPromptShown -> analyticsManager.capture(AnalyticsEvent.ReviewPromptShown)
-            CleanBuildIntent.TrackCleanBuildOpened  -> analyticsManager.capture(AnalyticsEvent.CleanBuildOpened)
+            CleanBuildIntent.TrackCleanBuildOpened -> analyticsManager.capture(AnalyticsEvent.CleanBuildOpened)
         }
     }
 

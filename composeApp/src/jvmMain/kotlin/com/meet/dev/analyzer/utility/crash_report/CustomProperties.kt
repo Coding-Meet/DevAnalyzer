@@ -16,6 +16,7 @@ private object Keys {
     const val UPDATER_URL = "updater_url"
     const val FEEDBACK_URL = "feedback_url"
 }
+
 object CustomProperties {
 
     fun loadProperties(): Properties {
@@ -25,6 +26,7 @@ object CustomProperties {
                 ?.use(::load)
         }
     }
+
     fun createAppConfig(properties: Properties): DesktopConfig {
         val sentryDns = properties.requireProperty(Keys.SENTRY_DSN)
         val version = properties.requireProperty(Keys.VERSION)

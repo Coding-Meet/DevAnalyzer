@@ -1,5 +1,9 @@
 package com.meet.dev.analyzer.presentation.components
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.spring
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -13,7 +17,6 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -25,6 +28,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,23 +36,18 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.spring
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.tween
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.data.models.feedback.FeedbackData
 import com.meet.dev.analyzer.data.repository.feedback.FeedbackRepository
+import kotlinx.coroutines.launch
 import org.koin.compose.koinInject
 import java.awt.Cursor
-import kotlinx.coroutines.launch
 
 @Composable
 fun ReviewDialog(
@@ -185,11 +184,19 @@ fun ReviewDialog(
                                 Icon(
                                     imageVector = Icons.Default.Star,
                                     contentDescription = "$index Stars",
-                                    tint = if (isSelected) Color(0xFFF7C325) else MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.3f),
+                                    tint = if (isSelected) Color(0xFFF7C325) else MaterialTheme.colorScheme.onSurfaceVariant.copy(
+                                        alpha = 0.3f
+                                    ),
                                     modifier = Modifier
                                         .size(32.dp)
                                         .clickable { rating = index }
-                                        .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                                        .pointerHoverIcon(
+                                            PointerIcon(
+                                                Cursor.getPredefinedCursor(
+                                                    Cursor.HAND_CURSOR
+                                                )
+                                            )
+                                        )
                                 )
                             }
                         }
@@ -259,13 +266,20 @@ fun ReviewDialog(
                                         modifier = Modifier
                                             .weight(1f)
                                             .clickable {
-                                                mostUsedFeatures = if (mostUsedFeatures.contains(feature)) {
-                                                    mostUsedFeatures - feature
-                                                } else {
-                                                    mostUsedFeatures + feature
-                                                }
+                                                mostUsedFeatures =
+                                                    if (mostUsedFeatures.contains(feature)) {
+                                                        mostUsedFeatures - feature
+                                                    } else {
+                                                        mostUsedFeatures + feature
+                                                    }
                                             }
-                                            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+                                            .pointerHoverIcon(
+                                                PointerIcon(
+                                                    Cursor.getPredefinedCursor(
+                                                        Cursor.HAND_CURSOR
+                                                    )
+                                                )
+                                            ),
                                         verticalAlignment = Alignment.CenterVertically
                                     ) {
                                         Checkbox(
@@ -340,7 +354,13 @@ fun ReviewDialog(
             if (submitSuccess) {
                 Button(
                     onClick = onDismiss,
-                    modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    )
                 ) {
                     Text("Close")
                 }
@@ -352,7 +372,13 @@ fun ReviewDialog(
                     TextButton(
                         onClick = onDismiss,
                         enabled = !isSubmitting,
-                        modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                        modifier = Modifier.pointerHoverIcon(
+                            PointerIcon(
+                                Cursor.getPredefinedCursor(
+                                    Cursor.HAND_CURSOR
+                                )
+                            )
+                        )
                     ) {
                         Text("Cancel")
                     }
@@ -377,14 +403,21 @@ fun ReviewDialog(
                                         onReviewSubmitted(rating)
                                         submitSuccess = true
                                     } else {
-                                        submitError = result.exceptionOrNull()?.message ?: "Unknown network error"
+                                        submitError = result.exceptionOrNull()?.message
+                                            ?: "Unknown network error"
                                     }
                                     isSubmitting = false
                                 }
                             }
                         },
                         enabled = isFormValid && !isSubmitting,
-                        modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                        modifier = Modifier.pointerHoverIcon(
+                            PointerIcon(
+                                Cursor.getPredefinedCursor(
+                                    Cursor.HAND_CURSOR
+                                )
+                            )
+                        )
                     ) {
                         if (isSubmitting) {
                             CircularProgressIndicator(

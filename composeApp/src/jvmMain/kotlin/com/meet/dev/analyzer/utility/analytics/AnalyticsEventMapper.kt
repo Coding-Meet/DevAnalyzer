@@ -52,15 +52,15 @@ internal fun AnalyticsEvent.toProperties(): Map<String, Any> = when (this) {
 
     // ── Clean Build ───────────────────────────────────────────────────────────
     is AnalyticsEvent.CleanBuildAnalysisCompleted -> mapOf(
-        "project_count"      to projectCount,
+        "project_count" to projectCount,
         "build_folder_count" to buildFolderCount,
-        "duration_ms"        to durationMs,
+        "duration_ms" to durationMs,
     )
 
     is AnalyticsEvent.CleanBuildCompleted -> mapOf(
         "deleted_build_folders" to deletedBuildFolders,
-        "reclaimed_bytes"       to reclaimedBytes,
-        "duration_ms"           to durationMs,
+        "reclaimed_bytes" to reclaimedBytes,
+        "duration_ms" to durationMs,
     )
 
     is AnalyticsEvent.CleanBuildFailed -> mapOf("reason" to reason.value)

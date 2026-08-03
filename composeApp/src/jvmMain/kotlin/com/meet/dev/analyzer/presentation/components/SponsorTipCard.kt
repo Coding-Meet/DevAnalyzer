@@ -72,7 +72,13 @@ fun SponsorTipCard(
                 TextButton(
                     onClick = { uriHandler.openUri(AppLinks.DONATE) },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                    modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.Favorite,
@@ -92,7 +98,13 @@ fun SponsorTipCard(
                 TextButton(
                     onClick = { uriHandler.openUri(AppLinks.DONATE_COFFEE) },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                    modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.LocalCafe,
@@ -112,7 +124,13 @@ fun SponsorTipCard(
                 TextButton(
                     onClick = { uriHandler.openUri(AppLinks.DONATE_PAYPAL) },
                     contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                    modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    )
                 ) {
                     Icon(
                         imageVector = Icons.Default.CreditCard,
@@ -133,7 +151,13 @@ fun SponsorTipCard(
                     TextButton(
                         onClick = onShareFeedbackClick,
                         contentPadding = PaddingValues(horizontal = 8.dp, vertical = 4.dp),
-                        modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                        modifier = Modifier.pointerHoverIcon(
+                            PointerIcon(
+                                Cursor.getPredefinedCursor(
+                                    Cursor.HAND_CURSOR
+                                )
+                            )
+                        )
                     ) {
                         Icon(
                             imageVector = Icons.Default.RateReview,
