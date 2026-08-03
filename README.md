@@ -85,7 +85,7 @@ Privacy is a core design principle of DevAnalyzer:
 * **Local Processing**: All analysis runs locally. Your code, project names, and file paths are never uploaded.
 * **Optional Analytics**: You can opt in or out of anonymous analytics at any time.
 * **Zero PII**: No email addresses, personal details, or sensitive metadata are tracked.
-* **SDK Configuration**: We use `PersonProfiles.IDENTIFIED_ONLY` internally in the PostHog SDK configuration. Since we never call `PostHog.identify`, all users remain completely anonymous.
+* **SDK Configuration**: We configure the analytics client to keep all metrics completely anonymous. Since we never call identification methods, all users remain completely anonymous.
 
 ---
 

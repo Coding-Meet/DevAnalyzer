@@ -220,8 +220,10 @@ fun ProjectAnalyzerContent(
                 }
             } else {
                 EmptyStateCardLayout(
-                    title = "No Project Selected",
-                    description = "Browse and select an Android Studio project folder, then click Analyze to view modules, plugins, and dependencies.",
+                    title = "Select an Android Project",
+                    description = "Choose an Android Studio project to analyze its modules, Gradle configuration, plugins, dependencies, SDK versions, and build files.",
+                    actionText = "Select Project",
+                    onAction = onBrowseClick,
                     icon = Icons.Default.FolderOpen,
                     modifier = Modifier.padding(10.dp).fillMaxSize()
                 )

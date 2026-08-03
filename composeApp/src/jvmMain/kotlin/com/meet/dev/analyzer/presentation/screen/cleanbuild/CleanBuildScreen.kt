@@ -264,8 +264,10 @@ fun CleanBuildScreenContent(
                 }
             } else {
                 EmptyStateCardLayout(
-                    title = "No Projects Selected",
-                    description = "Browse and select Android Studio projects to clean",
+                    title = "Select a Project Directory",
+                    description = "Choose a folder containing your Android Studio projects to scan for build folders and safely remove them to reclaim disk space.",
+                    actionText = "Select Folder",
+                    onAction = onBrowseClick,
                     icon = Icons.Default.FolderOpen,
                     modifier = Modifier.padding(10.dp).fillMaxSize()
                 )

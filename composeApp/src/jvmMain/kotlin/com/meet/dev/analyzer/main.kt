@@ -139,6 +139,24 @@ fun main() {
                     isDarkMode = appUiState.isDarkMode,
                     onThemeChange = {
                         appViewModel.handleIntent(AppUiIntent.ChangeTheme(appUiState.isDarkMode))
+                    },
+                    updateDialogWithNavigation = { currentNavigationItem ->
+                        val updateState = appViewModel.updateDialogState
+                        if (updateState is UpdateDialogState.Available && currentNavigationItem != null) {
+                            LaunchedEffect(updateState) {
+                                appViewModel.trackUpdateDialogShown()
+                            }
+                            UpdateDialog(
+                                state = updateState,
+                                onDismiss = {
+                                    appViewModel.trackUpdateDismissed()
+                                    appViewModel.closeUpdateDialog()
+                                },
+                                onUpdateClicked = {
+                                    appViewModel.trackUpdateClicked()
+                                }
+                            )
+                        }
                     }
                 )
 
@@ -156,22 +174,6 @@ fun main() {
                                 height = size.height.value,
                             )
                         }
-                }
-                val updateState = appViewModel.updateDialogState
-                if (updateState is UpdateDialogState.Available) {
-                    LaunchedEffect(updateState) {
-                        appViewModel.trackUpdateDialogShown()
-                    }
-                    UpdateDialog(
-                        state = updateState,
-                        onDismiss = {
-                            appViewModel.trackUpdateDismissed()
-                            appViewModel.closeUpdateDialog()
-                        },
-                        onUpdateClicked = {
-                            appViewModel.trackUpdateClicked()
-                        }
-                    )
                 }
             }
         }
