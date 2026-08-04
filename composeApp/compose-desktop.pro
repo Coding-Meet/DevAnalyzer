@@ -118,3 +118,10 @@
 # CIO engine factory is discovered through META-INF/services.
 -keep class * implements io.ktor.client.HttpClientEngineContainer { *; }
 -keep class io.ktor.client.engine.cio.** { *; }
+
+-dontwarn com.posthog.**
+-keep class com.posthog.** { *; }
+-keepclassmembers class com.posthog.** { *; }
+
+-keep class kotlinx.coroutines.** { *; }
+-dontwarn kotlinx.coroutines.**
