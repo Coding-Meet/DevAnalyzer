@@ -200,7 +200,7 @@
         }
 
         .section {
-            padding: 88px 22px;
+            padding: 64px 22px;
         }
 
         .section-inner {
@@ -209,16 +209,18 @@
         }
 
         .hero {
-            min-height: calc(100vh - 67px);
+            min-height: min(800px, 80vh);
             overflow: hidden;
-            padding: 54px 22px 72px;
+            padding: 48px 22px 64px;
+            display: flex;
+            align-items: center;
         }
 
         .hero-grid {
             align-items: center;
             display: grid;
             gap: 42px;
-            grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
+            grid-template-columns: 1fr 1fr;
             margin: 0 auto;
             max-width: var(--max-width);
         }
@@ -250,9 +252,10 @@
 
         h1 {
             color: var(--on-primary-container);
-               font-size: clamp(2.3rem, 4vw, 5rem);
-    line-height: 1;
-    margin-bottom: 24px;
+            font-size: clamp(2.3rem, 6vw, 4.2rem);
+            line-height: 1.1;
+            margin-bottom: 24px;
+            word-wrap: break-word;
         }
 
         .hero-copy {
