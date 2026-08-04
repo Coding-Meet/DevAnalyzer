@@ -36,11 +36,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v4
+
       - name: Setup JDK 21
         uses: actions/setup-java@v5
         with:
           distribution: 'jetbrains'
           java-version: '21'
+          cache: gradle
 
       - name: Grant execute permission for Gradlew
         if: runner.os != 'Windows'
@@ -71,6 +75,7 @@ jobs:
           echo "posthog_host=$POSTHOG_HOST" >> composeApp/src/jvmMain/resources/props.properties
           echo "updater_url=$UPDATER_URL" >> composeApp/src/jvmMain/resources/props.properties
           echo "feedback_url=$FEEDBACK_URL" >> composeApp/src/jvmMain/resources/props.properties
+
       - name: Build native packages
         shell: bash
         run: |
