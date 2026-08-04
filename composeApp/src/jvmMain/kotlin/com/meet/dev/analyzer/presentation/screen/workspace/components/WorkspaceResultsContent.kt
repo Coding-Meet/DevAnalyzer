@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -19,10 +17,12 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,8 +41,8 @@ import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.workspace.ResourceFilter
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceIntent
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceUiState
-import java.awt.Cursor
 import kotlinx.coroutines.launch
+import java.awt.Cursor
 
 @Composable
 fun WorkspaceResultsContent(
@@ -59,13 +59,14 @@ fun WorkspaceResultsContent(
     }
 
     // Combined resource list based on active filter
-    val combinedResources = remember(uiState.resourceFilter, uiState.unusedResources, uiState.activeResources) {
-        when (uiState.resourceFilter) {
-            ResourceFilter.ALL -> uiState.unusedResources + uiState.activeResources
-            ResourceFilter.UNUSED -> uiState.unusedResources
-            ResourceFilter.ACTIVE -> uiState.activeResources
+    val combinedResources =
+        remember(uiState.resourceFilter, uiState.unusedResources, uiState.activeResources) {
+            when (uiState.resourceFilter) {
+                ResourceFilter.ALL -> uiState.unusedResources + uiState.activeResources
+                ResourceFilter.UNUSED -> uiState.unusedResources
+                ResourceFilter.ACTIVE -> uiState.activeResources
+            }
         }
-    }
 
     // Single collapse state map shared across all categories
     val collapsedCategories = remember { mutableStateMapOf<ResourceCategory, Boolean>() }
@@ -129,7 +130,8 @@ fun WorkspaceResultsContent(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         items(filteredProjects) { project ->
-                            val isHighlighted = project.projectName == uiState.highlightedProjectName
+                            val isHighlighted =
+                                project.projectName == uiState.highlightedProjectName
                             ProjectInfoCard(
                                 project = project,
                                 isHighlighted = isHighlighted
@@ -181,7 +183,13 @@ fun WorkspaceResultsContent(
                             elevation = FilterChipDefaults.filterChipElevation(
                                 hoveredElevation = 0.dp
                             ),
-                            modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                            modifier = Modifier.pointerHoverIcon(
+                                PointerIcon(
+                                    Cursor.getPredefinedCursor(
+                                        Cursor.HAND_CURSOR
+                                    )
+                                )
+                            )
                         )
                     }
                 }
@@ -225,7 +233,9 @@ fun WorkspaceResultsContent(
                                             shape = RoundedCornerShape(10.dp)
                                         )
                                         .background(
-                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.05f),
+                                            color = MaterialTheme.colorScheme.surfaceVariant.copy(
+                                                alpha = 0.05f
+                                            ),
                                             shape = RoundedCornerShape(10.dp)
                                         )
                                 ) {
@@ -252,14 +262,20 @@ fun WorkspaceResultsContent(
                                             verticalArrangement = Arrangement.spacedBy(6.dp)
                                         ) {
                                             items.forEach { resource ->
-                                                val isActive = uiState.activeResources.any { it.uniqueId == resource.uniqueId }
+                                                val isActive =
+                                                    uiState.activeResources.any { it.uniqueId == resource.uniqueId }
                                                 ResourceItemCard(
                                                     resource = resource,
                                                     isActive = isActive,
                                                     onIntent = onIntent,
                                                     onProjectHighlight = onProjectHighlight,
                                                     onCheckedChange = { isChecked ->
-                                                        onIntent(WorkspaceIntent.OnResourceSelectionChange(resource.uniqueId, isChecked))
+                                                        onIntent(
+                                                            WorkspaceIntent.OnResourceSelectionChange(
+                                                                resource.uniqueId,
+                                                                isChecked
+                                                            )
+                                                        )
                                                     }
                                                 )
                                             }

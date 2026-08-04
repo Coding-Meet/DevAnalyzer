@@ -4,6 +4,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RichTooltip
 import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipAnchorPosition
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
 import androidx.compose.material3.rememberTooltipState
@@ -17,7 +18,9 @@ fun CustomToolTip(
     content: @Composable () -> Unit
 ) {
     TooltipBox(
-        positionProvider = TooltipDefaults.rememberRichTooltipPositionProvider(),
+        positionProvider = TooltipDefaults.rememberTooltipPositionProvider(
+            positioning = TooltipAnchorPosition.Above
+        ),
         tooltip = {
             RichTooltip(
                 title = {
@@ -32,7 +35,7 @@ fun CustomToolTip(
                         style = MaterialTheme.typography.bodySmall
                     )
                 },
-//                caretSize = DpSize(16.dp, 8.dp),
+                caretShape = TooltipDefaults.caretShape(caretSize = TooltipDefaults.caretSize),
                 colors = TooltipDefaults.richTooltipColors(
                     containerColor = MaterialTheme.colorScheme.surfaceVariant,
                     contentColor = MaterialTheme.colorScheme.onSurface,
@@ -42,7 +45,7 @@ fun CustomToolTip(
             )
         },
         state = rememberTooltipState(
-            isPersistent = true
+            isPersistent = false
         ),
         content = content
     )

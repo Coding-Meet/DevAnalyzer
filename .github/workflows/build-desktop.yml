@@ -72,7 +72,19 @@ jobs:
           echo "updater_url=$UPDATER_URL" >> composeApp/src/jvmMain/resources/props.properties
           echo "feedback_url=$FEEDBACK_URL" >> composeApp/src/jvmMain/resources/props.properties
       - name: Build native packages
-        run: ./gradlew packageReleaseDistributionForCurrentOS --stacktrace
+        shell: bash
+        run: |
+          case "${{ matrix.format }}" in
+            macos-arm|macos-intel)
+              ./gradlew packageReleaseDmg --stacktrace
+              ;;
+            windows)
+              ./gradlew packageReleaseMsi --stacktrace
+              ;;
+            linux)
+              ./gradlew packageReleaseDeb --stacktrace
+              ;;
+          esac
 
       # macOS ARM
       - name: Rename macOS ARM DMG

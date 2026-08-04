@@ -1,6 +1,5 @@
 package com.meet.dev.analyzer.data.repository.project
 
-import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import com.meet.dev.analyzer.data.models.project.ProjectInfo
 import com.meet.dev.analyzer.data.repository.project.helpers.DependencyAnalyzer
 import com.meet.dev.analyzer.data.repository.project.helpers.PluginAnalyzer

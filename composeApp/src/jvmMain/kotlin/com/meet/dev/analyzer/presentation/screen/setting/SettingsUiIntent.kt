@@ -33,11 +33,11 @@ sealed interface SettingsUiIntent {
     data class SaveReviewVersion(val version: String, val rating: Int) : SettingsUiIntent
 
     // Analytics event trackers
-    data object TrackSettingsOpened     : SettingsUiIntent
-    data object TrackGitHubSponsor      : SettingsUiIntent
-    data object TrackBuyMeCoffee        : SettingsUiIntent
-    data object TrackPaypal             : SettingsUiIntent
-    data object TrackReviewPromptShown  : SettingsUiIntent
-    data object TrackFeedbackOpened     : SettingsUiIntent
-    data object TrackFeedbackCancelled  : SettingsUiIntent
+    data object TrackSettingsOpened : SettingsUiIntent
+    data object TrackGitHubSponsor : SettingsUiIntent
+    data object TrackBuyMeCoffee : SettingsUiIntent
+    data object TrackPaypal : SettingsUiIntent
+    data object TrackReviewPromptShown : SettingsUiIntent
+    data object TrackFeedbackOpened : SettingsUiIntent
+    data object TrackFeedbackCancelled : SettingsUiIntent
 }

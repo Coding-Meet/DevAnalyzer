@@ -28,7 +28,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -37,8 +36,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
+import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import java.awt.Cursor
 
 @Composable
@@ -161,14 +162,22 @@ fun WorkspaceConfirmationDialog(
                                         .padding(12.dp),
                                     verticalArrangement = Arrangement.spacedBy(8.dp)
                                 ) {
-                                    Text(
-                                        resource.name,
-                                        style = MaterialTheme.typography.titleSmall,
-                                        fontWeight = FontWeight.Bold,
-                                        modifier = Modifier.weight(1f)
+                                    // Project header
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            resource.name,
+                                            style = MaterialTheme.typography.titleSmall,
+                                            fontWeight = FontWeight.Bold,
+                                            modifier = Modifier.weight(1f),
+                                        )
+                                    }
+                                    HorizontalDivider(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
-
-                                    HorizontalDivider()
 
                                     Row(
                                         modifier = Modifier.fillMaxWidth(),
@@ -182,7 +191,8 @@ fun WorkspaceConfirmationDialog(
                                         Text(
                                             resource.category.displayName,
                                             style = MaterialTheme.typography.bodySmall,
-                                            fontWeight = FontWeight.Bold
+                                            fontWeight = FontWeight.Bold,
+                                            textAlign = TextAlign.End
                                         )
                                     }
 

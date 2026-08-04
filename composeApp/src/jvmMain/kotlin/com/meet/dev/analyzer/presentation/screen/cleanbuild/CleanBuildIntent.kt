@@ -11,8 +11,10 @@ sealed interface CleanBuildIntent {
         val moduleIndex: Int,
         val isSelected: Boolean
     ) : CleanBuildIntent
+
     data class OnSelectAllInProject(val uniqueId: String, val isSelected: Boolean) :
         CleanBuildIntent
+
     data object OnSelectAllProjects : CleanBuildIntent
     data object OnDeselectAllProjects : CleanBuildIntent
     data object OnDeleteClicked : CleanBuildIntent
@@ -23,8 +25,8 @@ sealed interface CleanBuildIntent {
     data object OnToggleProjectSelection : CleanBuildIntent
 
     // Analytics event trackers
-    data object TrackFeedbackOpened     : CleanBuildIntent
-    data object TrackReviewPromptShown  : CleanBuildIntent
-    data object TrackFeedbackCancelled  : CleanBuildIntent
+    data object TrackFeedbackOpened : CleanBuildIntent
+    data object TrackReviewPromptShown : CleanBuildIntent
+    data object TrackFeedbackCancelled : CleanBuildIntent
     data object TrackCleanBuildOpened : CleanBuildIntent
 }

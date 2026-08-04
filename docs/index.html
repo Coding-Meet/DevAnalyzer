@@ -4,1038 +4,1256 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <title>DevAnalyzer - Deep Insights for Your Development Environment</title>
-    <link href="favicon/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png"/>
-    <link href="favicon/favicon.svg" rel="icon" type="image/svg+xml"/>
-    <link href="favicon/favicon.ico" rel="shortcut icon"/>
-    <link href="favicon/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180"/>
-    <meta content="DevAnalyzer" name="apple-mobile-web-app-title"/>
-    <link href="favicon/site.webmanifest" rel="manifest"/>
+    <meta content="DevAnalyzer is a cross-platform desktop app for Android and Kotlin developers to analyze projects, inspect Gradle metadata, clean build folders, and optimize development storage."
+          name="description">
+    <meta content="#0061A4" name="theme-color">
+    <title>DevAnalyzer | Analyze and Optimize Your Android Development Environment</title>
+    <link href="favicon/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png">
+    <link href="favicon/favicon.svg" rel="icon" type="image/svg+xml">
+    <link href="favicon/favicon.ico" rel="shortcut icon">
+    <link href="favicon/apple-touch-icon.png" rel="apple-touch-icon" sizes="180x180">
+    <meta content="DevAnalyzer" name="apple-mobile-web-app-title">
+    <link href="favicon/site.webmanifest" rel="manifest">
+    <link href="https://fonts.googleapis.com" rel="preconnect">
+    <link crossorigin href="https://fonts.gstatic.com" rel="preconnect">
+    <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&display=swap"
+          rel="stylesheet">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        :root {
+            color-scheme: light dark;
+            --primary: #0061A4;
+            --on-primary: #FFFFFF;
+            --primary-container: #D0E4FF;
+            --on-primary-container: #001D36;
+            --secondary: #00687A;
+            --secondary-container: #ACE9FD;
+            --background: #FCFCFF;
+            --on-background: #1A1C1E;
+            --surface: #FCFCFF;
+            --surface-container: #F0F0F4;
+            --surface-container-high: #EAEAEE;
+            --surface-variant: #DFE2EB;
+            --on-surface-variant: #42474E;
+            --outline: #72777F;
+            --outline-variant: #C2C7CF;
+            --android: #3DDC84;
+            --kotlin: #7F52FF;
+            --warning: #ED8B00;
+            --shadow: 0 22px 70px rgba(0, 29, 54, 0.14);
+            --soft-shadow: 0 12px 34px rgba(0, 29, 54, 0.08);
+            --radius: 8px;
+            --max-width: 1180px;
         }
 
-        :root {
-            --primary: #0061A4;
-            --primary-light: #64B5F6;
-            --secondary: #00687A;
-            --secondary-light: #4FC3F7;
-            --background: #FCFCFF;
-            --surface: #F0F0F4;
-            --text: #1A1C1E;
-            --text-secondary: #42474E;
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --primary: #64B5F6;
+                --on-primary: #003258;
+                --primary-container: #00497D;
+                --on-primary-container: #D0E4FF;
+                --secondary: #4FC3F7;
+                --secondary-container: #004F58;
+                --background: #1A1C1E;
+                --on-background: #E2E2E6;
+                --surface: #1A1C1E;
+                --surface-container: #1E2022;
+                --surface-container-high: #282A2D;
+                --surface-variant: #42474E;
+                --on-surface-variant: #C2C7CF;
+                --outline: #8C9199;
+                --outline-variant: #42474E;
+                --shadow: 0 24px 72px rgba(0, 0, 0, 0.38);
+                --soft-shadow: 0 14px 36px rgba(0, 0, 0, 0.28);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
         }
 
         html {
             scroll-behavior: smooth;
-            scroll-padding-top: 100px;
+            scroll-padding-top: 88px;
         }
 
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            margin: 0;
+            background:
+                linear-gradient(90deg, color-mix(in srgb, var(--surface-variant) 40%, transparent) 1px, transparent 1px),
+                linear-gradient(0deg, color-mix(in srgb, var(--surface-variant) 34%, transparent) 1px, transparent 1px),
+                var(--background);
+            background-size: 44px 44px;
+            color: var(--on-background);
+            font-family: "Space Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             line-height: 1.6;
-            color: var(--text);
+        }
+
+        body:not(.loaded) {
+            overflow: hidden;
+        }
+
+        a {
+            color: inherit;
+        }
+
+        img {
+            display: block;
+            max-width: 100%;
+        }
+
+        button,
+        select {
+            font: inherit;
+        }
+
+        .loader {
+            align-items: center;
             background: var(--background);
-        }
-
-        /* Header */
-        header {
-            background: rgba(255, 255, 255, 0.95);
-            backdrop-filter: blur(10px);
+            display: grid;
+            inset: 0;
+            justify-items: center;
             position: fixed;
-            width: 100%;
+            z-index: 100;
+            transition: opacity 420ms ease, visibility 420ms ease;
+        }
+
+        .loaded .loader {
+            opacity: 0;
+            pointer-events: none;
+            visibility: hidden;
+        }
+
+        .loader-inner {
+            align-items: center;
+            display: grid;
+            gap: 18px;
+            justify-items: center;
+        }
+
+        .loader-logo {
+            height: 132px;
+            width: 132px;
+        }
+
+        .loader-text {
+            color: var(--on-surface-variant);
+            font-size: 0.86rem;
+        }
+
+        .site-header {
+            backdrop-filter: blur(18px);
+            background: color-mix(in srgb, var(--surface) 86%, transparent);
+            border-bottom: 1px solid color-mix(in srgb, var(--outline-variant) 70%, transparent);
+            position: sticky;
             top: 0;
-            z-index: 1000;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            z-index: 20;
         }
 
-        nav {
-            max-width: 1200px;
-            margin: 0 auto;
-            padding: 0.5rem 1rem;
+        .nav {
+            align-items: center;
             display: flex;
+            gap: 20px;
             justify-content: space-between;
-            align-items: center;
+            margin: 0 auto;
+            max-width: var(--max-width);
+            padding: 14px 22px;
         }
 
-        .logo {
-            font-size: 1.5rem;
-            font-weight: bold;
+        .brand {
+            align-items: center;
+            display: inline-flex;
+            gap: 12px;
+            text-decoration: none;
+        }
+
+        .brand img {
+            height: 38px;
+            width: 38px;
+        }
+
+        .brand span {
             color: var(--primary);
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .logo-icon {
-            width: 40px;
-            height: 40px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
+            font-weight: 700;
         }
 
         .nav-links {
+            align-items: center;
             display: flex;
-            gap: 2rem;
-            list-style: none;
+            gap: 22px;
+            font-size: 0.86rem;
         }
 
         .nav-links a {
+            color: var(--on-surface-variant);
             text-decoration: none;
-            color: var(--text);
-            font-weight: 500;
-            transition: color 0.3s;
         }
 
         .nav-links a:hover {
             color: var(--primary);
         }
 
-        .cta-button {
+        .header-download {
             background: var(--primary);
-            color: white;
-            padding: 0.75rem 1.5rem;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            transition: transform 0.3s, box-shadow 0.3s;
+            border-radius: var(--radius);
+            color: var(--on-primary);
+            padding: 10px 14px;
         }
 
-        .cta-button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(0, 97, 164, 0.3);
+        .section {
+            padding: 88px 22px;
         }
 
-        /* Hero Section */
+        .section-inner {
+            margin: 0 auto;
+            max-width: var(--max-width);
+        }
+
         .hero {
-            margin-top: 50px;
-            padding: 2rem 2rem;
-            text-align: center;
-            background: linear-gradient(135deg, #f5f7fa 0%, #e8eef5 100%);
-        }
-
-        .hero-content {
-            max-width: 800px;
-            margin: 0 auto;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            margin-bottom: 1.3rem;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
-        }
-
-        .hero p {
-            font-size: 1.3rem;
-            color: var(--text-secondary);
-            margin-bottom: 1rem;
-        }
-
-        .hero-buttons {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-bottom: 1.5rem;
-        }
-
-        .hero-video-container {
-            max-width: 900px;
-            margin: 0 auto;
-            background: white;
-            padding: 1rem;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-        }
-
-        .hero-video-wrapper {
-            position: relative;
-            padding-bottom: 56.25%;
-            /* 16:9 aspect ratio */
-            height: 0;
+            min-height: calc(100vh - 67px);
             overflow: hidden;
-            border-radius: 16px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
+            padding: 54px 22px 72px;
         }
 
-        .hero-video-wrapper iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: none;
-            border-radius: 16px;
-        }
-
-        .primary-btn,
-        .secondary-btn {
-            padding: 1rem 2rem;
-            border-radius: 10px;
-            text-decoration: none;
-            font-weight: 600;
-            font-size: 1.1rem;
-            transition: all 0.3s;
-            display: inline-flex;
+        .hero-grid {
             align-items: center;
-            gap: 0.5rem;
-        }
-
-        .primary-btn {
-            background: var(--primary);
-            color: white;
-        }
-
-        .primary-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 15px 30px rgba(0, 97, 164, 0.4);
-        }
-
-        .secondary-btn {
-            background: white;
-            color: var(--primary);
-            border: 2px solid var(--primary);
-        }
-
-        .secondary-btn:hover {
-            background: var(--primary);
-            color: white;
-        }
-
-        /* Features Section */
-        .features {
-            padding: 2rem 2rem;
-            max-width: 1200px;
+            display: grid;
+            gap: 42px;
+            grid-template-columns: minmax(0, 0.9fr) minmax(420px, 1.1fr);
             margin: 0 auto;
+            max-width: var(--max-width);
         }
 
-        .section-title {
-            text-align: center;
-            font-size: 2.5rem;
-            margin-bottom: 2rem;
+        .eyebrow {
+            align-items: center;
+            color: var(--secondary);
+            display: inline-flex;
+            font-size: 0.78rem;
+            font-weight: 700;
+            gap: 10px;
+            margin: 0 0 18px;
+            text-transform: uppercase;
+        }
+
+        .eyebrow::before {
+            background: var(--android);
+            content: "";
+            height: 2px;
+            width: 34px;
+        }
+
+        h1,
+        h2,
+        h3,
+        p {
+            margin-top: 0;
+        }
+
+        h1 {
+            color: var(--on-primary-container);
+               font-size: clamp(2.3rem, 4vw, 5rem);
+    line-height: 1;
+    margin-bottom: 24px;
+        }
+
+        .hero-copy {
+            color: var(--on-surface-variant);
+            font-size: clamp(1rem, 1.7vw, 1.22rem);
+            max-width: 650px;
+        }
+
+        .hero-actions {
+            align-items: stretch;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 32px 0 28px;
+        }
+
+        .button {
+            align-items: center;
+            border: 1px solid transparent;
+            border-radius: var(--radius);
+            cursor: pointer;
+            display: inline-flex;
+            font-weight: 700;
+            gap: 10px;
+            justify-content: center;
+            min-height: 48px;
+            padding: 12px 18px;
+            text-decoration: none;
+            transition: transform 180ms ease, border-color 180ms ease, background 180ms ease;
+            white-space: nowrap;
+        }
+
+        .button:hover {
+            transform: translateY(-2px);
+        }
+
+        .button-primary {
+            background: var(--primary);
+            color: var(--on-primary);
+            box-shadow: var(--soft-shadow);
+        }
+
+        .button-secondary {
+            background: var(--surface);
+            border-color: var(--outline-variant);
             color: var(--primary);
+        }
+
+        .button-icon {
+            height: 18px;
+            width: 18px;
+        }
+
+        .hero-meta {
+            color: var(--on-surface-variant);
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            font-size: 0.82rem;
+        }
+
+        .chip {
+            align-items: center;
+            background: color-mix(in srgb, var(--primary-container) 62%, transparent);
+            border: 1px solid color-mix(in srgb, var(--primary) 20%, transparent);
+            border-radius: 999px;
+            color: var(--on-primary-container);
+            display: inline-flex;
+            min-height: 32px;
+            padding: 6px 12px;
+        }
+
+        .showcase {
+            position: relative;
+        }
+
+        .window-frame {
+            background: var(--surface-container-high);
+            border: 1px solid color-mix(in srgb, var(--outline-variant) 80%, transparent);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+        }
+
+        .window-bar {
+            align-items: center;
+            border-bottom: 1px solid color-mix(in srgb, var(--outline-variant) 82%, transparent);
+            display: flex;
+            gap: 7px;
+            min-height: 34px;
+            padding: 0 12px;
+        }
+
+        .dot {
+            border-radius: 50%;
+            height: 10px;
+            width: 10px;
+        }
+
+        .dot:nth-child(1) {
+            background: #FF5F57;
+        }
+
+        .dot:nth-child(2) {
+            background: #FFBD2E;
+        }
+
+        .dot:nth-child(3) {
+            background: #28C840;
+        }
+
+        .window-frame img {
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .floating-shot {
+            bottom: -50px;
+            left: -38px;
+            max-width: 60%;
+            position: absolute;
+        }
+
+        .floating-shot img {
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+        }
+
+        .section-heading {
+            align-items: end;
+            display: grid;
+            gap: 18px;
+            grid-template-columns: minmax(0, 0.85fr) minmax(250px, 0.55fr);
+            margin-bottom: 34px;
+        }
+
+        h2 {
+            color: var(--on-primary-container);
+            font-size: clamp(1.8rem, 4vw, 3.25rem);
+            line-height: 1.14;
+            margin-bottom: 0;
+        }
+
+        .section-heading p {
+            color: var(--on-surface-variant);
+            margin-bottom: 0;
         }
 
         .feature-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-            gap: 2rem;
+            gap: 16px;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
         }
 
         .feature-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 16px;
-            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s, box-shadow 0.3s;
-        }
-
-        .feature-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+            background: var(--surface);
+            border: 1px solid color-mix(in srgb, var(--outline-variant) 86%, transparent);
+            border-radius: var(--radius);
+            box-shadow: var(--soft-shadow);
+            min-height: 230px;
+            padding: 20px;
         }
 
         .feature-icon {
-            width: 60px;
-            height: 60px;
-            background: linear-gradient(135deg, var(--primary-light), var(--secondary-light));
-            border-radius: 12px;
-            display: flex;
             align-items: center;
-            justify-content: center;
-            font-size: 1.8rem;
-            margin-bottom: 1.5rem;
+            background: var(--primary-container);
+            border-radius: var(--radius);
+            color: var(--primary);
+            display: grid;
+            height: 42px;
+            justify-items: center;
+            margin-bottom: 20px;
+            width: 42px;
+        }
+
+        .feature-icon svg {
+            height: 22px;
+            width: 22px;
         }
 
         .feature-card h3 {
-            font-size: 1.5rem;
-            margin-bottom: 1rem;
-            color: var(--primary);
+            font-size: 1rem;
+            margin-bottom: 10px;
         }
 
         .feature-card p {
-            color: var(--text-secondary);
-            line-height: 1.8;
+            color: var(--on-surface-variant);
+            font-size: 0.88rem;
+            margin-bottom: 0;
         }
 
-        .feature-list {
-            list-style: none;
-            margin-top: 1rem;
+        .product-band {
+            background: var(--surface-container);
+            border-block: 1px solid color-mix(in srgb, var(--outline-variant) 82%, transparent);
         }
 
-        .feature-list li {
-            padding: 0.5rem 0;
-            padding-left: 1.5rem;
-            position: relative;
-            color: var(--text-secondary);
-        }
-
-        .feature-list li:before {
-            content: "✓";
-            position: absolute;
-            left: 0;
-            color: var(--primary);
-            font-weight: bold;
-        }
-
-        /* Stats Section */
-        .stats {
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            color: white;
-            padding: 3rem 2rem;
-            text-align: center;
-        }
-
-        .stats-grid {
-            max-width: 1000px;
-            margin: 0 auto;
+        .gallery {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 3rem;
+            gap: 20px;
+            grid-template-columns: minmax(250px, 0.42fr) minmax(0, 1fr);
         }
 
-        .stat-item h3 {
-            font-size: 3rem;
-            margin-bottom: 0.5rem;
+        .gallery-tabs {
+            display: grid;
+            gap: 10px;
         }
 
-        .stat-item p {
-            font-size: 1.1rem;
-            opacity: 0.9;
-        }
-
-        /* Platforms Section */
-        .platforms {
-            padding: 2rem 2rem;
+        .gallery-tab {
             background: var(--surface);
-            text-align: center;
+            border: 1px solid var(--outline-variant);
+            border-radius: var(--radius);
+            color: var(--on-surface-variant);
+            cursor: pointer;
+            padding: 16px;
+            text-align: left;
         }
 
-        .platform-grid {
-            max-width: 800px;
-            margin: 3rem auto 0;
+        .gallery-tab[aria-selected="true"] {
+            background: var(--primary-container);
+            border-color: color-mix(in srgb, var(--primary) 45%, var(--outline-variant));
+            color: var(--on-primary-container);
+        }
+
+        .gallery-tab strong {
+            color: inherit;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+        .gallery-tab span {
+            display: block;
+            font-size: 0.78rem;
+        }
+
+        .gallery-panel {
+            display: none;
+        }
+
+        .gallery-panel.active {
+            display: block;
+        }
+
+        .gallery-panel .window-frame img {
+            max-height: 680px;
+            object-fit: contain;
+        }
+
+        .workflow-grid {
+            display: grid;
+            gap: 16px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .workflow {
+            background: var(--surface);
+            border: 1px solid color-mix(in srgb, var(--outline-variant) 86%, transparent);
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+
+        .workflow img {
+            aspect-ratio: 4 / 3;
+            object-fit: cover;
+            width: 100%;
+        }
+
+        .workflow-content {
+            padding: 18px;
+        }
+
+        .workflow-content h3 {
+            font-size: 1rem;
+            margin-bottom: 8px;
+        }
+
+        .workflow-content p {
+            color: var(--on-surface-variant);
+            font-size: 0.86rem;
+            margin-bottom: 0;
+        }
+
+        .download-panel {
+            align-items: stretch;
+            background: var(--surface);
+            border: 1px solid color-mix(in srgb, var(--outline-variant) 86%, transparent);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: grid;
+            gap: 0;
+            grid-template-columns: minmax(0, 1fr) minmax(320px, 0.56fr);
+            overflow: hidden;
+        }
+
+        .download-copy {
+            padding: 34px;
+        }
+
+        .download-copy p {
+            color: var(--on-surface-variant);
+        }
+
+        .download-box {
+            background: var(--surface-container-high);
+            border-left: 1px solid var(--outline-variant);
+            padding: 24px;
+        }
+
+        .detected {
+            color: var(--on-surface-variant);
+            font-size: 0.82rem;
+            margin-bottom: 12px;
+        }
+
+        .download-select {
+            appearance: none;
+            background: var(--surface);
+            border: 1px solid var(--outline-variant);
+            border-radius: var(--radius);
+            color: var(--on-background);
+            margin-bottom: 12px;
+            min-height: 46px;
+            padding: 10px 12px;
+            width: 100%;
+        }
+
+        .download-button {
+            width: 100%;
+        }
+
+        .release-meta {
+            color: var(--on-surface-variant);
+            font-size: 0.78rem;
+            margin: 12px 0 0;
+        }
+
+        .stats {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            margin-top: 22px;
+        }
+
+        .stat {
+            background: color-mix(in srgb, var(--primary-container) 46%, transparent);
+            border: 1px solid color-mix(in srgb, var(--primary) 18%, transparent);
+            border-radius: var(--radius);
+            padding: 14px;
+        }
+
+        .stat strong {
+            color: var(--on-primary-container);
+            display: block;
+            font-size: 1.28rem;
+        }
+
+        .stat span {
+            color: var(--on-surface-variant);
+            font-size: 0.72rem;
+        }
+
+        .privacy-list {
+            display: grid;
+            gap: 14px;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        .privacy-item {
+            border-left: 3px solid var(--android);
+            padding: 4px 0 4px 16px;
+        }
+
+        .privacy-item h3 {
+            font-size: 1rem;
+            margin-bottom: 6px;
+        }
+
+        .privacy-item p {
+            color: var(--on-surface-variant);
+            font-size: 0.86rem;
+            margin-bottom: 0;
+        }
+
+        .site-footer {
+            background: var(--on-background);
+            color: var(--background);
+            padding: 36px 22px;
+        }
+
+        .footer-inner {
+            align-items: center;
             display: flex;
-            justify-content: center;
-            gap: 2rem;
-            flex-wrap: wrap;
-        }
-
-        .platform-card {
-            background: white;
-            padding: 2rem;
-            border-radius: 16px;
-            min-width: 150px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
-            transition: transform 0.3s;
-        }
-
-        .platform-card:hover {
-            transform: translateY(-5px);
-        }
-
-        .platform-icon {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-        }
-
-        /* Developer Section */
-        .developer {
-            padding: 2rem 2rem;
-            max-width: 800px;
+            gap: 20px;
+            justify-content: space-between;
             margin: 0 auto;
-            text-align: center;
-        }
-
-        .developer-card {
-            background: white;
-            padding: 3rem;
-            border-radius: 20px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .developer-avatar {
-            width: 120px;
-            height: 120px;
-            background: linear-gradient(135deg, var(--primary), var(--secondary));
-            border-radius: 50%;
-            margin: 0 auto 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 3rem;
-            color: white;
-        }
-
-        .developer-name {
-            font-size: 2rem;
-            margin-bottom: 0.5rem;
-            color: var(--primary);
-        }
-
-        .developer-title {
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-        }
-
-        .social-links {
-            display: flex;
-            gap: 1rem;
-            justify-content: center;
-            flex-wrap: wrap;
-            margin-top: 2rem;
-        }
-
-        .social-link {
-            width: 50px;
-            height: 50px;
-            background: var(--surface);
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-            color: var(--primary);
-            font-size: 1.5rem;
-            transition: all 0.3s;
-            position: relative;
-        }
-
-        .social-link:hover {
-            background: var(--primary);
-            color: white;
-            transform: translateY(-3px);
-        }
-
-        /* Tooltip styles */
-        .social-link::before {
-            content: attr(title);
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%) translateY(-8px);
-            background: var(--text);
-            color: white;
-            padding: 0.5rem 0.75rem;
-            border-radius: 6px;
-            font-size: 0.85rem;
-            font-weight: 500;
-            white-space: nowrap;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s, transform 0.3s;
-            z-index: 10;
-        }
-
-        .social-link::after {
-            content: '';
-            position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%) translateY(-2px);
-            border: 6px solid transparent;
-            border-top-color: var(--text);
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s, transform 0.3s;
-            z-index: 10;
-        }
-
-        .social-link:hover::before {
-            opacity: 1;
-            transform: translateX(-50%) translateY(-12px);
-        }
-
-        .social-link:hover::after {
-            opacity: 1;
-            transform: translateX(-50%) translateY(-6px);
-        }
-
-        /* Footer */
-        footer {
-            background: var(--text);
-            color: white;
-            padding: 2rem 2rem;
-            text-align: center;
+            max-width: var(--max-width);
         }
 
         .footer-links {
             display: flex;
-            gap: 2rem;
-            justify-content: center;
-            margin-bottom: 1rem;
             flex-wrap: wrap;
+            gap: 16px;
+            font-size: 0.82rem;
         }
 
         .footer-links a {
-            color: white;
+            color: inherit;
+            opacity: 0.82;
             text-decoration: none;
-            opacity: 0.8;
-            transition: opacity 0.3s;
         }
 
         .footer-links a:hover {
             opacity: 1;
         }
 
-        /* Responsive */
-        @media (max-width: 768px) {
-            .hero h1 {
-                font-size: 2.5rem;
-            }
+        .mobile-only {
+            display: none;
+        }
 
-            .hero p {
-                font-size: 1.1rem;
-            }
-
+        @media (max-width: 940px) {
             .nav-links {
                 display: none;
             }
 
-            .feature-grid {
+            .mobile-only {
+                display: inline-flex;
+            }
+
+            .hero-grid,
+            .section-heading,
+            .gallery,
+            .download-panel {
                 grid-template-columns: 1fr;
             }
-        }
 
-        /* Animations */
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
+            .hero {
+                padding-top: 34px;
             }
 
-            to {
-                opacity: 1;
-                transform: translateY(0);
+            .floating-shot {
+                display: none;
+            }
+
+            .feature-grid,
+            .workflow-grid,
+            .privacy-list {
+                grid-template-columns: 1fr 1fr;
+            }
+
+            .download-box {
+                border-left: 0;
+                border-top: 1px solid var(--outline-variant);
             }
         }
 
-        .fade-in-up {
-            animation: fadeInUp 0.8s ease-out;
+        @media (max-width: 640px) {
+            .section {
+                padding: 62px 16px;
+            }
+
+            .nav {
+                padding-inline: 16px;
+            }
+
+            .brand span {
+                display: none;
+            }
+
+            .feature-grid,
+            .workflow-grid,
+            .privacy-list,
+            .stats {
+                grid-template-columns: 1fr;
+            }
+
+            .hero-actions .button {
+                width: 100%;
+            }
+
+            .download-copy,
+            .download-box {
+                padding: 22px;
+            }
         }
 
-        /* Privacy Section */
-        .privacy {
-            padding: 4rem 2rem;
-            background: white;
-            text-align: center;
-        }
-
-        .privacy-container {
-            max-width: 1000px;
-            margin: 0 auto;
-        }
-
-        .privacy-subtitle {
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            max-width: 700px;
-            margin: 0 auto 3rem;
-        }
-
-        .privacy-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 2rem;
-            text-align: left;
-        }
-
-        .privacy-card {
-            background: var(--surface);
-            padding: 1.5rem;
-            border-radius: 12px;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.02);
-        }
-
-        .privacy-card h4 {
-            font-size: 1.2rem;
-            color: var(--primary);
-            margin-bottom: 0.75rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .privacy-card p {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            line-height: 1.6;
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 1ms !important;
+                scroll-behavior: auto !important;
+                transition-duration: 1ms !important;
+            }
         }
     </style>
 </head>
 
 <body>
-<!-- Header -->
-<header>
-    <nav>
-        <div class="logo">
-            <div class="logo-icon">DA</div>
+<div aria-live="polite" class="loader">
+    <div class="loader-inner">
+        <picture>
+            <source media="(prefers-color-scheme: dark)"
+                    srcset="screenshot/dark_mode_logo_background_transparent.svg">
+            <img alt="DevAnalyzer loading" class="loader-logo"
+                 src="screenshot/light_mode_logo_background_transparent.svg">
+        </picture>
+        <span class="loader-text">Preparing analyzer workspace</span>
+    </div>
+</div>
+
+<header class="site-header">
+    <nav class="nav">
+        <a aria-label="DevAnalyzer home" class="brand" href="#top">
+            <picture>
+                <source media="(prefers-color-scheme: dark)"
+                        srcset="screenshot/dark_mode_logo_background_transparent.svg">
+                <img alt="" src="screenshot/light_mode_logo_background_transparent.svg">
+            </picture>
             <span>DevAnalyzer</span>
+        </a>
+        <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#screenshots">Screenshots</a>
+            <a href="#download">Download</a>
+            <a href="#privacy">Privacy</a>
+            <a href="https://github.com/Coding-Meet/DevAnalyzer" rel="noopener noreferrer"
+               target="_blank">GitHub</a>
         </div>
-        <ul class="nav-links">
-            <li><a href="#features">Features</a></li>
-            <li><a href="#privacy">Privacy</a></li>
-            <li><a href="#platforms">Platforms</a></li>
-            <li><a href="#developer">Developer</a></li>
-        </ul>
-        <a class="cta-button" href="https://github.com/Coding-Meet/DevAnalyzer/releases"
-           rel="noopener noreferrer"
-           target="_blank">Download</a>
+        <a class="button header-download" href="#download">Download</a>
     </nav>
 </header>
 
-<!-- Hero Section -->
-<section class="hero">
-    <div class="hero-content fade-in-up">
-        <h1>Deep Insights for Your Development Environment</h1>
-        <p>Analyze your entire development setup with powerful tools for project structure and
-            storage management</p>
-        <div class="hero-buttons">
-            <a class="primary-btn" href="https://github.com/Coding-Meet/DevAnalyzer/releases"
-               rel="noopener noreferrer" target="_blank">
-                <span>⬇</span> Download Now
-            </a>
-            <a class="secondary-btn" href="https://github.com/Coding-Meet/DevAnalyzer"
-               rel="noopener noreferrer"
-               target="_blank">
-                <span>⭐</span> View on GitHub
-            </a>
-        </div>
-        <div class="hero-video-container">
-            <div class="hero-video-wrapper">
-                <iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-                        allowfullscreen
-                        src="https://www.youtube.com/embed/c3t1SIKSBBk"
-                        title="DevAnalyzer - Complete Demo & Walkthrough">
-                </iframe>
+<main id="top">
+    <section class="hero">
+        <div class="hero-grid">
+            <div>
+                <p class="eyebrow">Compose Multiplatform Desktop App</p>
+                <h1>DevAnalyzer</h1>
+                <p class="hero-copy">
+                    Analyze projects, inspect Gradle metadata, find unused SDK resources, and clean build folders from a single desktop application.
+                </p>
+                <div class="hero-actions">
+                    <a class="button button-primary" data-download-link
+                       href="https://github.com/Coding-Meet/DevAnalyzer/releases"
+                       rel="noopener noreferrer" target="_blank">
+                        <svg aria-hidden="true" class="button-icon" fill="none" viewBox="0 0 24 24">
+                            <path d="M12 3v11m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+                                  stroke="currentColor" stroke-linecap="round"
+                                  stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                        <span data-download-label>Download</span>
+                    </a>
+                    <a class="button button-secondary"
+                       href="https://github.com/Coding-Meet/DevAnalyzer" rel="noopener noreferrer"
+                       target="_blank">
+                        <svg aria-hidden="true" class="button-icon" fill="none" viewBox="0 0 24 24">
+                            <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.9a3.4 3.4 0 0 0-.9-2.6c3-.3 6.1-1.5 6.1-6.6a5.2 5.2 0 0 0-1.4-3.6 4.8 4.8 0 0 0-.1-3.6s-1.1-.3-3.8 1.4a13 13 0 0 0-6.9 0C6.3.4 5.2.7 5.2.7a4.8 4.8 0 0 0-.1 3.6A5.2 5.2 0 0 0 3.7 8c0 5.1 3.1 6.3 6.1 6.6a3.4 3.4 0 0 0-.9 2.6V22"
+                                  stroke="currentColor" stroke-linecap="round"
+                                  stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                        View source
+                    </a>
+                </div>
+                <div class="hero-meta">
+                    <span class="chip">Local-first analysis</span>
+                    <span class="chip">Windows, macOS, Linux</span>
+                    <span class="chip">Android & Kotlin Projects</span>
+                </div>
+            </div>
+            <div class="showcase" aria-label="DevAnalyzer interface preview">
+                <div class="window-frame">
+                    <img alt="DevAnalyzer project overview tab"
+                         src="screenshot/project/img_0_overview_tab.png">
+                </div>
+                <div class="window-frame floating-shot">
+                    <img alt="DevAnalyzer storage overview tab"
+                         src="screenshot/storage/img_0_overview_tab.png">
+                </div>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Features Section -->
-<section class="features" id="features">
-    <h2 class="section-title">Powerful Features</h2>
-    <div class="feature-grid">
-
-        <div class="feature-card">
-            <div class="feature-icon">🔍</div>
-            <h3>Project Analyzer</h3>
-            <p>Get comprehensive insights into your Kotlin and Android projects</p>
-            <ul class="feature-list">
-                <li>Analyze Gradle modules, plugins, and dependencies</li>
-                <li>List applied plugins and Version Catalog libraries</li>
-                <li>Browse Gradle build files and project configuration scripts</li>
-                <li>Inspect Kotlin, AGP, Gradle, SDK, NDK, and CMake versions</li>
-            </ul>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon">🧹</div>
-            <h3>Clean Build</h3>
-            <p>Free up disk space by cleaning build folders across all projects</p>
-            <ul class="feature-list">
-                <li>Scan Android Studio projects for module build folders</li>
-                <li>Display expandable project and module layout</li>
-                <li>Compute folder sizes in real-time</li>
-                <li>Batch delete selected build folders safely</li>
-                <li>View space recovery summaries after cleaning</li>
-            </ul>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon">🏢</div>
-            <h3>Workspace Analyzer</h3>
-            <p>Combine multiple project directories to audit and clean shared developer resources
-                safely</p>
-            <ul class="feature-list">
-                <li>Analyze multiple workspace directories simultaneously</li>
-                <li>Cross-reference installed SDK, NDK, CMake, and Gradle wrappers</li>
-                <li>Automatically protect active resource versions currently in use</li>
-                <li>Detect unused Platforms, Build Tools, Sources, NDK, and CMake</li>
-            </ul>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon">💾</div>
-            <h3>Storage Analyzer</h3>
-            <p>Track and manage disk space used by your development tools</p>
-            <ul class="feature-list">
-                <li>View allocations across Android SDK, Gradle, AVD, and IDEs</li>
-                <li>Supports custom, non-standard JDK and IDE locations</li>
-                <li>Reclaim gigabytes of workspace and system storage cache</li>
-            </ul>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon">📁</div>
-            <h3>Multi-Path Support</h3>
-            <p>Configure and analyze multiple development locations simultaneously</p>
-            <ul class="feature-list">
-                <li>Configure custom paths for toolchains and IDE locations</li>
-                <li>Supports multiple JDK and Android Studio path installations</li>
-                <li>Save workspace selections locally for instant retrieval</li>
-            </ul>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon">⚡</div>
-            <h3>Real-Time scan feedback</h3>
-            <p>Track scan progress dynamically with active feedback</p>
-            <ul class="feature-list">
-                <li>Live progress percentage calculation during analysis scans</li>
-                <li>Track total elapsed scanning duration in real time</li>
-                <li>Inspect detailed scanning status updates dynamically</li>
-            </ul>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon">⚙️</div>
-            <h3>Flexible Settings</h3>
-            <p>Customize the application behavior to your workflow</p>
-            <ul class="feature-list">
-                <li>Automatic path validation with quick-reset options</li>
-                <li>Toggle local crash logging, crash reporting, and usage analytics</li>
-                <li>Clean cache configurations and reset to system tool defaults</li>
-            </ul>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon">💬</div>
-            <h3>Feedback & Reviews</h3>
-            <p>Share your experience and suggest features directly from the app</p>
-            <ul class="feature-list">
-                <li>Interactive rating dialog with feature wishlist checkmarks</li>
-                <li>Local version-aware lock to prevent duplicate ratings</li>
-                <li>Fully anonymous submissions to protect privacy</li>
-            </ul>
-        </div>
-
-        <div class="feature-card">
-            <div class="feature-icon">🔄</div>
-            <h3>Silent Update Checks</h3>
-            <p>Stay up to date with the latest features and optimizations automatically</p>
-            <ul class="feature-list">
-                <li>Automatic background releases check on app startup</li>
-                <li>View markdown release notes in a dedicated dialog</li>
-                <li>One-click link to latest GitHub releases downloads</li>
-            </ul>
-        </div>
-
-    </div>
-</section>
-
-
-<!-- Stats Section -->
-<section class="stats">
-    <div class="stats-grid">
-        <div class="stat-item">
-            <h3 id="github-stars">Loading...</h3>
-            <p>GitHub Stars</p>
-        </div>
-        <div class="stat-item">
-            <h3 id="total-downloads">Loading...</h3>
-            <p>Total Downloads</p>
-        </div>
-        <div class="stat-item">
-            <h3>🌍</h3>
-            <p>Cross-Platform</p>
-        </div>
-    </div>
-</section>
-
-<!-- Privacy Section -->
-<section class="privacy" id="privacy">
-    <div class="privacy-container">
-        <h2 class="section-title">Privacy First</h2>
-        <p class="privacy-subtitle">DevAnalyzer is designed with privacy as a core principle. Your
-            source code and data belong entirely to you.</p>
-        <div class="privacy-grid">
-            <div class="privacy-card">
-                <h4>🔒 Local Processing</h4>
-                <p>All project scanning and environment analysis runs completely locally on your
-                    computer. Your file paths, project names, and source code are never uploaded
-                    anywhere.</p>
+    <section class="section" id="features">
+        <div class="section-inner">
+            <div class="section-heading">
+                <h2>Built for the Android workspace you actually use.</h2>
+                <p>DevAnalyzer brings project inspection, cleanup, storage analysis, and workspace
+                    resource checks into one focused desktop utility.</p>
             </div>
-            <div class="privacy-card">
-                <h4>📊 Optional Analytics</h4>
-                <p>Anonymous usage tracking can be enabled or disabled at any time. It measures
-                    layout performance and feature adoption to help us improve the app.</p>
-            </div>
-            <div class="privacy-card">
-                <h4>🛡️ Zero PII</h4>
-                <p>No email addresses, personal identification, or sensitive credentials are ever
-                    collected or tracked by the application.</p>
-            </div>
-            <div class="privacy-card">
-                <h4>👤 Anonymous Profiles</h4>
-                <p>We configure the analytics SDK to keep all usage data anonymous. Since the app
-                    never calls identification methods, no individual profiles are ever tracked or
-                    linked.</p>
+            <div class="feature-grid">
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+                            <path d="M4 5h16M4 12h10M4 19h7" stroke="currentColor"
+                                  stroke-linecap="round" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Project Analyzer</h3>
+                    <p>Inspect modules, plugins, dependencies, build files, SDK versions, Kotlin versions, and Gradle metadata without jumping between files.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+                            <path d="M4 7h16M10 11v6m4-6v6M6 7l1 14h10l1-14M9 7V4h6v3"
+                                  stroke="currentColor" stroke-linecap="round"
+                                  stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Clean Build</h3>
+                    <p>Find module build folders, review the exact deletion target, and reclaim
+                        space with confirmation dialogs and completion summaries.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+                            <path d="M4 6h16v12H4zM8 10h8M8 14h5" stroke="currentColor"
+                                  stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Storage Analyzer</h3>
+                    <p>Break down Android SDK, Gradle, IDE, Kotlin/Native, JDK, AVD, and library storage to quickly identify large folders.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+                            <path d="M12 3v18M5 8h14M5 16h14M7 3h10a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2Z"
+                                  stroke="currentColor" stroke-linecap="round"
+                                  stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Workspace Analyzer</h3>
+                    <p>Cross-reference installed SDK, NDK, CMake, and Gradle versions with your projects before removing unused resources.</p>
+                </article>
             </div>
         </div>
-    </div>
-</section>
+    </section>
 
-<!-- Platforms Section -->
-<section class="platforms" id="platforms">
-    <h2 class="section-title">Built with Compose Multiplatform</h2>
-    <p style="color: var(--text-secondary); max-width: 700px; margin: 0 auto 3rem; font-size: 1.1rem;">
-        One codebase, three platforms. Native performance and modern UI across all desktop operating
-        systems.
-    </p>
-    <div class="platform-grid">
-        <div class="platform-card">
-            <div class="platform-icon">🪟</div>
-            <h3>Windows</h3>
-            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Windows
-                10/11</p>
+    <section class="section product-band" id="screenshots">
+        <div class="section-inner">
+            <div class="section-heading">
+                <h2>See the workflow before you install it.</h2>
+                <p>Switch between real screenshots from the app to explore each feature before you download it.</p>
+            </div>
+            <div class="gallery">
+                <div class="gallery-tabs" role="tablist" aria-label="Screenshot categories">
+                    <button aria-controls="panel-project" aria-selected="true" class="gallery-tab"
+                            data-panel="project" id="tab-project" role="tab">
+                        <strong>Project</strong>
+                        <span>Modules, plugins, dependencies, build files</span>
+                    </button>
+                    <button aria-controls="panel-storage" aria-selected="false" class="gallery-tab"
+                            data-panel="storage" id="tab-storage" role="tab">
+                        <strong>Storage</strong>
+                        <span>SDK, Gradle, IDE, AVD, JDK usage</span>
+                    </button>
+                    <button aria-controls="panel-workspace" aria-selected="false"
+                            class="gallery-tab" data-panel="workspace" id="tab-workspace"
+                            role="tab">
+                        <strong>Workspace</strong>
+                        <span>Active and unused development resources</span>
+                    </button>
+                    <button aria-controls="panel-settings" aria-selected="false" class="gallery-tab"
+                            data-panel="settings" id="tab-settings" role="tab">
+                        <strong>Settings</strong>
+                        <span>Paths, diagnostics, feedback, updates</span>
+                    </button>
+                </div>
+                <div>
+                    <div aria-labelledby="tab-project" class="gallery-panel active"
+                         id="panel-project" role="tabpanel">
+                        <div class="window-frame">
+                            <div class="window-bar"><span class="dot"></span><span
+                                    class="dot"></span><span class="dot"></span></div>
+                            <img alt="Project analyzer modules and overview"
+                                 src="screenshot/project/img_1_modules_tab.png"></div>
+                    </div>
+                    <div aria-labelledby="tab-storage" class="gallery-panel" id="panel-storage"
+                         role="tabpanel">
+                        <div class="window-frame">
+                            <div class="window-bar"><span class="dot"></span><span
+                                    class="dot"></span><span class="dot"></span></div>
+                            <img alt="Storage analyzer Android SDK tab"
+                                 src="screenshot/storage/img_3_android_sdk_tab.png"></div>
+                    </div>
+                    <div aria-labelledby="tab-workspace" class="gallery-panel" id="panel-workspace"
+                         role="tabpanel">
+                        <div class="window-frame">
+                            <div class="window-bar"><span class="dot"></span><span
+                                    class="dot"></span><span class="dot"></span></div>
+                            <img alt="Workspace analyzer active resource list"
+                                 src="screenshot/workspace/img_1_all_project_with_active_resources_list.png">
+                        </div>
+                    </div>
+                    <div aria-labelledby="tab-settings" class="gallery-panel" id="panel-settings"
+                         role="tabpanel">
+                        <div class="window-frame">
+                            <div class="window-bar"><span class="dot"></span><span
+                                    class="dot"></span><span class="dot"></span></div>
+                            <img alt="Settings screen with scan locations and JDK version"
+                                 src="screenshot/setting/img_0_all_section_like_scan_location_jdk_version.png">
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
-        <div class="platform-card">
-            <div class="platform-icon">🍎</div>
-            <h3>macOS</h3>
-            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Intel &
-                Apple Silicon</p>
-        </div>
-        <div class="platform-card">
-            <div class="platform-icon">🐧</div>
-            <h3>Linux</h3>
-            <p style="color: var(--text-secondary); margin-top: 0.5rem; font-size: 0.9rem;">Ubuntu
-                and Linux</p>
-        </div>
-    </div>
-</section>
+    </section>
 
-<!-- Developer Section -->
-<section class="developer" id="developer">
-    <h2 class="section-title">Meet the Developer</h2>
-    <div class="developer-card">
-        <div class="developer-avatar">M</div>
-        <h3 class="developer-name">Meet</h3>
-        <p class="developer-title">Android & iOS Native + Compose Multiplatform Developer (Mobile &
-            Desktop) | DM Me For Freelancing Project | Content Writer | Creator of DevAnalyzer</p>
-        <a href="https://www.codingmeet.com" rel="noopener noreferrer"
-           style="color: var(--primary); text-decoration: none; font-weight: 600;" target="_blank">
-            🌐 codingmeet.com
-        </a>
-        <div class="social-links">
-            <a class="social-link" href="https://github.com/Coding-Meet" rel="noopener noreferrer"
-               target="_blank"
-               title="GitHub">💻</a>
-            <a class="social-link" href="https://www.linkedin.com/in/coding-meet"
-               rel="noopener noreferrer"
-               target="_blank" title="LinkedIn">💼</a>
-            <a class="social-link" href="https://www.instagram.com/codingmeet26/"
-               rel="noopener noreferrer"
-               target="_blank" title="Instagram">📷</a>
-            <a class="social-link" href="https://www.youtube.com/@codingmeet26?si=_2Mu6ozuCdYuqihA"
-               rel="noopener noreferrer" target="_blank" title="YouTube">🎥</a>
-            <a class="social-link" href="https://www.x.com/CodingMeet" rel="noopener noreferrer"
-               target="_blank"
-               title="Twitter">🐦</a>
-            <a class="social-link" href="mailto:meetb2602@gmail.com" title="Email">📧</a>
-            <a class="social-link" href="https://www.telegram.me/Meetb26" rel="noopener noreferrer"
-               target="_blank"
-               title="Telegram">💬</a>
+    <section class="section">
+        <div class="section-inner">
+            <div class="section-heading">
+                <h2>Cleaner development machines, fewer blind spots.</h2>
+                <p>Every cleanup action is visible and reviewable before execution, so storage recovery stays deliberate.</p>
+            </div>
+            <div class="workflow-grid">
+                <article class="workflow">
+                    <img alt="Clean build folder selection screen"
+                         src="screenshot/clean_build/img_2_project_list_with_build_folder_some_item_selection_delete_icon.png">
+                    <div class="workflow-content">
+                        <h3>Select build folders</h3>
+                        <p>Review modules and folder sizes before removing build output.</p>
+                    </div>
+                </article>
+                <article class="workflow">
+                    <img alt="Workspace unused resource selection"
+                         src="screenshot/workspace/img_2_all_project_with_unused_resources_list_with_selection_with_delete_button.png">
+                    <div class="workflow-content">
+                        <h3>Protect active resources</h3>
+                        <p>Installed tool versions are checked against your projects before anything is removed.</p>
+                    </div>
+                </article>
+                <article class="workflow">
+                    <img alt="DevAnalyzer update dialog"
+                         src="screenshot/setting/img_4_update_dialog.png">
+                    <div class="workflow-content">
+                        <h3>Stay current</h3>
+                        <p>Release notes and update checks are handled inside the app.</p>
+                    </div>
+                </article>
+            </div>
         </div>
-        <div style="margin-top: 2rem;">
-            <a class="primary-btn" href="https://www.codingmeet.com/service"
-               rel="noopener noreferrer"
-               target="_blank">
-                🤝 Hire Me
-            </a>
-        </div>
-    </div>
-</section>
+    </section>
 
-<!-- Footer -->
-<footer>
-    <div class="footer-links">
-        <a href="https://github.com/Coding-Meet/DevAnalyzer" rel="noopener noreferrer"
-           target="_blank">GitHub</a>
-        <a href="#privacy">Privacy</a>
-        <a href="https://github.com/Coding-Meet/DevAnalyzer/issues/new?template=bug_report.md"
-           rel="noopener noreferrer" target="_blank">Report Bug</a>
-        <a href="https://github.com/Coding-Meet/DevAnalyzer/issues/new?template=feature_request.md"
-           rel="noopener noreferrer" target="_blank">Request Feature</a>
-        <a href="#developer">Developer</a>
+    <section class="section product-band" id="download">
+        <div class="section-inner">
+            <div class="download-panel">
+                <div class="download-copy">
+                    <p class="eyebrow">Download from GitHub</p>
+                    <h2>Get the installer made for your system.</h2>
+                    <p>DevAnalyzer detects your operating system, looks up the latest GitHub release, and selects the matching installer when available.</p>
+                    <div class="stats" aria-label="GitHub project stats">
+                        <div class="stat"><strong
+                                data-stat="version">Latest</strong><span>Release</span></div>
+                        <div class="stat"><strong
+                                data-stat="stars">Loading</strong><span>Stars</span></div>
+                        <div class="stat"><strong data-stat="downloads">Loading</strong><span>Total downloads</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="download-box">
+                    <div class="detected" data-detected-os>Detecting your platform</div>
+                    <label class="detected" for="installer-select">Installer</label>
+                    <select class="download-select" id="installer-select">
+                        <option value="linux-amd64-deb">Linux amd64 .deb</option>
+                        <option value="macos-arm64-dmg">macOS arm64 .dmg</option>
+                        <option value="macos-x64-dmg">macOS x64 .dmg</option>
+                        <option value="windows-x64-msi">Windows x64 .msi</option>
+                    </select>
+                    <a class="button button-primary download-button" data-download-link
+                       href="https://github.com/Coding-Meet/DevAnalyzer/releases"
+                       rel="noopener noreferrer" target="_blank">
+                        <svg aria-hidden="true" class="button-icon" fill="none" viewBox="0 0 24 24">
+                            <path d="M12 3v11m0 0 4-4m-4 4-4-4M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"
+                                  stroke="currentColor" stroke-linecap="round"
+                                  stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                        <span data-download-label>Download from GitHub</span>
+                    </a>
+                    <p class="release-meta" data-release-meta>Checking the latest release on GitHub.</p>
+                    <p class="release-meta"><a
+                            href="https://github.com/Coding-Meet/DevAnalyzer/releases"
+                            rel="noopener noreferrer" target="_blank">View all releases</a></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="section" id="privacy">
+        <div class="section-inner">
+            <div class="section-heading">
+                <h2>Private by default.</h2>
+                <p>DevAnalyzer is designed to inspect development folders, project metadata, and toolchain paths locally.</p>
+            </div>
+            <div class="privacy-list">
+                <article class="privacy-item">
+                    <h3>Local processing</h3>
+                    <p>Project analysis and storage scans run on your machine.</p>
+                </article>
+                <article class="privacy-item">
+                    <h3>Optional diagnostics</h3>
+                    <p>Crash reporting and usage analytics can be managed from the app settings.</p>
+                </article>
+                <article class="privacy-item">
+                    <h3>No project upload</h3>
+                    <p>Source code, project names, and file paths are never uploaded or sent to remote servers.</p>
+                </article>
+            </div>
+        </div>
+    </section>
+</main>
+
+<footer class="site-footer">
+    <div class="footer-inner">
+        <div>
+            <strong>DevAnalyzer</strong>
+            <div style="font-size: 0.78rem; opacity: 0.78;">Built by Meet for Android and Kotlin
+                developers.
+            </div>
+        </div>
+        <div class="footer-links">
+            <a href="https://github.com/Coding-Meet/DevAnalyzer" rel="noopener noreferrer"
+               target="_blank">GitHub</a>
+            <a href="https://github.com/Coding-Meet/DevAnalyzer/releases" rel="noopener noreferrer"
+               target="_blank">Releases</a>
+            <a href="https://github.com/Coding-Meet/DevAnalyzer/issues/new?template=bug_report.md"
+               rel="noopener noreferrer" target="_blank">Report bug</a>
+            <a href="https://github.com/Coding-Meet/DevAnalyzer/issues/new?template=feature_request.md"
+               rel="noopener noreferrer" target="_blank">Request feature</a>
+        </div>
     </div>
-    <p style="opacity: 0.7; margin-top: 1rem;">
-        © 2025 DevAnalyzer<br>
-        Built with ❤️ by Meet
-    </p>
 </footer>
 
 <script>
-    // GitHub Stats Fetcher with Local Storage Fallback
-    const GITHUB_API = {
-        REPO: 'https://api.github.com/repos/Coding-Meet/DevAnalyzer',
-        RELEASES: 'https://api.github.com/repos/Coding-Meet/DevAnalyzer/releases'
-    };
-
-    const STORAGE_KEYS = {
-        STARS: 'devanalyzer_stars',
-        DOWNLOADS: 'devanalyzer_downloads',
-        LAST_UPDATED: 'devanalyzer_last_updated'
-    };
-
-    // Default fallback values
-    const FALLBACK_VALUES = {
-        stars: 'Loading...',
-        downloads: 'Loading...'
-    };
-
-    // Get stored data
-    function getStoredData() {
-        const storedStars = localStorage.getItem(STORAGE_KEYS.STARS);
-        const storedDownloads = localStorage.getItem(STORAGE_KEYS.DOWNLOADS);
-
-        return {
-            stars: storedStars ? parseInt(storedStars) : FALLBACK_VALUES.stars,
-            downloads: storedDownloads ? parseInt(storedDownloads) : FALLBACK_VALUES.downloads,
-            lastUpdated: localStorage.getItem(STORAGE_KEYS.LAST_UPDATED)
-        };
-    }
-
-    // Store data
-    function storeData(stars, downloads) {
-        localStorage.setItem(STORAGE_KEYS.STARS, stars.toString());
-        localStorage.setItem(STORAGE_KEYS.DOWNLOADS, downloads.toString());
-        localStorage.setItem(STORAGE_KEYS.LAST_UPDATED, Date.now());
-    }
-
-    // Format number with K, M suffix
-    function formatNumber(num) {
-        if (num >= 1000000) {
-            return (num / 1000000).toFixed(1) + 'M';
+    const REPO_URL = "https://github.com/Coding-Meet/DevAnalyzer";
+    const RELEASES_URL = `${REPO_URL}/releases`;
+    const API_REPO = "https://api.github.com/repos/Coding-Meet/DevAnalyzer";
+    const API_RELEASES = `${API_REPO}/releases`;
+    const API_LATEST = `${API_REPO}/releases/latest`;
+    const installers = {
+        "linux-amd64-deb": {
+            label: "Linux amd64 .deb",
+            detect: "Linux",
+            pattern: /DevAnalyzer-[\d.]+-linux-amd64\.deb$/i
+        },
+        "macos-arm64-dmg": {
+            label: "macOS arm64 .dmg",
+            detect: "macOS Apple Silicon",
+            pattern: /DevAnalyzer-[\d.]+-macos-arm64\.dmg$/i
+        },
+        "macos-x64-dmg": {
+            label: "macOS x64 .dmg",
+            detect: "macOS Intel",
+            pattern: /DevAnalyzer-[\d.]+-macos-x64\.dmg$/i
+        },
+        "windows-x64-msi": {
+            label: "Windows x64 .msi",
+            detect: "Windows",
+            pattern: /DevAnalyzer-[\d.]+-windows-x64\.msi$/i
         }
-        if (num >= 1000) {
-            return (num / 1000).toFixed(1) + 'K';
-        }
-        return num.toString();
+    };
+
+    const state = {
+        assets: [],
+        selected: "linux-amd64-deb",
+        version: "",
+        downloads: null,
+        stars: null
+    };
+
+    function formatNumber(value) {
+        if (!Number.isFinite(value)) return "Unavailable";
+        return new Intl.NumberFormat("en", { notation: value >= 10000 ? "compact" : "standard" }).format(value);
     }
 
-    // Animate number counting
-    function animateNumber(element, target, emoji) {
-        const duration = 1000;
-        const start = 0;
-        const startTime = performance.now();
+    function cleanVersion(tagName) {
+        return (tagName || "").replace(/^v/i, "");
+    }
 
-        function update(currentTime) {
-            const elapsed = currentTime - startTime;
-            const progress = Math.min(elapsed / duration, 1);
+    async function detectInstaller() {
+        const ua = navigator.userAgent || "";
+        const platform = navigator.platform || "";
+        let highEntropy = {};
 
-            const current = Math.floor(progress * target);
-            element.textContent = formatNumber(current) + ' ' + emoji;
-
-            if (progress < 1) {
-                requestAnimationFrame(update);
-            } else {
-                element.textContent = formatNumber(target) + ' ' + emoji;
+        if (navigator.userAgentData && navigator.userAgentData.getHighEntropyValues) {
+            try {
+                highEntropy = await navigator.userAgentData.getHighEntropyValues(["architecture", "platform"]);
+            } catch (error) {
+                highEntropy = {};
             }
         }
 
-        requestAnimationFrame(update);
+        const detectedPlatform = `${highEntropy.platform || ""} ${platform} ${ua}`.toLowerCase();
+        const arch = `${highEntropy.architecture || ""} ${ua}`.toLowerCase();
+
+        if (detectedPlatform.includes("win")) return "windows-x64-msi";
+        if (detectedPlatform.includes("mac")) {
+            return arch.includes("x86") || arch.includes("x64") || arch.includes("amd64") ? "macos-x64-dmg" : "macos-arm64-dmg";
+        }
+        if (detectedPlatform.includes("linux")) return "linux-amd64-deb";
+        return "linux-amd64-deb";
     }
 
-    // Update UI
-    function updateUI(stars, downloads) {
-        const starsElement = document.getElementById('github-stars');
-        const downloadsElement = document.getElementById('total-downloads');
+    function findAsset(key) {
+        const installer = installers[key];
+        return state.assets.find((asset) => installer.pattern.test(asset.name));
+    }
 
-        if (typeof stars === 'number') {
-            animateNumber(starsElement, stars, '⭐');
-        } else {
-            starsElement.textContent = stars;
-        }
+    function updateDownloadUi() {
+        const selected = installers[state.selected];
+        const asset = findAsset(state.selected);
+        const version = state.version ? ` ${state.version}` : "";
+        const label = asset ? `Download ${selected.label}${version}` : "Open releases";
+        const href = asset ? asset.browser_download_url : RELEASES_URL;
 
-        if (typeof downloads === 'number') {
-            animateNumber(downloadsElement, downloads, '📥');
+        document.querySelectorAll("[data-download-link]").forEach((link) => {
+            link.href = href;
+        });
+        document.querySelectorAll("[data-download-label]").forEach((node) => {
+            node.textContent = label;
+        });
+
+        const meta = document.querySelector("[data-release-meta]");
+        if (asset) {
+            meta.textContent = `${asset.name} selected from the latest GitHub release.`;
         } else {
-            downloadsElement.textContent = downloads;
+            meta.textContent = "Could not match a release asset. The button opens the GitHub releases page.";
         }
     }
 
-    // Fetch GitHub stars
-    async function fetchGitHubStars() {
+    async function loadReleaseData() {
         try {
-            const response = await fetch(GITHUB_API.REPO);
-            if (!response.ok) throw new Error('Failed to fetch stars');
-            const data = await response.json();
-            return data.stargazers_count || 0;
+            const [repoResponse, latestResponse, releasesResponse] = await Promise.all([
+                fetch(API_REPO),
+                fetch(API_LATEST),
+                fetch(API_RELEASES)
+            ]);
+
+            if (repoResponse.ok) {
+                const repo = await repoResponse.json();
+                state.stars = repo.stargazers_count;
+                document.querySelector("[data-stat='stars']").textContent = formatNumber(state.stars);
+            }
+
+            if (latestResponse.ok) {
+                const latest = await latestResponse.json();
+                state.version = cleanVersion(latest.tag_name || latest.name);
+                state.assets = Array.isArray(latest.assets) ? latest.assets : [];
+                document.querySelector("[data-stat='version']").textContent = state.version || "Latest";
+            }
+
+            if (releasesResponse.ok) {
+                const releases = await releasesResponse.json();
+                state.downloads = releases.reduce((total, release) => {
+                    return total + (release.assets || []).reduce((sum, asset) => sum + (asset.download_count || 0), 0);
+                }, 0);
+                document.querySelector("[data-stat='downloads']").textContent = formatNumber(state.downloads);
+            }
         } catch (error) {
-            console.error('Error fetching GitHub stars:', error);
-            return null;
+            document.querySelector("[data-release-meta]").textContent = "GitHub release data is unavailable right now. The button opens the releases page.";
+        } finally {
+            updateDownloadUi();
         }
     }
 
-    // Fetch total downloads from all releases
-    async function fetchTotalDownloads() {
-        try {
-            const response = await fetch(GITHUB_API.RELEASES);
-            if (!response.ok) throw new Error('Failed to fetch releases');
-            const releases = await response.json();
+    function initGallery() {
+        const tabs = document.querySelectorAll(".gallery-tab");
+        const panels = document.querySelectorAll(".gallery-panel");
 
-            let totalDownloads = 0;
-            releases.forEach(release => {
-                if (release.assets && Array.isArray(release.assets)) {
-                    release.assets.forEach(asset => {
-                        totalDownloads += asset.download_count || 0;
-                    });
-                }
+        tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+                const target = tab.dataset.panel;
+                tabs.forEach((item) => item.setAttribute("aria-selected", String(item === tab)));
+                panels.forEach((panel) => panel.classList.toggle("active", panel.id === `panel-${target}`));
             });
-
-            return totalDownloads;
-        } catch (error) {
-            console.error('Error fetching downloads:', error);
-            return null;
-        }
+        });
     }
 
-    // Main fetch function
-    async function fetchGitHubStats() {
-        // Load stored data first
-        const stored = getStoredData();
-        updateUI(stored.stars, stored.downloads);
-
-        // Check if we should update (cache for 1 hour)
-        const now = Date.now();
-        const oneHour = 60 * 60 * 1000;
-        if (stored.lastUpdated && (now - stored.lastUpdated) < oneHour) {
-            return; // Use cached data
-        }
-
-        // Fetch fresh data
-        const [stars, downloads] = await Promise.all([
-            fetchGitHubStars(),
-            fetchTotalDownloads()
-        ]);
-
-        // Update UI with fresh data or keep stored values
-        const finalStars = stars !== null ? stars : stored.stars;
-        const finalDownloads = downloads !== null ? downloads : stored.downloads;
-
-        // Store new values if we got valid data
-        if (stars !== null && downloads !== null) {
-            storeData(stars, downloads);
-        }
-
-        // Update UI with animation
-        updateUI(finalStars, finalDownloads);
+    async function initDownloads() {
+        const select = document.querySelector("#installer-select");
+        state.selected = await detectInstaller();
+        select.value = state.selected;
+        document.querySelector("[data-detected-os]").textContent = `Detected: ${installers[state.selected].detect}`;
+        select.addEventListener("change", () => {
+            state.selected = select.value;
+            document.querySelector("[data-detected-os]").textContent = `Selected: ${installers[state.selected].detect}`;
+            updateDownloadUi();
+        });
+        await loadReleaseData();
     }
 
-    // Initialize on page load
-    document.addEventListener('DOMContentLoaded', fetchGitHubStats);
+    window.addEventListener("load", () => {
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                document.body.classList.add("loaded");
+            }, 3000);
+        });
+    });
+
+    document.addEventListener("DOMContentLoaded", () => {
+        initGallery();
+        initDownloads();
+    });
 </script>
 </body>
 

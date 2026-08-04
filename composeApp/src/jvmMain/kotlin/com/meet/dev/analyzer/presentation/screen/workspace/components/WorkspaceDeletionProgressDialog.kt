@@ -276,7 +276,10 @@ fun WorkspaceDeletionProgressDialog(
                                                 modifier = Modifier.size(20.dp)
                                             )
                                         } else {
-                                            CircularProgressIndicator(modifier = Modifier.size(20.dp), strokeWidth = 2.dp)
+                                            CircularProgressIndicator(
+                                                modifier = Modifier.size(20.dp),
+                                                strokeWidth = 2.dp
+                                            )
                                         }
                                         Text(
                                             progress.status.statusText,
@@ -296,7 +299,13 @@ fun WorkspaceDeletionProgressDialog(
             if (isDeletionComplete) {
                 Button(
                     onClick = onDismiss,
-                    modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                    modifier = Modifier.pointerHoverIcon(
+                        PointerIcon(
+                            Cursor.getPredefinedCursor(
+                                Cursor.HAND_CURSOR
+                            )
+                        )
+                    )
                 ) {
                     Text("OK")
                 }

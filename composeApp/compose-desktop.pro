@@ -109,3 +109,19 @@
 -keep public enum * {    public static **[] values();    public static ** valueOf(java.lang.String); }
 
 -ignorewarnings
+
+# Ktor (HTTP client). Many internals resolved via ServiceLoader / reflection.
+-keep class io.ktor.** { *; }
+-keepclassmembers class io.ktor.** { *; }
+-dontwarn io.ktor.**
+
+# CIO engine factory is discovered through META-INF/services.
+-keep class * implements io.ktor.client.HttpClientEngineContainer { *; }
+-keep class io.ktor.client.engine.cio.** { *; }
+
+-dontwarn com.posthog.**
+-keep class com.posthog.** { *; }
+-keepclassmembers class com.posthog.** { *; }
+
+-keep class kotlinx.coroutines.** { *; }
+-dontwarn kotlinx.coroutines.**
