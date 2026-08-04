@@ -192,6 +192,36 @@
             color: var(--primary);
         }
 
+        .nav-links a.active {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .hero-stats {
+            display: inline-flex;
+            gap: 24px;
+            margin-top: 24px;
+            border-top: 1px solid var(--outline-variant);
+            padding-top: 24px;
+        }
+
+        .hero-stat {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .hero-stat strong {
+            font-size: 1.4rem;
+            color: var(--primary);
+        }
+
+        .hero-stat span {
+            font-size: 0.75rem;
+            color: var(--on-surface-variant);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
         .header-download {
             background: var(--primary);
             border-radius: var(--radius);
@@ -572,13 +602,14 @@
 
         .download-select {
             appearance: none;
-            background: var(--surface);
+            background: var(--surface) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2372777F'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E") no-repeat right 12px center;
+            background-size: 18px;
             border: 1px solid var(--outline-variant);
             border-radius: var(--radius);
             color: var(--on-background);
             margin-bottom: 12px;
             min-height: 46px;
-            padding: 10px 12px;
+            padding: 10px 38px 10px 12px;
             width: 100%;
         }
 
@@ -863,8 +894,6 @@
             <a href="#screenshots">Screenshots</a>
             <a href="#download">Download</a>
             <a href="#privacy">Privacy</a>
-            <a href="https://github.com/Coding-Meet/DevAnalyzer" rel="noopener noreferrer"
-               target="_blank">GitHub</a>
         </div>
         <a class="button header-download" href="#download">Download</a>
     </nav>
@@ -905,6 +934,16 @@
                     <span class="chip">Local-first analysis</span>
                     <span class="chip">Windows, macOS, Linux</span>
                     <span class="chip">Android & Kotlin Projects</span>
+                </div>
+                <div class="hero-stats">
+                    <div class="hero-stat">
+                        <strong data-stat="stars">Loading</strong>
+                        <span>GitHub Stars</span>
+                    </div>
+                    <div class="hero-stat">
+                        <strong data-stat="downloads">Loading</strong>
+                        <span>Total Downloads</span>
+                    </div>
                 </div>
             </div>
             <div class="showcase animate-right" aria-label="DevAnalyzer interface preview">
@@ -1130,19 +1169,30 @@
                 <h2>Private by default.</h2>
                 <p>DevAnalyzer is designed to inspect development folders, project metadata, and toolchain paths locally.</p>
             </div>
-            <div class="privacy-list">
-                <article class="privacy-item">
-                    <h3>Local processing</h3>
-                    <p>Project analysis and storage scans run on your machine.</p>
-                </article>
-                <article class="privacy-item">
-                    <h3>Optional diagnostics</h3>
-                    <p>Crash reporting and usage analytics can be managed from the app settings.</p>
-                </article>
-                <article class="privacy-item">
-                    <h3>No project upload</h3>
-                    <p>Source code, project names, and file paths are never uploaded or sent to remote servers.</p>
-                </article>
+            <div class="gallery">
+                <div class="privacy-list" style="grid-template-columns: 1fr;">
+                    <article class="privacy-item">
+                        <h3>Local processing</h3>
+                        <p>Project analysis and storage scans run on your machine.</p>
+                    </article>
+                    <article class="privacy-item">
+                        <h3>Optional diagnostics</h3>
+                        <p>Crash reporting and usage analytics can be managed from the app settings.</p>
+                    </article>
+                    <article class="privacy-item">
+                        <h3>No project upload</h3>
+                        <p>Source code, project names, and file paths are never uploaded or sent to remote servers.</p>
+                    </article>
+                </div>
+                <div class="window-frame" style="align-self: start;">
+                    <div class="window-bar">
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                        <span class="dot"></span>
+                    </div>
+                    <img alt="DevAnalyzer privacy settings and diagnostics switches"
+                         src="screenshot/setting/img_2_diagnostics_section_all_feature_switch_crash_analytics.png">
+                </div>
             </div>
         </div>
     </section>
@@ -1260,9 +1310,9 @@
 
         const meta = document.querySelector("[data-release-meta]");
         if (asset) {
-            meta.textContent = `${asset.name} selected from the latest GitHub release.`;
+            if (meta) meta.textContent = `${asset.name} selected from the latest GitHub release.`;
         } else {
-            meta.textContent = "Could not match a release asset. The button opens the GitHub releases page.";
+            if (meta) meta.textContent = "Could not match a release asset. The button opens the GitHub releases page.";
         }
     }
 
@@ -1277,14 +1327,18 @@
             if (repoResponse.ok) {
                 const repo = await repoResponse.json();
                 state.stars = repo.stargazers_count;
-                document.querySelector("[data-stat='stars']").textContent = formatNumber(state.stars);
+                document.querySelectorAll("[data-stat='stars']").forEach(el => {
+                    el.textContent = formatNumber(state.stars);
+                });
             }
 
             if (latestResponse.ok) {
                 const latest = await latestResponse.json();
                 state.version = cleanVersion(latest.tag_name || latest.name);
                 state.assets = Array.isArray(latest.assets) ? latest.assets : [];
-                document.querySelector("[data-stat='version']").textContent = state.version || "Latest";
+                document.querySelectorAll("[data-stat='version']").forEach(el => {
+                    el.textContent = state.version || "Latest";
+                });
             }
 
             if (releasesResponse.ok) {
@@ -1292,10 +1346,13 @@
                 state.downloads = releases.reduce((total, release) => {
                     return total + (release.assets || []).reduce((sum, asset) => sum + (asset.download_count || 0), 0);
                 }, 0);
-                document.querySelector("[data-stat='downloads']").textContent = formatNumber(state.downloads);
+                document.querySelectorAll("[data-stat='downloads']").forEach(el => {
+                    el.textContent = formatNumber(state.downloads);
+                });
             }
         } catch (error) {
-            document.querySelector("[data-release-meta]").textContent = "GitHub release data is unavailable right now. The button opens the releases page.";
+            const meta = document.querySelector("[data-release-meta]");
+            if (meta) meta.textContent = "GitHub release data is unavailable right now. The button opens the releases page.";
         } finally {
             updateDownloadUi();
         }
@@ -1316,12 +1373,14 @@
 
     async function initDownloads() {
         const select = document.querySelector("#installer-select");
+        if (!select) return;
         state.selected = await detectInstaller();
         select.value = state.selected;
-        document.querySelector("[data-detected-os]").textContent = `Detected: ${installers[state.selected].detect}`;
+        const detectedOs = document.querySelector("[data-detected-os]");
+        if (detectedOs) detectedOs.textContent = `Detected: ${installers[state.selected].detect}`;
         select.addEventListener("change", () => {
             state.selected = select.value;
-            document.querySelector("[data-detected-os]").textContent = `Selected: ${installers[state.selected].detect}`;
+            if (detectedOs) detectedOs.textContent = `Selected: ${installers[state.selected].detect}`;
             updateDownloadUi();
         });
         await loadReleaseData();
@@ -1360,10 +1419,32 @@
         document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
     }
 
+    function initScrollSpy() {
+        const links = document.querySelectorAll(".nav-links a[href^='#']");
+        const sections = Array.from(links).map(link => document.querySelector(link.getAttribute("href")));
+
+        window.addEventListener("scroll", () => {
+            let current = "";
+            const scrollPos = window.scrollY + 120;
+
+            sections.forEach(section => {
+                if (section && scrollPos >= section.offsetTop) {
+                    current = section.getAttribute("id");
+                }
+            });
+
+            links.forEach(link => {
+                link.classList.toggle("active", link.getAttribute("href") === `#${current}`);
+            });
+        });
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         initGallery();
         initDownloads();
         initReveal();
+        initScrollSpy();
+        loadReleaseData();
     });
 </script>
 </body>
