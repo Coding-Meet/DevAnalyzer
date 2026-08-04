@@ -1242,12 +1242,12 @@
         await loadReleaseData();
     }
 
+    document.body.classList.remove("loaded");
+
     window.addEventListener("load", () => {
-        requestAnimationFrame(() => {
-            setTimeout(() => {
-                document.body.classList.add("loaded");
-            }, 3000);
-        });
+        setTimeout(() => {
+            document.body.classList.add("loaded");
+        }, 3000);
     });
 
     document.addEventListener("DOMContentLoaded", () => {
