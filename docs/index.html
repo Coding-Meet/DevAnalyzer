@@ -1242,6 +1242,19 @@
         await loadReleaseData();
     }
 
+    // Force animated SVG to restart on reload
+    const loaderLogo = document.querySelector(".loader-logo");
+    if (loaderLogo) {
+        const timestamp = Date.now();
+        const picture = loaderLogo.closest("picture");
+        if (picture) {
+            picture.querySelectorAll("source").forEach(s => {
+                if (s.srcset) s.srcset = s.srcset.split("?")[0] + "?t=" + timestamp;
+            });
+        }
+        loaderLogo.src = loaderLogo.src.split("?")[0] + "?t=" + timestamp;
+    }
+
     document.body.classList.remove("loaded");
 
     window.addEventListener("load", () => {
