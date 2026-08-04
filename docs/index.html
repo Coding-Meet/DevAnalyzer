@@ -750,6 +750,88 @@
                 transition-duration: 1ms !important;
             }
         }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInLeft {
+            from {
+                opacity: 0;
+                transform: translateX(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes fadeInRight {
+            from {
+                opacity: 0;
+                transform: translateX(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        .animate-up {
+            animation: fadeInUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .animate-left {
+            animation: fadeInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .animate-right {
+            animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) both;
+        }
+
+        .hero-copy {
+            animation-delay: 0.1s;
+        }
+
+        .hero-actions {
+            animation-delay: 0.2s;
+        }
+
+        .hero-meta {
+            animation-delay: 0.3s;
+        }
+
+        .showcase .window-frame:first-child {
+            animation: fadeInLeft 0.8s cubic-bezier(0.16, 1, 0.3, 1) both, float 6s ease-in-out infinite 0.8s;
+        }
+
+        .floating-shot {
+            animation: fadeInRight 0.8s cubic-bezier(0.16, 1, 0.3, 1) both, float 7s ease-in-out infinite 1s !important;
+        }
+
+        .reveal {
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.8s cubic-bezier(0.16, 1, 0.3, 1), transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .reveal.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 
@@ -791,7 +873,7 @@
 <main id="top">
     <section class="hero">
         <div class="hero-grid">
-            <div>
+            <div class="animate-left">
                 <p class="eyebrow">Compose Multiplatform Desktop App</p>
                 <h1>DevAnalyzer</h1>
                 <p class="hero-copy">
@@ -825,7 +907,7 @@
                     <span class="chip">Android & Kotlin Projects</span>
                 </div>
             </div>
-            <div class="showcase" aria-label="DevAnalyzer interface preview">
+            <div class="showcase animate-right" aria-label="DevAnalyzer interface preview">
                 <div class="window-frame">
                     <img alt="DevAnalyzer project overview tab"
                          src="screenshot/project/img_0_overview_tab.png">
@@ -838,7 +920,7 @@
         </div>
     </section>
 
-    <section class="section" id="features">
+    <section class="section reveal" id="features">
         <div class="section-inner">
             <div class="section-heading">
                 <h2>Built for the Android workspace you actually use.</h2>
@@ -893,7 +975,7 @@
         </div>
     </section>
 
-    <section class="section product-band" id="screenshots">
+    <section class="section product-band reveal" id="screenshots">
         <div class="section-inner">
             <div class="section-heading">
                 <h2>See the workflow before you install it.</h2>
@@ -963,7 +1045,7 @@
         </div>
     </section>
 
-    <section class="section">
+    <section class="section reveal">
         <div class="section-inner">
             <div class="section-heading">
                 <h2>Cleaner development machines, fewer blind spots.</h2>
@@ -998,7 +1080,7 @@
         </div>
     </section>
 
-    <section class="section product-band" id="download">
+    <section class="section product-band reveal" id="download">
         <div class="section-inner">
             <div class="download-panel">
                 <div class="download-copy">
@@ -1042,7 +1124,7 @@
         </div>
     </section>
 
-    <section class="section" id="privacy">
+    <section class="section reveal" id="privacy">
         <div class="section-inner">
             <div class="section-heading">
                 <h2>Private by default.</h2>
@@ -1266,9 +1348,22 @@
         }, 3000);
     });
 
+    function initReveal() {
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add("visible");
+                }
+            });
+        }, { threshold: 0.1 });
+
+        document.querySelectorAll(".reveal").forEach(el => observer.observe(el));
+    }
+
     document.addEventListener("DOMContentLoaded", () => {
         initGallery();
         initDownloads();
+        initReveal();
     });
 </script>
 </body>
