@@ -1243,7 +1243,11 @@
     }
 
     window.addEventListener("load", () => {
-        window.setTimeout(() => document.body.classList.add("loaded"), 3000);
+        requestAnimationFrame(() => {
+            setTimeout(() => {
+                document.body.classList.add("loaded");
+            }, 3000);
+        });
     });
 
     document.addEventListener("DOMContentLoaded", () => {
