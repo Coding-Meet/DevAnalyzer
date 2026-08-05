@@ -4,10 +4,10 @@
 <head>
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1.0" name="viewport">
-    <meta content="DevAnalyzer is a cross-platform desktop app for Android and Kotlin developers to analyze projects, inspect Gradle metadata, clean build folders, and optimize development storage."
+    <meta content="DevAnalyzer is a cross-platform desktop app for Android, iOS, JVM, and Kotlin developers to analyze projects, inspect Gradle metadata, clean build folders, and optimize development storage."
           name="description">
     <meta content="#0061A4" name="theme-color">
-    <title>DevAnalyzer | Analyze and Optimize Your Android Development Environment</title>
+    <title>DevAnalyzer | Analyze and Optimize Your Multiplatform Development Environment</title>
     <link href="favicon/favicon-96x96.png" rel="icon" sizes="96x96" type="image/png">
     <link href="favicon/favicon.svg" rel="icon" type="image/svg+xml">
     <link href="favicon/favicon.ico" rel="shortcut icon">
@@ -438,7 +438,19 @@
         .feature-grid {
             display: grid;
             gap: 16px;
-            grid-template-columns: repeat(4, minmax(0, 1fr));
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
+        @media (max-width: 1024px) {
+            .feature-grid {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+        }
+
+        @media (max-width: 640px) {
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
         }
 
         .feature-card {
@@ -906,7 +918,7 @@
                 <p class="eyebrow">Compose Multiplatform Desktop App</p>
                 <h1>DevAnalyzer</h1>
                 <p class="hero-copy">
-                    Analyze projects, inspect Gradle metadata, find unused SDK resources, and clean build folders from a single desktop application.
+                    Analyze, optimize, and clean your <strong>Android & Multiplatform</strong> development environment from a single desktop application.
                 </p>
                 <div class="hero-actions">
                     <a class="button button-primary" data-download-link
@@ -933,7 +945,7 @@
                 <div class="hero-meta">
                     <span class="chip">Local-first analysis</span>
                     <span class="chip">Windows, macOS, Linux</span>
-                    <span class="chip">Android & Kotlin Projects</span>
+                    <span class="chip">Multiplatform & Kotlin Projects</span>
                 </div>
                 <div class="hero-stats">
                     <div class="hero-stat">
@@ -962,9 +974,8 @@
     <section class="section reveal" id="features">
         <div class="section-inner">
             <div class="section-heading">
-                <h2>Built for the Android workspace you actually use.</h2>
-                <p>DevAnalyzer brings project inspection, cleanup, storage analysis, and workspace
-                    resource checks into one focused desktop utility.</p>
+                <h2>Built for your modern workspace.</h2>
+                <p>DevAnalyzer brings project inspection, cleanup, and toolchain analysis for Android, iOS, and Web developers into one focused utility.</p>
             </div>
             <div class="feature-grid">
                 <article class="feature-card">
@@ -975,7 +986,7 @@
                         </svg>
                     </div>
                     <h3>Project Analyzer</h3>
-                    <p>Inspect modules, plugins, dependencies, build files, SDK versions, Kotlin versions, and Gradle metadata without jumping between files.</p>
+                    <p>Analyze modules, plugins, and dependencies across <strong>Android, iOS, JVM, JS, Wasm, and Server</strong> targets. Browse source files, Version Catalogs, and Gradle metadata in one view.</p>
                 </article>
                 <article class="feature-card">
                     <div class="feature-icon">
@@ -997,7 +1008,7 @@
                         </svg>
                     </div>
                     <h3>Storage Analyzer</h3>
-                    <p>Break down Android SDK, Gradle, IDE, Kotlin/Native, JDK, AVD, and library storage to quickly identify large folders.</p>
+                    <p>Break down <strong>Android SDK, Gradle caches, Kotlin/Native toolchains, JDK, and AVDs</strong>. Automatically detects <strong>Android Studio and IntelliJ</strong> data to reclaim space.</p>
                 </article>
                 <article class="feature-card">
                     <div class="feature-icon">
@@ -1008,7 +1019,26 @@
                         </svg>
                     </div>
                     <h3>Workspace Analyzer</h3>
-                    <p>Cross-reference installed SDK, NDK, CMake, and Gradle versions with your projects before removing unused resources.</p>
+                    <p>Cross-reference <strong>SDK Platforms, Sources, Build Tools, and NDKs</strong> with your projects to safely batch-delete unused resources.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+                            <path d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Feedback & Updates</h3>
+                    <p>Submit feature requests directly and receive automatic update notifications via GitHub to stay current.</p>
+                </article>
+                <article class="feature-card">
+                    <div class="feature-icon">
+                        <svg aria-hidden="true" fill="none" viewBox="0 0 24 24">
+                            <path d="M9 20l-5.447-2.724A2 2 0 013 15.487V6.513a2 2 0 011.553-1.943L9 2l5.447 2.57A2 2 0 0116 6.513v8.974a2 2 0 01-1.553 1.943L9 20z" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                            <path d="M9 20V10M3 6.5l6 3.5 6-3.5" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2"/>
+                        </svg>
+                    </div>
+                    <h3>Smart Path Discovery</h3>
+                    <p>Automatically detect JDK, SDK, and IDE installations across custom folders with built-in path validation and one-click reset.</p>
                 </article>
             </div>
         </div>
@@ -1092,11 +1122,11 @@
             </div>
             <div class="workflow-grid">
                 <article class="workflow">
-                    <img alt="Clean build folder selection screen"
-                         src="screenshot/clean_build/img_2_project_list_with_build_folder_some_item_selection_delete_icon.png">
+                    <img alt="Project analyzer modules and overview"
+                         src="screenshot/project/img_0_overview_tab.png">
                     <div class="workflow-content">
-                        <h3>Select build folders</h3>
-                        <p>Review modules and folder sizes before removing build output.</p>
+                        <h3>Multiplatform Insights</h3>
+                        <p>Automatically detect Android, iOS, JVM, Wasm, and Ktor Server targets across your entire workspace.</p>
                     </div>
                 </article>
                 <article class="workflow">

@@ -8,24 +8,24 @@
 <h1 align="center">DevAnalyzer</h1>
 
 <p align="center">
-  <strong>Analyze, optimize, and clean your development environment.</strong>
+  <strong>Analyze, optimize, and clean your Android & Multiplatform development environment.</strong>
 </p>
 
 <p align="center">
   <a href="https://coding-meet.github.io/DevAnalyzer/"><strong>Visit Website</strong></a>
 </p>
 
-DevAnalyzer is a cross-platform desktop application built with Compose Multiplatform and Kotlin Multiplatform (KMP) to help Android and Kotlin developers understand, optimize, and maintain their development environment.
+DevAnalyzer is a cross-platform desktop application built with Compose Multiplatform and Kotlin Multiplatform (KMP) to help Android and Kotlin Multiplatform developers understand, optimize, and maintain their development environment.
 
 ---
 
 ## Overview
 
-- **Project Analyzer**: Analyze modules, Gradle configurations, plugins, dependencies, and project metadata in a single view.
-- **Clean Build**: Scan projects for build folders across all modules and safely delete them to reclaim space.
-- **Workspace Analyzer**: Scan multiple workspaces to detect actively used Android SDKs, NDKs, CMake versions, and Gradle wrappers, highlighting what can be safely removed.
-- **Storage Analyzer**: View storage consumed by Android SDKs, Gradle caches, IDE caches, Kotlin/Native, and AVDs.
-- **Settings**: Configure custom toolchain paths and manage privacy options.
+- **Project Analyzer**: Analyze modules, Gradle configurations, and dependencies across Android, iOS, JVM, JS, Wasm, and Server targets.
+- **Clean Build**: Scan projects for build folders across all modules and safely batch-delete them to reclaim space.
+- **Workspace Analyzer**: Cross-reference installed Android SDKs, NDKs, CMake, Kotlin/Native toolchains, and Gradle wrappers with your projects to safely remove unused resources.
+- **Storage Analyzer**: View storage consumed by Android SDKs, Gradle caches, Kotlin/Native toolchains (LLVM/LLDB), JDK, AVDs, and IDE data.
+- **Settings**: Configure custom toolchain paths with smart discovery and manage privacy options.
 
 ---
 
@@ -33,19 +33,18 @@ DevAnalyzer is a cross-platform desktop application built with Compose Multiplat
 
 ### Project Analyzer
 
-- Analyze Gradle modules, plugins, and dependencies.
-- List applied plugins and Version Catalog libraries.
-- Browse Gradle build files and project configuration scripts directly inside the app.
+- Analyze Gradle modules, plugins, and dependencies for **Android, iOS, JVM, JS, Wasm, and Server** targets.
+- List applied plugins and Version Catalog (`libs.versions.toml`) libraries.
+- Browse source files (Kotlin, Java, XML) and project configuration scripts directly inside the app.
 - Inspect project metadata including:
-  - Kotlin Version
-  - Android Gradle Plugin (AGP)
-  - Gradle Version
+  - Kotlin & AGP Versions
+  - Gradle & Gradle Wrapper versions
   - Compile, Target, and Min SDKs
   - NDK and CMake versions
 
 ### Clean Build
 
-- Scan Android Studio projects for module build folders.
+- Scan Gradle projects for module build folders.
 - Display expandable project and module layout.
 - Compute folder sizes in real-time.
 - Perform batch deletion of selected build folders with a safety confirmation dialog.
@@ -54,7 +53,7 @@ DevAnalyzer is a cross-platform desktop application built with Compose Multiplat
 ### Workspace Analyzer
 
 - Analyze multiple workspace directories simultaneously.
-- Cross-reference installed SDK tools, NDKs, CMake versions, and Gradle caches against all projects.
+- Cross-reference installed Android SDKs, NDKs, CMake versions, Kotlin/Native toolchains, and Gradle wrappers across all projects.
 - Automatically protect active versions referenced by existing projects.
 - Detect unused resources:
   - Android SDK Platforms
@@ -67,20 +66,21 @@ DevAnalyzer is a cross-platform desktop application built with Compose Multiplat
 ### Storage Analyzer
 
 - View storage allocations across:
-  - Android SDK
-  - Gradle Caches
-  - Kotlin/Native
-  - JDK
+  - Android SDK (Platforms, Build Tools, Sources, System Images)
+  - Gradle Caches (Wrappers, Global Dependency Cache `modules-2`)
+  - Kotlin/Native Toolchains (Konan prebuilts, LLVM, LLDB)
+  - Installed JDKs
   - Android Virtual Devices (AVD)
-  - IDE Caches and configuration folders
+  - IDE Data (Android Studio and IntelliJ IDEA configuration/cache)
 - Track real-time scan progress with elapsed timers.
 - Support custom, non-standard JDK and IDE locations.
 
-### Settings
+### Settings & Discovery
 
-- Custom paths configuration (SDK, Gradle Home, Kotlin Native, JDK, Android Studio, IntelliJ).
-- Automatic path validation with one-click reset options.
-- Toggle local crash logging, crash reporting, and usage analytics.
+- **Smart Path Discovery**: Automatically discover JDK, Android SDK, and IDE installations, including custom locations.
+- **Custom Path Configuration**: Manage paths for SDK, Gradle, Kotlin Native, JDK, Android Studio, and IntelliJ.
+- **Path Validation**: Automatic validation with one-click reset options.
+- **Privacy Controls**: Toggle local crash logging, anonymous crash reporting, and usage analytics.
 
 ---
 
@@ -91,7 +91,7 @@ Privacy is a core design principle of DevAnalyzer:
 - **Local Processing**: All analysis runs locally. Your code, project names, and file paths are never uploaded.
 - **Optional Analytics**: You can opt in or out of anonymous analytics at any time.
 - **Zero PII**: No email addresses, personal details, or sensitive metadata are tracked.
-- **SDK Configuration**: Analytics are configured to remain completely anonymous.
+- **Anonymous by Design**: Analytics are configured to remain completely anonymous. No user identification or personal information is collected.
 
 ---
 
@@ -111,7 +111,7 @@ Privacy is a core design principle of DevAnalyzer:
 | **Design System**        | Material 3 with Adaptive Navigation Suite |
 | **Dependency Injection** | Koin                                      |
 | **Network**              | Ktor                                      |
-| **Navigation**           | Jetpack Navigation 2                      |
+| **Navigation**           | Jetpack Navigation Compose                |
 | **Image Loading**        | Coil3                                     |
 | **Local Storage**        | DataStore (Core + Preferences)            |
 | **File Handling**        | FileKit                                   |
