@@ -104,6 +104,9 @@ class WorkspaceViewModel(
             }
 
             WorkspaceIntent.OnClearHighlights -> _uiState.update { it.copy(highlightedProjectName = null) }
+            WorkspaceIntent.OnToggleSelectionPanel -> {
+                _uiState.update { it.copy(isSelectionPanelExpanded = !it.isSelectionPanelExpanded) }
+            }
 
             // Analytics event trackers
             WorkspaceIntent.TrackFeedbackOpened -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
@@ -193,7 +196,8 @@ class WorkspaceViewModel(
                             activeResources = result.activeResources,
                             scanProgress = 1f,
                             scanStatus = if (result.unusedResources.isEmpty()) "No unused resources found" else "Scan completed",
-                            scanElapsedTime = formatElapsedTime(startTime)
+                            scanElapsedTime = formatElapsedTime(startTime),
+                            isSelectionPanelExpanded = if (result.projects.isEmpty() && result.unusedResources.isEmpty() && result.activeResources.isEmpty()) true else it.isSelectionPanelExpanded
                         )
                     }
 
@@ -373,7 +377,8 @@ class WorkspaceViewModel(
                 searchQuery = "",
                 resourceFilter = ResourceFilter.ALL,
                 selectedPaths = emptyList(),
-                highlightedProjectName = null
+                highlightedProjectName = null,
+                isSelectionPanelExpanded = true
             )
         }
         viewModelScope.launch {

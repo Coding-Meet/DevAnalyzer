@@ -34,6 +34,7 @@ data class WorkspaceUiState(
     val deletionResult: String = "",
 
     val error: String? = null,
+    val isSelectionPanelExpanded: Boolean = true,
     val lastSubmittedReviewVersion: Flow<String>
 ) {
     val allSelected: Boolean

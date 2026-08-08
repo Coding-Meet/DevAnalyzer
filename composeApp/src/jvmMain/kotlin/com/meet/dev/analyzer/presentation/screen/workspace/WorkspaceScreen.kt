@@ -68,8 +68,6 @@ fun WorkspaceScreen(
     val showFeedbackButton = lastSubmittedVersion != currentVersion
     var showReviewDialog by remember { mutableStateOf(false) }
 
-    var isSelectionPanelExpanded by remember { mutableStateOf(true) }
-
     val directoryPickerLauncher = rememberDirectoryPickerLauncher(
         directory = PlatformFile(File(System.getProperty("user.home"), "AndroidStudioProjects"))
     ) { directory ->
@@ -95,11 +93,11 @@ fun WorkspaceScreen(
                                     )
                                 )
                             ),
-                            onClick = { isSelectionPanelExpanded = !isSelectionPanelExpanded }
+                            onClick = { viewModel.handleIntent(WorkspaceIntent.OnToggleSelectionPanel) }
                         ) {
                             Icon(
-                                imageVector = if (isSelectionPanelExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                                contentDescription = if (isSelectionPanelExpanded) "Collapse" else "Expand"
+                                imageVector = if (uiState.isSelectionPanelExpanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                                contentDescription = if (uiState.isSelectionPanelExpanded) "Collapse" else "Expand"
                             )
                         }
                     }
@@ -154,7 +152,7 @@ fun WorkspaceScreen(
                 .padding(padding)
         ) {
             WorkspaceSelectionSection(
-                isExpanded = isSelectionPanelExpanded,
+                isExpanded = uiState.isSelectionPanelExpanded,
                 selectedPaths = uiState.selectedPaths,
                 isAnalyzing = uiState.isAnalyzing,
                 scanProgress = uiState.scanProgress,

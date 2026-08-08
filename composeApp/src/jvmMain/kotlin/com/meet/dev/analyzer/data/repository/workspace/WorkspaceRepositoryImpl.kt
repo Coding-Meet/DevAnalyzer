@@ -8,6 +8,7 @@ import com.meet.dev.analyzer.data.repository.project.helpers.ProjectFileScanner
 import com.meet.dev.analyzer.data.repository.project.helpers.ProjectOverviewAnalyzer
 import com.meet.dev.analyzer.data.repository.project.helpers.VersionCatalogParser
 import com.meet.dev.analyzer.data.repository.storage.helpers.AndroidSdkAnalyzer
+import com.meet.dev.analyzer.data.repository.storage.helpers.AvdAnalyzer
 import com.meet.dev.analyzer.data.repository.storage.helpers.GradleAnalyzer
 import com.meet.dev.analyzer.data.repository.storage.helpers.KonanAnalyzer
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
@@ -23,7 +24,8 @@ class WorkspaceRepositoryImpl(
     private val projectOverviewAnalyzer: ProjectOverviewAnalyzer,
     private val androidSdkAnalyzer: AndroidSdkAnalyzer,
     private val gradleAnalyzer: GradleAnalyzer,
-    private val konanAnalyzer: KonanAnalyzer
+    private val konanAnalyzer: KonanAnalyzer,
+    private val avdAnalyzer: AvdAnalyzer
 ) : WorkspaceRepository {
 
     private val TAG = tagName(javaClass)
@@ -58,6 +60,7 @@ class WorkspaceRepositoryImpl(
             val usedKotlinVersions = mutableSetOf<String>()
             val usedNdkVersions = mutableSetOf<String>()
             val usedCmakeVersions = mutableSetOf<String>()
+            val usedJdkVersions = mutableSetOf<String>()
 
             projectDirs.forEachIndexed { index, projectDir ->
                 val progressVal = 0.1f + (0.5f * (index.toFloat() / totalProjects))
@@ -93,6 +96,7 @@ class WorkspaceRepositoryImpl(
                 overview.kotlinVersion?.let { usedKotlinVersions.add(it) }
                 overview.ndkVersion?.let { usedNdkVersions.add(it) }
                 overview.cmakeVersion?.let { usedCmakeVersions.add(it) }
+                overview.jdkVersion?.let { usedJdkVersions.add(it) }
             }
 
             AppLogger.i(TAG) {
@@ -102,7 +106,8 @@ class WorkspaceRepositoryImpl(
                         "Gradle: $usedGradleVersions\n" +
                         "Kotlin: $usedKotlinVersions\n" +
                         "NDK: $usedNdkVersions\n" +
-                        "CMake: $usedCmakeVersions"
+                        "CMake: $usedCmakeVersions\n" +
+                        "JDK: $usedJdkVersions"
             }
 
             // 2. Scan Local System Resources
@@ -316,6 +321,130 @@ class WorkspaceRepositoryImpl(
                 if (isUsed) activeResources.add(resource) else unusedResources.add(resource)
             }
 
+            // 2.i Android Virtual Devices
+            onProgress(0.97f, "Scanning Android Virtual Devices...")
+            val avdInfo = avdAnalyzer.analyzeAvdData()
+            avdInfo.avdItemList.forEach { item ->
+                unusedResources.add(
+                    UnusedResourceItem(
+                        name = item.name,
+                        version = item.apiLevel ?: "Unknown",
+                        category = ResourceCategory.ANDROID_AVD,
+                        path = item.path,
+                        sizeBytes = item.sizeBytes,
+                        sizeFormatted = item.actualStorage,
+                        usedByProjects = emptyList()
+                    )
+                )
+            }
+
+            // 2.j Android System Images
+            onProgress(0.98f, "Scanning Android System Images...")
+            sdkInfo.systemImageInfo.systemImages.forEach { item ->
+                val apiVal = apiRegex.find(item.name)?.groupValues?.get(1)
+                    ?: item.name.substringAfter("android-")
+
+                val usedByAnyProject = usedCompileSdks.contains(apiVal) ||
+                        usedCompileSdks.any { it.contains(apiVal) } ||
+                        usedTargetSdks.contains(apiVal) ||
+                        usedTargetSdks.any { it.contains(apiVal) } ||
+                        usedMinSdks.contains(apiVal) ||
+                        usedMinSdks.any { it.contains(apiVal) }
+
+                val usedByAnyAvd = avdInfo.avdItemList.any { avd ->
+                    avd.apiLevel == apiVal || avd.apiLevel == "android-$apiVal"
+                }
+
+                val isUsed = usedByAnyProject || usedByAnyAvd
+                val usingProjects = if (usedByAnyProject) {
+                    projects.filter {
+                        it.compileSdkVersion == apiVal || it.compileSdkVersion?.contains(apiVal) == true ||
+                                it.targetSdkVersion == apiVal || it.targetSdkVersion?.contains(apiVal) == true ||
+                                it.minSdkVersion == apiVal || it.minSdkVersion?.contains(apiVal) == true
+                    }.map { it.projectName }
+                } else emptyList()
+
+                val resource = UnusedResourceItem(
+                    name = "System Image ${item.name}",
+                    version = apiVal,
+                    category = ResourceCategory.ANDROID_SYSTEM_IMAGE,
+                    path = item.path,
+                    sizeBytes = item.sizeBytes,
+                    sizeFormatted = item.sizeReadable,
+                    usedByProjects = usingProjects
+                )
+                if (isUsed) activeResources.add(resource) else unusedResources.add(resource)
+            }
+
+            // 2.k Gradle Daemons
+            onProgress(0.86f, "Scanning Gradle daemons...")
+            gradleInfo.daemonInfo.daemonItems.forEach { item ->
+                unusedResources.add(
+                    UnusedResourceItem(
+                        name = "Gradle Daemon Logs ${item.name}",
+                        version = item.name,
+                        category = ResourceCategory.GRADLE_DAEMON,
+                        path = item.path,
+                        sizeBytes = item.sizeBytes,
+                        sizeFormatted = item.sizeReadable
+                    )
+                )
+            }
+
+            // 2.l Gradle Toolchain JDKs
+            onProgress(0.87f, "Scanning Gradle JDKs...")
+            gradleInfo.jdkInfo.jdkItems.forEach { item ->
+                val version = item.name
+                val isUsed = usedJdkVersions.any { usedVer ->
+                    version.contains(usedVer) || usedVer.contains(version)
+                }
+                val usingProjects = if (isUsed) {
+                    projects.filter {
+                        it.jdkVersion != null && (version.contains(it.jdkVersion) || it.jdkVersion.contains(version))
+                    }.map { it.projectName }
+                } else emptyList()
+
+                val resource = UnusedResourceItem(
+                    name = "Gradle Toolchain JDK ${item.name}",
+                    version = item.name,
+                    category = ResourceCategory.GRADLE_JDK,
+                    path = item.path,
+                    sizeBytes = item.sizeBytes,
+                    sizeFormatted = item.sizeReadable,
+                    usedByProjects = usingProjects
+                )
+                if (isUsed) activeResources.add(resource) else unusedResources.add(resource)
+            }
+
+            // 2.m Other Gradle Caches & Temp Files
+            onProgress(0.88f, "Scanning other Gradle caches...")
+            gradleInfo.otherGradleFolderInfo.otherGradleFolderItems.forEach { item ->
+                val category = when (item.version) {
+                    ".tmp" -> ResourceCategory.GRADLE_TEMP_FILES
+                    "build-cache-1" -> ResourceCategory.GRADLE_BUILD_CACHE
+                    "transforms-3", "jars-9" -> ResourceCategory.GRADLE_TRANSFORMS_CACHE
+                    else -> null
+                }
+                if (category != null) {
+                    unusedResources.add(
+                        UnusedResourceItem(
+                            name = when (item.version) {
+                                ".tmp" -> "Gradle Temporary Files"
+                                "build-cache-1" -> "Gradle Local Build Cache"
+                                "transforms-3" -> "Gradle Dependency Transforms Cache"
+                                "jars-9" -> "Gradle Cached Jars"
+                                else -> item.version
+                            },
+                            version = "Global",
+                            category = category,
+                            path = item.path,
+                            sizeBytes = item.sizeBytes,
+                            sizeFormatted = item.sizeReadable
+                        )
+                    )
+                }
+            }
+
             onProgress(1f, "Analysis Complete")
             WorkspaceAnalysisResult(
                 projects = projects,
@@ -337,6 +466,13 @@ class WorkspaceRepositoryImpl(
                 } else {
                     val success = file.deleteRecursively()
                     if (success) {
+                        if (file.name.endsWith(".avd", ignoreCase = true)) {
+                            val parent = file.parentFile
+                            val iniFile = File(parent, file.nameWithoutExtension + ".ini")
+                            if (iniFile.exists()) {
+                                iniFile.delete()
+                            }
+                        }
                         Pair(true, null)
                     } else {
                         Pair(

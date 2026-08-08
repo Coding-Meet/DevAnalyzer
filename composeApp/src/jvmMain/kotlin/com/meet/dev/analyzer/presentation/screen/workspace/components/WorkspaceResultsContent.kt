@@ -20,14 +20,24 @@ import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material.icons.automirrored.filled.Sort
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,9 +62,17 @@ fun WorkspaceResultsContent(
     val coroutineScope = rememberCoroutineScope()
     val projectListState = rememberLazyListState()
 
-    val filteredProjects = remember(uiState.projects, uiState.searchQuery) {
-        uiState.projects.filter {
+    var projectSortOrder by remember { mutableStateOf(ProjectSortOrder.NAME_ASC) }
+
+    val filteredProjects = remember(uiState.projects, uiState.searchQuery, projectSortOrder) {
+        val filtered = uiState.projects.filter {
             it.projectName.contains(uiState.searchQuery, ignoreCase = true)
+        }
+        when (projectSortOrder) {
+            ProjectSortOrder.NAME_ASC -> filtered.sortedBy { it.projectName.lowercase() }
+            ProjectSortOrder.NAME_DESC -> filtered.sortedByDescending { it.projectName.lowercase() }
+            ProjectSortOrder.SIZE_DESC -> filtered.sortedByDescending { it.totalSizeBytes }
+            ProjectSortOrder.SIZE_ASC -> filtered.sortedBy { it.totalSizeBytes }
         }
     }
 
@@ -113,15 +131,96 @@ fun WorkspaceResultsContent(
                     modifier = Modifier.padding(bottom = 8.dp)
                 )
 
-                CustomOutlinedTextField(
-                    value = uiState.searchQuery,
-                    onValueChange = { onIntent(WorkspaceIntent.OnSearchQueryChange(it)) },
-                    onClear = { onIntent(WorkspaceIntent.OnSearchQueryChange("")) },
+                var showSortMenu by remember { mutableStateOf(false) }
+
+                Row(
                     modifier = Modifier.fillMaxWidth().padding(bottom = 8.dp),
-                    leadingIcon = Icons.Default.Search,
-                    labelText = "Search Projects",
-                    placeholder = { Text("Search projects by name...") }
-                )
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    CustomOutlinedTextField(
+                        value = uiState.searchQuery,
+                        onValueChange = { onIntent(WorkspaceIntent.OnSearchQueryChange(it)) },
+                        onClear = { onIntent(WorkspaceIntent.OnSearchQueryChange("")) },
+                        modifier = Modifier.weight(1f),
+                        leadingIcon = Icons.Default.Search,
+                        labelText = "Search Projects",
+                        placeholder = { Text("Search projects by name...") }
+                    )
+
+                    Box {
+                        IconButton(
+                            modifier = Modifier.pointerHoverIcon(
+                                PointerIcon(
+                                    Cursor.getPredefinedCursor(
+                                        Cursor.HAND_CURSOR
+                                    )
+                                )
+                            ),
+                            onClick = { showSortMenu = true }
+                        ) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.Sort,
+                                contentDescription = "Sort Projects",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+
+                        DropdownMenu(
+                            expanded = showSortMenu,
+                            onDismissRequest = { showSortMenu = false }
+                        ) {
+                            DropdownMenuItem(
+                                text = { Text("Name (A-Z)") },
+                                onClick = {
+                                    projectSortOrder = ProjectSortOrder.NAME_ASC
+                                    showSortMenu = false
+                                },
+                                leadingIcon = {
+                                    if (projectSortOrder == ProjectSortOrder.NAME_ASC) {
+                                        Icon(Icons.Default.Check, contentDescription = null)
+                                    }
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Name (Z-A)") },
+                                onClick = {
+                                    projectSortOrder = ProjectSortOrder.NAME_DESC
+                                    showSortMenu = false
+                                },
+                                leadingIcon = {
+                                    if (projectSortOrder == ProjectSortOrder.NAME_DESC) {
+                                        Icon(Icons.Default.Check, contentDescription = null)
+                                    }
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Size (Largest)") },
+                                onClick = {
+                                    projectSortOrder = ProjectSortOrder.SIZE_DESC
+                                    showSortMenu = false
+                                },
+                                leadingIcon = {
+                                    if (projectSortOrder == ProjectSortOrder.SIZE_DESC) {
+                                        Icon(Icons.Default.Check, contentDescription = null)
+                                    }
+                                }
+                            )
+                            DropdownMenuItem(
+                                text = { Text("Size (Smallest)") },
+                                onClick = {
+                                    projectSortOrder = ProjectSortOrder.SIZE_ASC
+                                    showSortMenu = false
+                                },
+                                leadingIcon = {
+                                    if (projectSortOrder == ProjectSortOrder.SIZE_ASC) {
+                                        Icon(Icons.Default.Check, contentDescription = null)
+                                    }
+                                }
+                            )
+                        }
+                    }
+                }
 
                 BoxWithConstraints(modifier = Modifier.weight(1f)) {
                     LazyColumn(
@@ -290,4 +389,11 @@ fun WorkspaceResultsContent(
             }
         }
     }
+}
+
+enum class ProjectSortOrder {
+    NAME_ASC,
+    NAME_DESC,
+    SIZE_DESC,
+    SIZE_ASC
 }

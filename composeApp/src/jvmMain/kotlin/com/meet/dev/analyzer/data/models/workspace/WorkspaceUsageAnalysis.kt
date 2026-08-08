@@ -41,6 +41,34 @@ enum class ResourceCategory(
     ANDROID_SDK_SOURCES(
         displayName = "Android SDK Sources",
         description = "Source code downloads for Android APIs, used for reference in the IDE. Safe to delete if not used."
+    ),
+    ANDROID_AVD(
+        displayName = "Android Virtual Devices (AVD)",
+        description = "Configured emulator virtual devices. Deleting them removes the AVD and its virtual storage disk."
+    ),
+    ANDROID_SYSTEM_IMAGE(
+        displayName = "Android System Images",
+        description = "Downloaded Android system images (grouped by API level) used to run AVDs. Older or unused images can be safely deleted."
+    ),
+    GRADLE_DAEMON(
+        displayName = "Gradle Daemons",
+        description = "Gradle daemon process logs and registry files. Deleting them is completely safe and cleans up system clutter."
+    ),
+    GRADLE_BUILD_CACHE(
+        displayName = "Gradle Build Cache",
+        description = "Cached task outputs for Gradle builds. Safe to delete; Gradle will rebuild tasks on demand."
+    ),
+    GRADLE_TRANSFORMS_CACHE(
+        displayName = "Gradle Transforms & Jars Cache",
+        description = "Intermediate transformed dependency artifacts. Safe to delete; Gradle will regenerate them on the next compilation."
+    ),
+    GRADLE_TEMP_FILES(
+        displayName = "Gradle Temporary Files",
+        description = "Leftover temporary files generated during project builds. Completely safe to delete."
+    ),
+    GRADLE_JDK(
+        displayName = "Gradle Toolchain JDKs",
+        description = "JDK versions automatically downloaded by Gradle to run your projects. Deleting them is safe; Gradle will re-download them if needed."
     )
 }
 

@@ -197,6 +197,7 @@ compose {
                     iconFile.set(iconsRoot.resolve("app_logo.png"))
                     shortcut = true
                     appCategory = "Productivity"
+                    modules("jdk.security.auth")
                 }
 
             }

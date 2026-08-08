@@ -102,6 +102,7 @@ fun ProjectInfoCard(
                     "Gradle Version" to project.gradleVersion,
                     "Kotlin version" to project.kotlinVersion,
                     "AGP version" to project.androidGradlePluginVersion,
+                    "JDK Version" to project.jdkVersion,
                     "Project Size" to project.sizeReadable,
                     "Multi-Module" to (if (project.isMultiModule) "Yes" else "No"),
                     "NDK Version" to project.ndkVersion,

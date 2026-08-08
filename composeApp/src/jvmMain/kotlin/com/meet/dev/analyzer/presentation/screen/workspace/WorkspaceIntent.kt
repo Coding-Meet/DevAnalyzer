@@ -26,6 +26,7 @@ sealed interface WorkspaceIntent {
     data class OnResourceClicked(val resource: UnusedResourceItem) : WorkspaceIntent
     data class OnProjectHighlight(val projectName: String) : WorkspaceIntent
     data object OnClearHighlights : WorkspaceIntent
+    data object OnToggleSelectionPanel : WorkspaceIntent
 
     // Analytics event trackers
     data object TrackFeedbackOpened : WorkspaceIntent

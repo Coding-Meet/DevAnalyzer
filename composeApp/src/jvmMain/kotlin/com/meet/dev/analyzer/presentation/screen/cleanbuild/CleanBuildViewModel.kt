@@ -278,7 +278,8 @@ class CleanBuildViewModel(
                 expandedProjects = emptySet(),
                 selectedPath = "",
                 deletionProgressList = emptyList(),
-                deletionResult = ""
+                deletionResult = "",
+                isProjectSelectionExpanded = true
             )
         }
     }
@@ -344,7 +345,8 @@ class CleanBuildViewModel(
                         isAnalyzing = false,
                         scanProgress = 1f,
                         scanStatus = if (result.isEmpty()) "No Gradle projects found" else "Done",
-                        expandedProjects = expandedProjects
+                        expandedProjects = expandedProjects,
+                        isProjectSelectionExpanded = if (result.isEmpty()) true else it.isProjectSelectionExpanded
                     )
                 }
                 val durationMs = mark.elapsedNow().inWholeMilliseconds

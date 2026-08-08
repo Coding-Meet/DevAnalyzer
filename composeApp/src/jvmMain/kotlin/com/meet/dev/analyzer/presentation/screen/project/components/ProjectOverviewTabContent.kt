@@ -175,7 +175,9 @@ private fun ProjectConfigurationCard(projectOverviewInfo: ProjectOverviewInfo) {
         ProjectDetail("Build Tools", projectOverviewInfo.buildToolsSdk),
         ProjectDetail("Multi-Module", if (projectOverviewInfo.isMultiModule) "Yes" else "No"),
         ProjectDetail("NDK", projectOverviewInfo.ndkVersion),
-        ProjectDetail("CMake", projectOverviewInfo.cmakeVersion)
+        ProjectDetail("CMake", projectOverviewInfo.cmakeVersion),
+        ProjectDetail("JDK", projectOverviewInfo.jdkVersion),
+        ProjectDetail("Build DSL", projectOverviewInfo.buildDsl)
     )
 
     OutlinedCard(
@@ -195,7 +197,7 @@ private fun ProjectConfigurationCard(projectOverviewInfo: ProjectOverviewInfo) {
             )
             DetailGrid(
                 items = configurationItems,
-                columnCount = 5
+                columnCount = 4
             )
         }
 

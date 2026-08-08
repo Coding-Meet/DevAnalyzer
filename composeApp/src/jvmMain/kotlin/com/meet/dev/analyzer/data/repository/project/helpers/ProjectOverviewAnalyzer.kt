@@ -5,6 +5,7 @@ import com.meet.dev.analyzer.data.models.project.ModuleBuildFileInfo
 import com.meet.dev.analyzer.data.models.project.ProjectOverviewInfo
 import com.meet.dev.analyzer.data.models.project.SettingsGradleFileInfo
 import com.meet.dev.analyzer.data.models.project.VersionCatalog
+import com.meet.dev.analyzer.data.models.project.BuildFileType
 import com.meet.dev.analyzer.utility.crash_report.AppLogger
 import com.meet.dev.analyzer.utility.crash_report.AppLogger.tagName
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils
@@ -24,11 +25,16 @@ class ProjectOverviewAnalyzer {
 
         fun findProjectName(): String {
             if (settingsGradleFileInfo == null) return projectDir.name
-            val readLines = settingsGradleFileInfo.readLines
-            val projectNameLine = readLines.find { it.startsWith("rootProject.name") }
-            if (projectNameLine == null) return projectDir.name
-            val projectName = projectNameLine.substringAfter("=").replace("\"", "").trim()
-            return projectName
+            val regex = Regex("""rootProject\.name\s*=\s*['"]([^'"]+)['"]""")
+            settingsGradleFileInfo.readLines.forEach { line ->
+                val trimmed = line.trim()
+                if (!trimmed.startsWith("//") && !trimmed.startsWith("/*")) {
+                    regex.find(trimmed)?.let { match ->
+                        return match.groupValues[1].trim()
+                    }
+                }
+            }
+            return projectDir.name
         }
 
         val rootModuleBuildFileInfo =
@@ -208,6 +214,58 @@ class ProjectOverviewAnalyzer {
             return platforms.toList()
         }
 
+        fun extractJdkVersion(): String? {
+            moduleBuildFileInfos.forEach { file ->
+                val content = file.content
+
+                // Case 1: jvmToolchain(17) or jvmToolchain = 17
+                Regex("""jvmToolchain\s*\(?\s*(\d+)\s*\)?""").find(content)?.let {
+                    return it.groupValues[1]
+                }
+
+                // Case 2: languageVersion = JavaLanguageVersion.of(17)
+                Regex("""languageVersion\s*=\s*JavaLanguageVersion\.of\s*\(\s*(\d+)\s*\)""").find(content)?.let {
+                    return it.groupValues[1]
+                }
+
+                // Case 3: JavaVersion.VERSION_1_X or JavaVersion.VERSION_X
+                Regex("""JavaVersion\.VERSION_1_(\d+)""").find(content)?.let {
+                    return it.groupValues[1]
+                }
+                Regex("""JavaVersion\.VERSION_(\d+)""").find(content)?.let {
+                    return it.groupValues[1]
+                }
+
+                // Case 4: jvmTarget = "17" or jvmTarget = "1.8"
+                Regex("""jvmTarget\s*=\s*["']1\.(\d+)["']""").find(content)?.let {
+                    return it.groupValues[1]
+                }
+                Regex("""jvmTarget\s*=\s*["'](\d+)["']""").find(content)?.let {
+                    return it.groupValues[1]
+                }
+            }
+
+            val propertiesFile = File(projectDir, "gradle.properties")
+            if (propertiesFile.exists()) {
+                try {
+                    val lines = propertiesFile.readLines()
+                    lines.find { it.contains("org.gradle.java.home") }?.let { line ->
+                        val path = line.substringAfter("=").trim()
+                        val dirName = File(path).name
+                        val versionRegex = Regex("""(\d+)""")
+                        versionRegex.find(dirName)?.value?.let { return it }
+                    }
+                } catch (_: Exception) {}
+            }
+
+            return null
+        }
+
+        fun extractBuildDsl(): String {
+            val hasKts = moduleBuildFileInfos.any { it.type == BuildFileType.BUILD_GRADLE_KTS }
+            return if (hasKts) "Kotlin DSL" else "Groovy DSL"
+        }
+
         val sizeBytes = FolderFileUtils.calculateFolderSize(projectDir)
 
         val projectOverviewInfo = ProjectOverviewInfo(
@@ -225,7 +283,9 @@ class ProjectOverviewAnalyzer {
             compileSdkVersion = extractCompileSdk(),
             ndkVersion = extractNdkVersion(),
             cmakeVersion = extractCmakeVersion(),
-            platformList = getPlatforms()
+            platformList = getPlatforms(),
+            jdkVersion = extractJdkVersion(),
+            buildDsl = extractBuildDsl()
         )
         AppLogger.d(tag = tag) { "Found project info." }
         AppLogger.i(tag = tag) {

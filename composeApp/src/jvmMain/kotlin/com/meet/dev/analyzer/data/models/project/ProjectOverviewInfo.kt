@@ -16,4 +16,6 @@ data class ProjectOverviewInfo(
     val ndkVersion: String?,
     val cmakeVersion: String?,
     val platformList: List<String>,
+    val jdkVersion: String?,
+    val buildDsl: String?,
 )
