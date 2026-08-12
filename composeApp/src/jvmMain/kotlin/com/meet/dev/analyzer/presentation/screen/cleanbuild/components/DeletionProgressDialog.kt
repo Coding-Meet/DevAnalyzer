@@ -7,9 +7,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -221,12 +221,11 @@ fun DeletionProgressDialog(
                 Spacer(modifier = Modifier.height(16.dp))
 
                 // Progress list with scrollbar
-                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(320.dp)) {
                     LazyColumn(
                         state = scrollState,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 400.dp),
+                            .fillMaxSize(),
                         contentPadding = PaddingValues(
                             end = 12.dp // scrollbar breathing space
                         ),

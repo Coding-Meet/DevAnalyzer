@@ -1,8 +1,14 @@
 package com.meet.dev.analyzer.presentation.screen.workspace
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -10,7 +16,14 @@ import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Workspaces
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SecondaryTabRow
+import androidx.compose.material3.Tab
+import androidx.compose.material3.Text
+import androidx.compose.ui.text.font.FontWeight
+import com.meet.dev.analyzer.presentation.screen.workspace.components.DetectedProjectsPane
+import com.meet.dev.analyzer.presentation.screen.workspace.components.WorkspaceDependencyAnalyzerContent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
@@ -134,8 +147,8 @@ fun WorkspaceScreen(
                     FolderFileUtils.formatSize(size)
                 }
             }
-            val isFabVisible by remember(visibleSelectedCount) {
-                derivedStateOf { visibleSelectedCount > 0 }
+            val isFabVisible by remember(visibleSelectedCount, uiState.workspaceTab) {
+                derivedStateOf { visibleSelectedCount > 0 && uiState.workspaceTab == WorkspaceTab.RESOURCES }
             }
 
             DeleteFloatingActionButton(
@@ -182,10 +195,85 @@ fun WorkspaceScreen(
                     )
                 }
             } else if (!uiState.isAnalyzing) {
-                WorkspaceResultsContent(
-                    uiState = uiState,
-                    onIntent = viewModel::handleIntent
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Left Pane: Detected Projects (40%)
+                    DetectedProjectsPane(
+                        uiState = uiState,
+                        onIntent = viewModel::handleIntent,
+                        modifier = Modifier.weight(0.4f)
+                    )
+
+                    // Right Pane: Tabbed Content (60%)
+                    Column(
+                        modifier = Modifier
+                            .weight(0.6f)
+                            .fillMaxHeight()
+                    ) {
+//                        SecondaryTabRow(
+//                            selectedTabIndex = if (uiState.workspaceTab == WorkspaceTab.RESOURCES) 0 else 1,
+//                            containerColor = MaterialTheme.colorScheme.surface,
+//                            contentColor = MaterialTheme.colorScheme.primary,
+//                            modifier = Modifier.fillMaxWidth()
+//                        ) {
+//                            Tab(
+//                                selected = uiState.workspaceTab == WorkspaceTab.RESOURCES,
+//                                onClick = { viewModel.handleIntent(WorkspaceIntent.OnWorkspaceTabChange(WorkspaceTab.RESOURCES)) },
+//                                modifier = Modifier.pointerHoverIcon(
+//                                    PointerIcon(
+//                                        Cursor.getPredefinedCursor(
+//                                            Cursor.HAND_CURSOR
+//                                        )
+//                                    )
+//                                ),
+//                                text = {
+//                                    Text(
+//                                        "Cleanup & Resources",
+//                                        fontWeight = FontWeight.Bold
+//                                    )
+//                                }
+//                            )
+//                            Tab(
+//                                selected = uiState.workspaceTab == WorkspaceTab.DEPENDENCIES,
+//                                onClick = { viewModel.handleIntent(WorkspaceIntent.OnWorkspaceTabChange(WorkspaceTab.DEPENDENCIES)) },
+//                                modifier = Modifier.pointerHoverIcon(
+//                                    PointerIcon(
+//                                        Cursor.getPredefinedCursor(
+//                                            Cursor.HAND_CURSOR
+//                                        )
+//                                    )
+//                                ),
+//                                text = {
+//                                    Text(
+//                                        "Dependency Analyzer",
+//                                        fontWeight = FontWeight.Bold
+//                                    )
+//                                }
+//                            )
+//                        }
+//
+//                        Spacer(modifier = Modifier.height(12.dp))
+
+//                        if (uiState.workspaceTab == WorkspaceTab.RESOURCES) {
+                            WorkspaceResultsContent(
+                                uiState = uiState,
+                                onIntent = viewModel::handleIntent,
+                                onProjectHighlight = { projectName ->
+                                    viewModel.handleIntent(WorkspaceIntent.OnProjectHighlight(projectName))
+                                }
+                            )
+//                        } else {
+//                            WorkspaceDependencyAnalyzerContent(
+//                                uiState = uiState,
+//                                onIntent = viewModel::handleIntent
+//                            )
+//                        }
+                    }
+                }
             }
         }
     }

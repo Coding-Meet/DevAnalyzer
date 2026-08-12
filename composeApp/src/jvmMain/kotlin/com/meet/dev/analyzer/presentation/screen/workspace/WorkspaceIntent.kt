@@ -27,10 +27,17 @@ sealed interface WorkspaceIntent {
     data class OnProjectHighlight(val projectName: String) : WorkspaceIntent
     data object OnClearHighlights : WorkspaceIntent
     data object OnToggleSelectionPanel : WorkspaceIntent
+    data object OnSelectRecommended : WorkspaceIntent
 
     // Analytics event trackers
     data object TrackFeedbackOpened : WorkspaceIntent
     data object TrackReviewPromptShown : WorkspaceIntent
     data object TrackFeedbackCancelled : WorkspaceIntent
     data object TrackWorkspaceAnalyzerOpened : WorkspaceIntent
+
+    // Dependency Analyzer tab intents
+    data class OnWorkspaceTabChange(val tab: WorkspaceTab) : WorkspaceIntent
+    data class OnDependencyTabChange(val tab: DependencyTypeTab) : WorkspaceIntent
+    data class OnDependencySearchChange(val query: String) : WorkspaceIntent
+    data class OnToggleConflictsOnly(val showOnly: Boolean) : WorkspaceIntent
 }

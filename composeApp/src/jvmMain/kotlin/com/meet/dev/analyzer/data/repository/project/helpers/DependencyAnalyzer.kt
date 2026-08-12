@@ -52,6 +52,9 @@ class DependencyAnalyzer {
 
         AppLogger.d(tag = tag) { "Finding dependencies" }
 
+        val versionResolver = GradleVersionResolver()
+        versionResolver.collectExtVariables(moduleBuildFileInfos)
+
         // normal dependencies → implementation("group:artifact:version") , implementation "group:artifact:version" , implementation 'group:artifact:version'
         val normalDepRegex = Regex(
             """(implementation|api|ksp|kapt|compileOnly|runtimeOnly|testImplementation|androidTestImplementation)\s*\(?["']([^"':]+):([^"':]+):([^"']+)["']\)?"""
@@ -86,7 +89,7 @@ class DependencyAnalyzer {
                     val type = match.groupValues[1] // implementation
                     val group = match.groupValues[2] // com.google.android.material
                     val artifact = match.groupValues[3] // material
-                    val version = match.groupValues[4] // 1.11.0
+                    val version = versionResolver.resolve(match.groupValues[4]) // Resolve version
 
                     val availableGradleVersions = findAvailableVersionsInGradleCache(
                         groupId = group,

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
@@ -126,13 +127,13 @@ fun ConfirmationDialog(
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
-                BoxWithConstraints {
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(320.dp)) {
                     val scrollState = rememberLazyGridState()
 
                     LazyVerticalGrid(
                         state = scrollState,
                         columns = GridCells.Fixed(2),
-                        modifier = Modifier.heightIn(max = 400.dp),
+                        modifier = Modifier.fillMaxSize(),
                         contentPadding = PaddingValues(
                             top = 8.dp,
                             bottom = 8.dp,

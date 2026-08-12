@@ -17,7 +17,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TriStateCheckbox
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -26,21 +25,21 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.meet.dev.analyzer.data.models.workspace.ResourceCategory
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
 import com.meet.dev.analyzer.presentation.components.CustomToolTip
-import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceIntent
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
 import java.awt.Cursor
 
 @Composable
 fun CategoryHeaderItem(
-    category: ResourceCategory,
+    title: String,
+    description: String,
     items: List<UnusedResourceItem>,
     isCollapsed: Boolean,
     isReadOnly: Boolean = false,
     onToggleCollapse: () -> Unit,
-    onIntent: (WorkspaceIntent) -> Unit = {}
+    onCheckboxClick: (() -> Unit)? = null,
+    checkboxState: ToggleableState = ToggleableState.Off
 ) {
     val shape = RoundedCornerShape(
         topStart = 10.dp,
@@ -63,29 +62,10 @@ fun CategoryHeaderItem(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            if (!isReadOnly) {
-                val allCategorySelected = remember(items) { items.all { it.isSelected } }
-                val someCategorySelected =
-                    remember(items) { items.any { it.isSelected } && !allCategorySelected }
-
-                val categorySelectState = remember(allCategorySelected, someCategorySelected) {
-                    when {
-                        allCategorySelected -> ToggleableState.On
-                        someCategorySelected -> ToggleableState.Indeterminate
-                        else -> ToggleableState.Off
-                    }
-                }
-
+            if (!isReadOnly && onCheckboxClick != null) {
                 TriStateCheckbox(
-                    state = categorySelectState,
-                    onClick = {
-                        onIntent(
-                            WorkspaceIntent.OnCategorySelectionChange(
-                                category,
-                                !allCategorySelected
-                            )
-                        )
-                    },
+                    state = checkboxState,
+                    onClick = onCheckboxClick,
                     modifier = Modifier.pointerHoverIcon(
                         PointerIcon(
                             Cursor.getPredefinedCursor(
@@ -96,14 +76,14 @@ fun CategoryHeaderItem(
                 )
             }
             Text(
-                text = category.displayName,
+                text = title,
                 style = MaterialTheme.typography.titleSmall,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
             CustomToolTip(
-                title = category.displayName,
-                description = category.description
+                title = title,
+                description = description
             ) {
                 Icon(
                     imageVector = Icons.Default.Info,

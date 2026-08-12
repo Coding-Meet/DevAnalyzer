@@ -22,7 +22,6 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
-import androidx.compose.material3.CheckboxDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,13 +31,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.meet.dev.analyzer.data.models.workspace.CleanupSafety
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
+import com.meet.dev.analyzer.data.models.workspace.safety
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceIntent
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.openFile
 import java.awt.Cursor
@@ -59,22 +61,32 @@ fun ResourceItemCard(
     val isHovered by interactionSource.collectIsHoveredAsState()
 
     Card(
-        onClick = { onIntent(WorkspaceIntent.OnResourceClicked(resource)) },
+        onClick = {
+            if (!isActive) {
+                onIntent(WorkspaceIntent.OnResourceClicked(resource))
+            }
+        },
         interactionSource = interactionSource,
         modifier = Modifier
             .fillMaxWidth()
             .padding(vertical = 2.dp)
             .border(
-                width = if (resource.isSelected) 1.5.dp else if (isHovered) 1.dp else 1.dp,
+                width = if (resource.isSelected) 1.5.dp else if (isHovered && !isActive) 1.dp else 1.dp,
                 color = when {
                     isSelectedActive -> MaterialTheme.colorScheme.error.copy(alpha = 0.35f)
                     isSelectedUnused -> MaterialTheme.colorScheme.primary.copy(alpha = 0.5f)
-                    isHovered -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
+                    isHovered && !isActive -> MaterialTheme.colorScheme.outline.copy(alpha = 0.3f)
                     else -> MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                 },
                 shape = cardShape
             )
-            .pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))),
+            .then(
+                if (!isActive) {
+                    Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                } else {
+                    Modifier
+                }
+            ),
         shape = cardShape,
         colors = CardDefaults.cardColors(
             containerColor = when {
@@ -95,20 +107,26 @@ fun ResourceItemCard(
                 .padding(start = 4.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Checkbox
-            Checkbox(
-                checked = resource.isSelected,
-                onCheckedChange = onCheckedChange,
-                colors = if (isActive) {
-                    CheckboxDefaults.colors(
-                        checkedColor = MaterialTheme.colorScheme.error,
-                        checkmarkColor = MaterialTheme.colorScheme.onError
+            // Checkbox or Lock Icon
+            if (isActive) {
+                Box(
+                    modifier = Modifier.padding(start = 12.dp, end = 12.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Lock,
+                        contentDescription = "Active / Protected",
+                        tint = MaterialTheme.colorScheme.outline,
+                        modifier = Modifier.size(18.dp)
                     )
-                } else {
-                    CheckboxDefaults.colors()
-                },
-                modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
-            )
+                }
+            } else {
+                Checkbox(
+                    checked = resource.isSelected,
+                    onCheckedChange = onCheckedChange,
+                    modifier = Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR)))
+                )
+            }
 
             // Main content column
             Column(modifier = Modifier.weight(1f)) {
@@ -120,7 +138,7 @@ fun ResourceItemCard(
                 ) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
                         modifier = Modifier.weight(1f)
                     ) {
                         Text(
@@ -128,15 +146,54 @@ fun ResourceItemCard(
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f, fill = false)
                         )
-                        if (isActive) {
-                            Icon(
-                                imageVector = Icons.Default.Lock,
-                                contentDescription = "Active / Protected",
-                                tint = if (isSelectedActive) MaterialTheme.colorScheme.error
-                                else MaterialTheme.colorScheme.secondary.copy(alpha = 0.7f),
-                                modifier = Modifier.size(14.dp)
+
+                        // Sub-category badge
+                        val badgeShape = RoundedCornerShape(4.dp)
+                        Box(
+                            modifier = Modifier
+                                .clip(badgeShape)
+                                .background(
+                                    MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                    badgeShape
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = resource.category.displayName,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = MaterialTheme.colorScheme.primary,
+                                maxLines = 1
+                            )
+                        }
+
+                        // Safety badge
+                        val safetyColor = when (resource.category.safety) {
+                            CleanupSafety.HIGH -> Color(0xFF3A9C3D)
+                            CleanupSafety.MEDIUM -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                            CleanupSafety.CAUTION -> MaterialTheme.colorScheme.error
+                        }
+                        val safetyBg = when (resource.category.safety) {
+                            CleanupSafety.HIGH -> Color(0xFFE8F5E9)
+                            CleanupSafety.MEDIUM -> MaterialTheme.colorScheme.surfaceVariant
+                            CleanupSafety.CAUTION -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                        }
+
+                        Box(
+                            modifier = Modifier
+                                .clip(badgeShape)
+                                .background(safetyBg, badgeShape)
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        ) {
+                            Text(
+                                text = resource.category.safety.label,
+                                style = MaterialTheme.typography.labelSmall,
+                                fontWeight = FontWeight.Bold,
+                                color = safetyColor,
+                                maxLines = 1
                             )
                         }
                     }

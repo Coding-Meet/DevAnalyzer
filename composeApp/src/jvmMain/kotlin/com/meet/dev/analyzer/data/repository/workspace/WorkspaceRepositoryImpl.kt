@@ -1,12 +1,18 @@
 package com.meet.dev.analyzer.data.repository.workspace
 
+import com.meet.dev.analyzer.data.models.project.Dependency
+import com.meet.dev.analyzer.data.models.project.Plugin
 import com.meet.dev.analyzer.data.models.project.ProjectOverviewInfo
 import com.meet.dev.analyzer.data.models.workspace.ResourceCategory
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
 import com.meet.dev.analyzer.data.models.workspace.WorkspaceAnalysisResult
+import com.meet.dev.analyzer.data.models.workspace.WorkspaceDependencyInfo
+import com.meet.dev.analyzer.data.models.workspace.WorkspacePluginInfo
 import com.meet.dev.analyzer.data.repository.project.helpers.ProjectFileScanner
 import com.meet.dev.analyzer.data.repository.project.helpers.ProjectOverviewAnalyzer
 import com.meet.dev.analyzer.data.repository.project.helpers.VersionCatalogParser
+import com.meet.dev.analyzer.data.repository.project.helpers.DependencyAnalyzer
+import com.meet.dev.analyzer.data.repository.project.helpers.PluginAnalyzer
 import com.meet.dev.analyzer.data.repository.storage.helpers.AndroidSdkAnalyzer
 import com.meet.dev.analyzer.data.repository.storage.helpers.AvdAnalyzer
 import com.meet.dev.analyzer.data.repository.storage.helpers.GradleAnalyzer
@@ -25,7 +31,9 @@ class WorkspaceRepositoryImpl(
     private val androidSdkAnalyzer: AndroidSdkAnalyzer,
     private val gradleAnalyzer: GradleAnalyzer,
     private val konanAnalyzer: KonanAnalyzer,
-    private val avdAnalyzer: AvdAnalyzer
+    private val avdAnalyzer: AvdAnalyzer,
+    private val dependencyAnalyzer: DependencyAnalyzer,
+    private val pluginAnalyzer: PluginAnalyzer
 ) : WorkspaceRepository {
 
     private val TAG = tagName(javaClass)
@@ -62,6 +70,10 @@ class WorkspaceRepositoryImpl(
             val usedCmakeVersions = mutableSetOf<String>()
             val usedJdkVersions = mutableSetOf<String>()
 
+//            val gradleModulesInfo = gradleAnalyzer.getGradleModulesInfo()
+//            val rawDepsList = mutableListOf<Pair<String, Dependency>>()
+//            val rawPluginsList = mutableListOf<Pair<String, Plugin>>()
+
             projectDirs.forEachIndexed { index, projectDir ->
                 val progressVal = 0.1f + (0.5f * (index.toFloat() / totalProjects))
                 onProgress(progressVal, "Analyzing project: ${projectDir.name}")
@@ -97,6 +109,24 @@ class WorkspaceRepositoryImpl(
                 overview.ndkVersion?.let { usedNdkVersions.add(it) }
                 overview.cmakeVersion?.let { usedCmakeVersions.add(it) }
                 overview.jdkVersion?.let { usedJdkVersions.add(it) }
+//
+//                try {
+//                    val plugins = pluginAnalyzer.findPlugin(
+//                        moduleBuildFileInfos = moduleBuildFileInfos,
+//                        versionCatalog = versionCatalog,
+//                        gradleModulesInfo = gradleModulesInfo
+//                    )
+//                    plugins.forEach { rawPluginsList.add(overview.projectName to it) }
+//
+//                    val dependencies = dependencyAnalyzer.findDependencies(
+//                        moduleBuildFileInfos = moduleBuildFileInfos,
+//                        versionCatalog = versionCatalog,
+//                        gradleModulesInfo = gradleModulesInfo
+//                    )
+//                    dependencies.forEach { rawDepsList.add(overview.projectName to it) }
+//                } catch (e: Exception) {
+//                    AppLogger.e(TAG, e) { "Failed to extract dependencies for ${projectDir.name}" }
+//                }
             }
 
             AppLogger.i(TAG) {
@@ -344,25 +374,9 @@ class WorkspaceRepositoryImpl(
                 val apiVal = apiRegex.find(item.name)?.groupValues?.get(1)
                     ?: item.name.substringAfter("android-")
 
-                val usedByAnyProject = usedCompileSdks.contains(apiVal) ||
-                        usedCompileSdks.any { it.contains(apiVal) } ||
-                        usedTargetSdks.contains(apiVal) ||
-                        usedTargetSdks.any { it.contains(apiVal) } ||
-                        usedMinSdks.contains(apiVal) ||
-                        usedMinSdks.any { it.contains(apiVal) }
-
                 val usedByAnyAvd = avdInfo.avdItemList.any { avd ->
                     avd.apiLevel == apiVal || avd.apiLevel == "android-$apiVal"
                 }
-
-                val isUsed = usedByAnyProject || usedByAnyAvd
-                val usingProjects = if (usedByAnyProject) {
-                    projects.filter {
-                        it.compileSdkVersion == apiVal || it.compileSdkVersion?.contains(apiVal) == true ||
-                                it.targetSdkVersion == apiVal || it.targetSdkVersion?.contains(apiVal) == true ||
-                                it.minSdkVersion == apiVal || it.minSdkVersion?.contains(apiVal) == true
-                    }.map { it.projectName }
-                } else emptyList()
 
                 val resource = UnusedResourceItem(
                     name = "System Image ${item.name}",
@@ -371,9 +385,9 @@ class WorkspaceRepositoryImpl(
                     path = item.path,
                     sizeBytes = item.sizeBytes,
                     sizeFormatted = item.sizeReadable,
-                    usedByProjects = usingProjects
+                    usedByProjects = emptyList()
                 )
-                if (isUsed) activeResources.add(resource) else unusedResources.add(resource)
+                if (usedByAnyAvd) activeResources.add(resource) else unusedResources.add(resource)
             }
 
             // 2.k Gradle Daemons
@@ -445,15 +459,40 @@ class WorkspaceRepositoryImpl(
                 }
             }
 
+//            val aggregatedDeps = rawDepsList.groupBy { it.second.id }.map { (depId, pairs) ->
+//                val first = pairs.first().second
+//                val group = first.group
+//                val name = first.name
+//                val versionsMap = pairs.groupBy { it.second.version ?: "unspecified" }
+//                    .mapValues { entry -> entry.value.map { it.first }.distinct().sorted() }
+//                WorkspaceDependencyInfo(
+//                    id = depId,
+//                    group = group,
+//                    artifact = name,
+//                    versionsInUse = versionsMap
+//                )
+//            }.sortedBy { it.id.lowercase() }
+//
+//            val aggregatedPlugins = rawPluginsList.groupBy { it.second.id }.map { (pluginId, pairs) ->
+//                val versionsMap = pairs.groupBy { it.second.version ?: "unspecified" }
+//                    .mapValues { entry -> entry.value.map { it.first }.distinct().sorted() }
+//                WorkspacePluginInfo(
+//                    id = pluginId,
+//                    versionsInUse = versionsMap
+//                )
+//            }.sortedBy { it.id.lowercase() }
+
             onProgress(1f, "Analysis Complete")
             WorkspaceAnalysisResult(
                 projects = projects,
                 unusedResources = unusedResources.sortedByDescending { it.sizeBytes },
-                activeResources = activeResources.sortedByDescending { it.sizeBytes }
+                activeResources = activeResources.sortedByDescending { it.sizeBytes },
+//                workspaceDependencies = aggregatedDeps,
+//                workspacePlugins = aggregatedPlugins
             )
         } catch (e: Exception) {
             AppLogger.e(TAG, e) { "Error analyzing workspace" }
-            WorkspaceAnalysisResult(emptyList(), emptyList(), emptyList())
+            WorkspaceAnalysisResult(emptyList(), emptyList(), emptyList(), emptyList(), emptyList())
         }
     }
 

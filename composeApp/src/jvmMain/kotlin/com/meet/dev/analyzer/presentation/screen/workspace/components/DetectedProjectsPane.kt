@@ -44,6 +44,16 @@ fun DetectedProjectsPane(
         }
     }
 
+    // Handle external highlight requests (e.g. from ResourceItemCard project tags)
+    LaunchedEffect(uiState.highlightedProjectName) {
+        uiState.highlightedProjectName?.let { projectName ->
+            val idx = filteredProjects.indexOfFirst { it.projectName == projectName }
+            if (idx != -1) {
+                projectListState.animateScrollToItem(idx)
+            }
+        }
+    }
+
     Column(
         modifier = modifier.fillMaxHeight()
     ) {

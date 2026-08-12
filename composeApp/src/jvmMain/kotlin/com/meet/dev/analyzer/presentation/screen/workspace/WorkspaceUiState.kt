@@ -9,6 +9,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.meet.dev.analyzer.data.models.project.ProjectOverviewInfo
 import com.meet.dev.analyzer.data.models.workspace.UnusedResourceItem
+import com.meet.dev.analyzer.data.models.workspace.WorkspaceDependencyInfo
+import com.meet.dev.analyzer.data.models.workspace.WorkspacePluginInfo
 import com.meet.dev.analyzer.utility.platform.FolderFileUtils.formatSize
 import kotlinx.coroutines.flow.Flow
 
@@ -35,7 +37,14 @@ data class WorkspaceUiState(
 
     val error: String? = null,
     val isSelectionPanelExpanded: Boolean = true,
-    val lastSubmittedReviewVersion: Flow<String>
+    val lastSubmittedReviewVersion: Flow<String>,
+
+    val workspaceDependencies: List<WorkspaceDependencyInfo> = emptyList(),
+    val workspacePlugins: List<WorkspacePluginInfo> = emptyList(),
+    val workspaceTab: WorkspaceTab = WorkspaceTab.RESOURCES,
+    val dependencyTab: DependencyTypeTab = DependencyTypeTab.LIBRARIES,
+    val dependencySearchQuery: String = "",
+    val showConflictsOnly: Boolean = false
 ) {
     val allSelected: Boolean
         get() = unusedResources.isNotEmpty() && unusedResources.all { it.isSelected }
@@ -115,4 +124,14 @@ enum class ResourceFilter(val label: String) {
     ALL("All"),
     UNUSED("Unused"),
     ACTIVE("Active / Protected")
+}
+
+enum class WorkspaceTab(val label: String) {
+    RESOURCES("Cleanup & Resources"),
+    DEPENDENCIES("Dependency Analyzer")
+}
+
+enum class DependencyTypeTab(val label: String) {
+    LIBRARIES("Libraries"),
+    PLUGINS("Plugins")
 }

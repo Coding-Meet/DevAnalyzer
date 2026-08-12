@@ -1,15 +1,17 @@
 package com.meet.dev.analyzer.presentation.screen.workspace.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -17,6 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Warning
@@ -34,10 +37,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.meet.dev.analyzer.data.models.workspace.CleanupSafety
+import com.meet.dev.analyzer.data.models.workspace.safety
 import com.meet.dev.analyzer.presentation.components.SponsorTipCard
 import com.meet.dev.analyzer.presentation.components.VerticalScrollBarLayout
 import com.meet.dev.analyzer.presentation.screen.workspace.WorkspaceDeletionProgress
@@ -213,12 +220,11 @@ fun WorkspaceDeletionProgressDialog(
 
                 Spacer(modifier = Modifier.height(8.dp))
 
-                BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
+                BoxWithConstraints(modifier = Modifier.fillMaxWidth().height(320.dp)) {
                     LazyColumn(
                         state = scrollState,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .heightIn(max = 400.dp)
+                            .fillMaxSize()
                             .padding(end = 12.dp),
                         contentPadding = PaddingValues(top = 4.dp, bottom = 4.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -238,11 +244,64 @@ fun WorkspaceDeletionProgressDialog(
                                     horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
                                     Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            progress.resourceItem.name,
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            fontWeight = FontWeight.Bold
-                                        )
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                        ) {
+                                            Text(
+                                                text = progress.resourceItem.name,
+                                                style = MaterialTheme.typography.bodyMedium,
+                                                fontWeight = FontWeight.Bold,
+                                                modifier = Modifier.weight(1f, fill = false)
+                                            )
+
+                                            // Sub-category badge
+                                            val badgeShape = RoundedCornerShape(4.dp)
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(badgeShape)
+                                                    .background(
+                                                        MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                                        badgeShape
+                                                    )
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                            ) {
+                                                Text(
+                                                    text = progress.resourceItem.category.displayName,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.SemiBold,
+                                                    color = MaterialTheme.colorScheme.primary,
+                                                    maxLines = 1
+                                                )
+                                            }
+
+                                            // Safety badge
+                                            val safetyColor = when (progress.resourceItem.category.safety) {
+                                                CleanupSafety.HIGH -> Color(0xFF49F651)
+                                                CleanupSafety.MEDIUM -> MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
+                                                CleanupSafety.CAUTION -> MaterialTheme.colorScheme.error
+                                            }
+                                            val safetyBg = when (progress.resourceItem.category.safety) {
+                                                CleanupSafety.HIGH -> Color(0xFFE8F5E9)
+                                                CleanupSafety.MEDIUM -> MaterialTheme.colorScheme.surfaceVariant
+                                                CleanupSafety.CAUTION -> MaterialTheme.colorScheme.errorContainer.copy(alpha = 0.3f)
+                                            }
+
+                                            Box(
+                                                modifier = Modifier
+                                                    .clip(badgeShape)
+                                                    .background(safetyBg, badgeShape)
+                                                    .padding(horizontal = 6.dp, vertical = 2.dp)
+                                            ) {
+                                                Text(
+                                                    text = progress.resourceItem.category.safety.label,
+                                                    style = MaterialTheme.typography.labelSmall,
+                                                    fontWeight = FontWeight.Bold,
+                                                    color = safetyColor,
+                                                    maxLines = 1
+                                                )
+                                            }
+                                        }
                                         Text(
                                             progress.resourceItem.path,
                                             style = MaterialTheme.typography.bodySmall,

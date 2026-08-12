@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.meet.dev.analyzer.data.datastore.PathPreferenceManger
 import com.meet.dev.analyzer.data.models.workspace.ResourceCategory
+import com.meet.dev.analyzer.data.models.workspace.CleanupSafety
+import com.meet.dev.analyzer.data.models.workspace.safety
 import com.meet.dev.analyzer.data.repository.setting.SettingsRepository
 import com.meet.dev.analyzer.data.repository.workspace.WorkspaceRepository
 import com.meet.dev.analyzer.utility.analytics.AnalyticsEvent
@@ -107,12 +109,28 @@ class WorkspaceViewModel(
             WorkspaceIntent.OnToggleSelectionPanel -> {
                 _uiState.update { it.copy(isSelectionPanelExpanded = !it.isSelectionPanelExpanded) }
             }
+            WorkspaceIntent.OnSelectRecommended -> {
+                _uiState.update { state ->
+                    state.copy(
+                        unusedResources = state.unusedResources.map { item ->
+                            val isSafe = item.category.safety == CleanupSafety.HIGH || item.category.safety == CleanupSafety.MEDIUM
+                            item.copy(isSelected = isSafe)
+                        }
+                    )
+                }
+            }
 
             // Analytics event trackers
             WorkspaceIntent.TrackFeedbackOpened -> analyticsManager.capture(AnalyticsEvent.FeedbackOpened)
             WorkspaceIntent.TrackFeedbackCancelled -> analyticsManager.capture(AnalyticsEvent.FeedbackCancelled)
             WorkspaceIntent.TrackReviewPromptShown -> analyticsManager.capture(AnalyticsEvent.ReviewPromptShown)
             WorkspaceIntent.TrackWorkspaceAnalyzerOpened -> analyticsManager.capture(AnalyticsEvent.WorkspaceAnalyzerOpened)
+
+            // Dependency Analyzer intents
+            is WorkspaceIntent.OnWorkspaceTabChange -> _uiState.update { it.copy(workspaceTab = intent.tab) }
+            is WorkspaceIntent.OnDependencyTabChange -> _uiState.update { it.copy(dependencyTab = intent.tab) }
+            is WorkspaceIntent.OnDependencySearchChange -> _uiState.update { it.copy(dependencySearchQuery = intent.query) }
+            is WorkspaceIntent.OnToggleConflictsOnly -> _uiState.update { it.copy(showConflictsOnly = intent.showOnly) }
         }
     }
 
@@ -149,6 +167,10 @@ class WorkspaceViewModel(
                         projects = emptyList(),
                         unusedResources = emptyList(),
                         activeResources = emptyList(),
+                        workspaceDependencies = emptyList(),
+                        workspacePlugins = emptyList(),
+                        dependencySearchQuery = "",
+                        showConflictsOnly = false,
                         searchQuery = "",
                         resourceFilter = ResourceFilter.ALL,
                         highlightedProjectName = null,
@@ -194,6 +216,8 @@ class WorkspaceViewModel(
                             projects = result.projects,
                             unusedResources = result.unusedResources,
                             activeResources = result.activeResources,
+                            workspaceDependencies = result.workspaceDependencies,
+                            workspacePlugins = result.workspacePlugins,
                             scanProgress = 1f,
                             scanStatus = if (result.unusedResources.isEmpty()) "No unused resources found" else "Scan completed",
                             scanElapsedTime = formatElapsedTime(startTime),

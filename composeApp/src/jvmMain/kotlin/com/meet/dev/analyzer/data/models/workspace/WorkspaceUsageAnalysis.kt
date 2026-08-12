@@ -72,6 +72,57 @@ enum class ResourceCategory(
     )
 }
 
+enum class ResourceGroup(
+    val displayName: String,
+    val description: String
+) {
+    EMULATOR(
+        "Emulators & System Images",
+        "Configured Android virtual devices and downloaded system images used to run them."
+    ),
+
+    SDK_TOOLING(
+        "Android SDK & Build Tools",
+        "Android SDK platforms, build-tools, sources, NDKs, and CMake compiler versions."
+    ),
+
+    GRADLE(
+        "Gradle Caches & Wrappers",
+        "Gradle wrapper versions, downloaded dependency caches, build caches, daemons, and toolchain JDKs."
+    ),
+
+    KOTLIN(
+        "Kotlin Native Compilers",
+        "Cached Kotlin Native compiler binaries used for multiplatform projects."
+    )
+}
+
+val ResourceCategory.group: ResourceGroup
+    get() = when (this) {
+
+        ResourceCategory.ANDROID_AVD,
+        ResourceCategory.ANDROID_SYSTEM_IMAGE ->
+            ResourceGroup.EMULATOR
+
+        ResourceCategory.ANDROID_SDK_PLATFORM,
+        ResourceCategory.ANDROID_BUILD_TOOLS,
+        ResourceCategory.ANDROID_NDK,
+        ResourceCategory.ANDROID_CMAKE,
+        ResourceCategory.ANDROID_SDK_SOURCES ->
+            ResourceGroup.SDK_TOOLING
+
+        ResourceCategory.GRADLE_WRAPPER,
+        ResourceCategory.GRADLE_DEPENDENCY_CACHE,
+        ResourceCategory.GRADLE_DAEMON,
+        ResourceCategory.GRADLE_BUILD_CACHE,
+        ResourceCategory.GRADLE_TRANSFORMS_CACHE,
+        ResourceCategory.GRADLE_TEMP_FILES,
+        ResourceCategory.GRADLE_JDK ->
+            ResourceGroup.GRADLE
+
+        ResourceCategory.KOTLIN_NATIVE ->
+            ResourceGroup.KOTLIN
+    }
 data class UnusedResourceItem(
     val uniqueId: String = Uuid.random().toString(),
     val name: String,
@@ -84,8 +135,53 @@ data class UnusedResourceItem(
     val usedByProjects: List<String> = emptyList()
 )
 
+data class WorkspaceDependencyInfo(
+    val id: String,          // e.g. "com.squareup.okhttp3:okhttp"
+    val group: String,       // e.g. "com.squareup.okhttp3"
+    val artifact: String,    // e.g. "okhttp"
+    val versionsInUse: Map<String, List<String>> // Map of VersionString -> List of ProjectNames using it
+)
+
+data class WorkspacePluginInfo(
+    val id: String,          // e.g. "com.android.application"
+    val versionsInUse: Map<String, List<String>> // Map of VersionString -> List of ProjectNames using it
+)
+
 data class WorkspaceAnalysisResult(
     val projects: List<ProjectOverviewInfo>,
     val unusedResources: List<UnusedResourceItem>,
-    val activeResources: List<UnusedResourceItem>
+    val activeResources: List<UnusedResourceItem>,
+    val workspaceDependencies: List<WorkspaceDependencyInfo> = emptyList(),
+    val workspacePlugins: List<WorkspacePluginInfo> = emptyList()
 )
+
+enum class CleanupSafety(val label: String) {
+    HIGH("Recommended"),
+    MEDIUM("Safe"),
+    CAUTION("Caution")
+}
+
+val ResourceCategory.safety: CleanupSafety
+    get() = when (this) {
+
+        ResourceCategory.GRADLE_TEMP_FILES,
+        ResourceCategory.GRADLE_DAEMON ->
+            CleanupSafety.HIGH
+
+        ResourceCategory.GRADLE_BUILD_CACHE,
+        ResourceCategory.GRADLE_TRANSFORMS_CACHE,
+        ResourceCategory.GRADLE_DEPENDENCY_CACHE,
+        ResourceCategory.GRADLE_WRAPPER,
+        ResourceCategory.ANDROID_SDK_SOURCES,
+        ResourceCategory.KOTLIN_NATIVE,
+        ResourceCategory.ANDROID_SDK_PLATFORM,
+        ResourceCategory.ANDROID_BUILD_TOOLS,
+        ResourceCategory.ANDROID_NDK,
+        ResourceCategory.ANDROID_CMAKE ->
+            CleanupSafety.MEDIUM
+
+        ResourceCategory.GRADLE_JDK,
+        ResourceCategory.ANDROID_SYSTEM_IMAGE,
+        ResourceCategory.ANDROID_AVD ->
+            CleanupSafety.CAUTION
+    }

@@ -36,6 +36,9 @@ class PluginAnalyzer {
         AppLogger.d(tag = tag) { "Finding plugins" }
 
         val plugins = arrayListOf<Plugin>()
+        
+        val versionResolver = GradleVersionResolver()
+        versionResolver.collectExtVariables(moduleBuildFileInfos)
 
         // Regex list
         val regexList = listOf(
@@ -61,7 +64,7 @@ class PluginAnalyzer {
                                 match.groupValues[1]       // ex: com.google.gms.google-services
                             val groupId = id.substringBeforeLast(".")  // ex com.google.gms
                             val artifactId = id.substringAfterLast('.') // ex google-services
-                            val version = match.groupValues[2]  // ex: 8.3.2
+                            val version = versionResolver.resolve(match.groupValues[2]) ?: match.groupValues[2] // ex: 8.3.2
 
                             val availableGradleVersions = findAvailableVersionsInGradleCache(
                                 groupId = groupId,
@@ -90,7 +93,7 @@ class PluginAnalyzer {
                         // Case: classpath 'com.android.tools.build:gradle:8.0.2'
                         regexList[2].pattern -> {
                             val id = match.groupValues[1] // ex: com.android.tools.build:gradle
-                            val version = match.groupValues[2] // ex: 8.3.2
+                            val version = versionResolver.resolve(match.groupValues[2]) ?: match.groupValues[2] // ex: 8.3.2
                             val groupId = id.substringBeforeLast(":")  // ex com.android.tools.build
                             val artifactId = id.substringAfterLast(':') // ex gradle
 

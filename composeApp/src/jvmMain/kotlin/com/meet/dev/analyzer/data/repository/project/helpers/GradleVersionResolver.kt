@@ -31,10 +31,10 @@ class GradleVersionResolver {
         
         // Handle $variable or ${variable}
         if (version.contains("$")) {
-            var resolved = version
+            var resolved: String = version
             val varRegex = Regex("""\$([a-zA-Z0-9_]+)|\$\{([a-zA-Z0-9_]+)\}""")
             varRegex.findAll(version).forEach { match ->
-                val varName = match.groupValues[1].ifEmpty { match.groupValues[2] }
+                val varName = if (match.groupValues[1].isNotEmpty()) match.groupValues[1] else match.groupValues[2]
                 extVars[varName]?.let {
                     resolved = resolved.replace(match.value, it)
                 }
