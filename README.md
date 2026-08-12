@@ -23,7 +23,7 @@ DevAnalyzer is a cross-platform desktop application built with Compose Multiplat
 
 - **Project Analyzer**: Analyze modules, Gradle configurations, and dependencies across Android, iOS, JVM, JS, Wasm, and Server targets.
 - **Clean Build**: Scan projects for build folders across all modules and safely batch-delete them to reclaim space.
-- **Workspace Analyzer**: Cross-reference installed Android SDKs, NDKs, CMake, Kotlin/Native toolchains, and Gradle wrappers with your projects to safely remove unused resources.
+- **Workspace Analyzer**: Cross-reference installed Android SDKs, NDKs, CMake, Kotlin/Native toolchains, and Gradle resources with your projects to identify active and unused resources.
 - **Storage Analyzer**: View storage consumed by Android SDKs, Gradle caches, Kotlin/Native toolchains (LLVM/LLDB), JDK, AVDs, and IDE data.
 - **Settings**: Configure custom toolchain paths with smart discovery and manage privacy options.
 
@@ -53,15 +53,19 @@ DevAnalyzer is a cross-platform desktop application built with Compose Multiplat
 ### Workspace Analyzer
 
 - Analyze multiple workspace directories simultaneously.
-- Cross-reference installed Android SDKs, NDKs, CMake versions, Kotlin/Native toolchains, and Gradle wrappers across all projects.
-- Automatically protect active versions referenced by existing projects.
-- Detect unused resources:
+- Cross-reference installed Android SDKs, NDKs, CMake versions, Kotlin/Native toolchains, and Gradle resources across all projects.
+- Automatically identify resources referenced by active projects.
+- Detect unused resources that can be reviewed for cleanup:
   - Android SDK Platforms
   - SDK Build Tools
   - SDK Sources
   - NDK & CMake Versions
   - Gradle Wrapper Caches
+  - Gradle Dependency Cache
   - Kotlin/Native Prebuilts
+  - Gradle Toolchain JDKs
+  - Android System Images
+  - Android Virtual Devices
 
 ### Storage Analyzer
 
