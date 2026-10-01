@@ -1188,6 +1188,13 @@
                     <p class="release-meta"><a
                             href="https://github.com/Coding-Meet/DevAnalyzer/releases"
                             rel="noopener noreferrer" target="_blank">View all releases</a></p>
+                    <div style="margin-top: 1rem; font-size: 0.85rem; color: var(--muted); text-align: left;">
+                        <p><strong>macOS Gatekeeper Note:</strong> App is not notarized. If blocked,
+                            go to <strong>System Settings → Privacy & Security → Allow
+                                Anyway</strong> or run:</p>
+                        <code style="display: block; background: rgba(0,0,0,0.2); padding: 0.5rem; border-radius: 4px; margin-top: 0.25rem; user-select: all;">xattr
+                            -dr com.apple.quarantine /Applications/DevAnalyzer.app</code>
+                    </div>
                 </div>
             </div>
         </div>

@@ -148,7 +148,19 @@ If you want to build and run the app from source:
 Download the latest release from the [Releases](https://github.com/Coding-Meet/DevAnalyzer/releases) page.
 
 - **Windows**: Download the `.msi` installer.
-- **macOS**: Download the `.dmg` file. (If blocked by security settings, go to **System Settings → Privacy & Security → Allow Anyway** to run).
+- **macOS**: Download the `.dmg` file.
+  > **Note on macOS Notarization**: DevAnalyzer is currently not notarized by Apple. Because of
+  this, macOS Gatekeeper may block the app when first opened with a warning that the app cannot be
+  opened because the developer cannot be verified.
+  >
+  > If blocked by security settings, go to **System Settings → Privacy & Security → Allow Anyway**
+  to run.
+  >
+  > Alternatively, you can right-click the app in Finder, select **Open**, and click **Open** in the
+  dialog prompt, or remove the quarantine attribute by running the following command in Terminal:
+  > ```shell
+  > xattr -dr com.apple.quarantine /Applications/DevAnalyzer.app
+  > ```
 - **Linux**: Install the `.deb` package using:
   ```shell
   sudo dpkg -i devanalyzer_1.0.0-1_amd64.deb
